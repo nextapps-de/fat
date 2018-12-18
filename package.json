@@ -1,0 +1,60 @@
+{
+  "name": "fat",
+  "version": "0.1.0",
+  "description": "The fast animation tool with zero dependencies.",
+  "homepage": "https://github.com/nextapps-de/fat/",
+  "author": "Thomas Wilkerling",
+  "copyright": "Nextapps GmbH",
+  "license": "Apache-2.0",
+  "keywords": [
+    "fast animation tool",
+    "animation",
+    "html5",
+    "tween",
+    "javascript",
+    "waapi",
+    "transition",
+    "transform",
+    "web animation"
+  ],
+  "bugs": {
+    "url": "https://github.com/nextapps-de/fat/issues",
+    "email": "info@nextapps.de"
+  },
+  "main": "fat.min.js",
+  "preferGlobal": false,
+  "bin": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nextapps-de/fat.git"
+  },
+  "scripts": {
+    "build": "node compile RELEASE=min SUPPORT_DEBUG=false SUPPORT_COLOR=true SUPPORT_CONTROL=true SUPPORT_ENGINE='all' SUPPORT_TRANSFORM=true SUPPORT_EASING=true && exit 0",
+    "build-light": "node compile RELEASE=light SUPPORT_DEBUG=false SUPPORT_COLOR=false SUPPORT_CONTROL=false SUPPORT_ENGINE='js' SUPPORT_TRANSFORM=false SUPPORT_EASING=false && exit 0",
+    "build-custom": "node compile RELEASE=custom SUPPORT_DEBUG=false SUPPORT_COLOR=false SUPPORT_CONTROL=false SUPPORT_ENGINE='none' SUPPORT_TRANSFORM=false SUPPORT_EASING=false && exit 0",
+    "build-all": "npm run build && npm run build-light",
+    "test": "mocha-phantomjs test/index.html",
+    "update": "updtr --to non-breaking",
+    "coverage": "nyc report --reporter=lcov --reporter=text-lcov | coveralls"
+  },
+  "files": [
+    "fat.js",
+    "fat.min.js",
+    "fat.light.js",
+    "compile.js",
+    "LICENSE"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "codacy-coverage": "^3.0.0",
+    "coveralls": "^3.0.1",
+    "google-closure-compiler": "^20190102.0.0-nightly",
+    "mocha": "^5.2.0",
+    "mocha-lcov-reporter": "^1.3.0",
+    "mocha-phantomjs": "^4.1.0",
+    "nyc": "^11.9.0",
+    "phantomjs-prebuilt": "^2.1.16",
+    "updtr": "^2.0.0"
+  }
+}

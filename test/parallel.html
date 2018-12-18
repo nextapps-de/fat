@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<link rel="stylesheet" href="../style.css" media="screen" type="text/css">
+	<link href="http://fonts.googleapis.com/css?family=Oswald:700" rel="stylesheet" type='text/css'>
+	<title>Test: Parallel</title>
+	<style>
+		.square{
+			position: relative;
+			display: inline-block;
+			top:0;
+			left:0;
+			width: auto;
+			height: auto;
+			vertical-align: text-bottom;
+			background-color: #fff;
+			padding: 20px;
+			margin-bottom: 5%;
+		}
+	</style>
+</head>
+<body>
+<div id="container">
+	<br><br><br><br><br><br>
+	<div id="square_1" class="square"><pre>Fat.animate("#square_1", { left: "50%" },{ delay:   0 })</pre></div>
+</div>
+<script type="text/javascript" src="../fat.js"></script>
+<script>
+	Fat.animate("#square_1", { left: "200px" },{ delay:    0, duration: 2000, callback: function(){
+		Fat.animate(this, { left:  0 },{ delay: 2000, duration: 2000 })
+	}});
+
+	Fat.animate("#square_1", { top:  "200px" },{ delay: 1000, duration: 2000, callback: function(){
+		Fat.animate(this, { top: 400 },{ delay:    0, duration: 2000 })
+	}});
+</script>
+</body>
+</html>

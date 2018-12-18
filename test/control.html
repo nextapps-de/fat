@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<link rel="stylesheet" href="../style.css" media="screen" type="text/css">
+	<link href="http://fonts.googleapis.com/css?family=Oswald:700" rel="stylesheet" type='text/css'>
+	<title>Test: Control</title>
+	<style>
+		.square{
+			position: relative;
+			display: inline-block;
+			left:0;
+			width: auto;
+			height: auto;
+			vertical-align: text-bottom;
+			background-color: #fff;
+			padding: 20px;
+			margin-bottom: 5%;
+		}
+	</style>
+</head>
+<body>
+<div id="container">
+	<br><br><br><br><br><br>
+	<div id="square_1" class="square"></div><br>
+</div>
+<script type="text/javascript" src="../fat.js"></script>
+<script>
+	let animation = Fat.animate("#square_1", { left: "50%" },{ duration: 10000 });
+	window.setTimeout(function(){
+		animation.pause();
+	}, 1000);
+	window.setTimeout(function(){
+		animation.start();
+	}, 2000);
+	window.setTimeout(function(){
+		animation.reverse();
+	}, 3000);
+	window.setTimeout(function(){
+		animation.reverse();
+	}, 4000);
+</script>
+</body>
+</html>

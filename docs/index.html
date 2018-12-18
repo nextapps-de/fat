@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<meta name="keywords" content="FAT, Fast Animation Tool, Performance, Test, Speedtest, Comparison, jQuery, HTML5, CSS3, 60 FPS">
+	<meta name="description" content="FAT (Fast Animation Tool) is the fastest as well as the most leightweight animation tool based on JavaScript, HTML5 and CSS3.">
+	<meta name="copyright" content="Nextapps GmbH">
+	<meta name="author" content="Thomas Wilkerling">
+	<meta name="subject" content="World's fastest and most lightweight web animation tool.">
+	<meta property="og:url" content="https://nextapps-de.github.io/fat/">
+	<meta property="og:image" content="poster.png">
+	<meta property="og:icon" content="icon.png">
+	<meta property="og:description" content="FAT (Fast Animation Tool) is the world's fastest as well as the most leightweight web animation tool based on JavaScript.">
+	<meta property="og:title" content="FAT - Fast Animation Tool">
+	<link rel="stylesheet" href="style.css" media="screen" type="text/css">
+	<link rel="icon" href="icon.png">
+	<title>FAT - Fast Animation Tool</title>
+</head>
+<body>
+<div id="container"></div>
+<table>
+	<tr>
+		<td id="logo"></td>
+	</tr>
+	<tr>
+		<td id="buttons">
+			Project Homepage:<br>
+			<a href="https://github.com/nextapps-de/fat" class="button">https://github.com/nextapps-de/fat</a>
+		</td>
+	</tr>
+</table>
+<!--
+<canvas id="container_canvas" style="image-rendering: crisp-edges; image-rendering: -moz-crisp-edges; image-rendering: -webkit-optimize-contrast; -ms-interpolation-mode: nearest-neighbor;"></canvas>
+-->
+<div id="wrapper">
+	<div id="control" style="float:left">
+		<select id="ballcount">
+		    <option value="1">1</option>
+			<option value="25">25</option>
+			<option value="50">50</option>
+			<option value="100">100</option>
+			<option value="200">200</option>
+			<option value="300">300</option>
+			<option value="400">400</option>
+			<option value="500">500</option>
+			<option value="750">750</option>
+			<option value="1000">1000</option>
+			<option value="1500" selected="selected">1500</option>
+			<option value="2000">2000</option>
+			<option value="2500">2500</option>
+			<option value="3000">3000</option>
+			<option value="5000">5000</option>
+			<option value="10000">10000</option>
+		</select>
+		<select id="anitools">
+		    <option value="JQUERY">jQuery</option>
+			<option value="VELOCITY">velocity.js</option>
+			<option value="ZEPTO">Zepto</option>
+			<!--<option value="JSANIM">jsAnim</option>-->
+			<!--<option value="JSANIM2">js-anim</option>-->
+			<!--<option value="ANIMATOR">Animator.js</option>-->
+			<option value="ANIMEJS">anime.js</option>
+			<option value="DOJO">Dojo</option>
+			<option value="YUI">YUI</option>
+			<option value="GSAP">GSAP</option>
+			<option value="MOOTOOLS">mootools</option>
+			<option value="TWEENJS">TweenJS</option>
+			<option value="JUSTANIMATE">JustAnimate</option>
+			<option value="WEBANIMATION">WebAnimation</option>
+			<!--<option value="QOOXDOO">Qooxdoo</option>-->
+			<option value="FAT" selected="selected">FAT</option>
+			<!--
+			<option value="FAT" selected="selected">FAT (JS)</option>
+			<option value="FAT_TRANS">FAT (JS Transform)</option>
+			<option value="FAT_CSS3">FAT (CSS3)</option>
+			<option value="FAT_CSS3_TRANS">FAT (CSS3 Transform)</option>
+			<option value="FAT_NATIVE">FAT (Native)</option>
+			<option value="FAT_NATIVE_TRANS">FAT (Native Transform)</option>
+			-->
+			<!--
+			<option value="FAT_CANVAS">FAT (GFX)</option>
+			-->
+		</select>
+		<div id="btn_start" class="button button_green_dark">Start</div>
+		<div id="btn_mask"><input id="checkmask" type="checkbox"> Mask</div>
+		<br>
+	</div>
+	<div id="stat_vals">
+		MOVES: &nbsp;<input type="text" id="step" style="width:50px; border:2px solid #00ff00; background-color:#006600; color:#fff" value="-"> &nbsp; &nbsp;
+		FPS: &nbsp;<input type="text" id="fps" value="-"> &nbsp; &nbsp;
+		Median: &nbsp;<input type="text" id="median" value="-"> &nbsp; &nbsp;
+		Min: &nbsp;<input type="text" id="min" value="-"> &nbsp; &nbsp;
+		Max: &nbsp;<input type="text" id="max" value="-"> &nbsp; &nbsp;
+	</div>
+</div>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/nextapps-de/fat/fat.light.js"></script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/just-animate/2.5.1/just-animate.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/just-animate/2.5.1/just-animate-web.min.js"></script>
+<!--<script type="text/javascript" src="jsAnim.js"></script>-->
+<!--<script type="text/javascript" src="animator.min.js"></script>-->
+<!--<script type="text/javascript" src="js-anim.min.js"></script>-->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/animejs/2.2.0/anime.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/velocity/2.0.5/velocity.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.0.2/TweenLite.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.0.2/plugins/CSSPlugin.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/zepto/1.2.0/zepto.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/madrobby/zepto@master/src/fx.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/yui/3.18.0/yui/yui-min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mootools/1.6.0/mootools-core.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/tweenjs/1.0.2/tweenjs.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/CreateJS/TweenJS@master/src/tweenjs/plugins/CSSPlugin.min.js"></script>
+<!--<script type="text/javascript" src="q-3.5.1.min.js"></script>-->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dojo/1.10.4/dojo.js"></script>
+<script type="text/javascript" src="main.js"></script>
+</body>
+</html>

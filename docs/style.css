@@ -1,0 +1,199 @@
+html, body{
+	margin:0;
+	padding:0;
+	width:100%;
+	height:100%;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:11px;
+}
+body{
+	position:relative;
+	margin:0 !important;
+	padding:0 !important;
+	background-color:#222; background-image:url(background.png); background-repeat:repeat;
+}
+#stat_vals{
+	float:right;
+}
+#stat_vals input{	
+	width:35px; border:2px solid rgb(169, 169, 169); background-color:#222; color:#fff;
+}
+#btn_start{
+	width:70px; font-weight:bold; display:inline-block
+}
+#btn_mask{
+	display:inline-block; font-size:15px; position:relative; top:5px; left:3px	
+}
+#checkmask{
+	cursor:pointer; position:relative; top:1px;
+}
+#container{
+	position:absolute;
+	top:0;
+	left:0;
+	right:0;
+	bottom:0;
+	width:100%;
+	height:100%;
+	overflow:hidden;
+	pointer-events:none;
+	contain: strict;
+	margin:0;
+	padding:0;
+}
+canvas{
+	position:absolute; top:0; left:0; right:0; bottom:0;
+	width:100%;
+	height:100%;
+	overflow:hidden;
+	pointer-events:none;
+	margin:0;
+	padding:0;	
+	display:none;
+	
+	image-rendering: crisp-edges;
+	image-rendering: -moz-crisp-edges;
+	image-rendering: -webkit-optimize-contrast;
+	-ms-interpolation-mode: nearest-neighbor;	
+}
+.ball{
+	position:absolute;
+	width:12px;
+	height:12px;
+	border-radius:12px;
+}
+table{
+	position:absolute;
+	top:0;
+	left:0;
+	right:0;
+	bottom:0;
+	width:100%;
+	height:100%;
+	opacity:1;
+	transition-property:opacity;
+	transition-duration:0.3s;
+	contain: strict;
+}
+table tr{
+	height: 50%;
+}
+#logo{
+	background-image:url(fat_logo_white.svg);
+	background-repeat:no-repeat;
+	background-size:50% 50%;
+	background-position:center bottom;
+}
+#buttons{
+	text-align: center;
+	vertical-align: top;
+	padding-top: 3%;
+	color: #fff;
+}
+#wrapper{
+	position:absolute; bottom:0; left:0; right:0; text-align:left; color:#fff; padding:10px; background-color:rgba(0, 0, 0, 0.5);
+	height: 30px;
+}
+.button {
+	font-size:15px;
+	font-weight:700;
+	display:inline-block;
+	text-align:center;
+	vertical-align:middle;
+	line-height:18px;
+	color:#fff;
+	cursor:pointer;
+	text-decoration:none;
+	/*
+	transition-property:color, opacity;
+	transition-duration:0.5s;
+	*/
+	border-radius:4px;
+	padding:5px 10px 5px 10px;
+	margin:0 auto 0 auto;
+	
+	border:1px solid transparent;
+	box-shadow:0 0px 0px 0px rgba(0, 0, 0, 0);
+	text-shadow:0 0px 0px rgba(0, 0, 0, 0);
+	-webkit-transform: translateZ(0);
+}
+.button b{
+	font-size:13px;
+	font-weight:700;
+}
+
+.button.active, .button:hover{
+	color:#00ff00;
+}
+
+.button_green, .button_silver:hover, .button_green.active, .button_green_dark:hover{
+
+	color:#000 !important;
+	background:#00FF00;
+	background:linear-gradient(to bottom, #7FFF00 0%, #00AA00 100%);
+	border-top:1px solid #AAFF55;
+	border-right:1px solid #008000;
+	border-bottom:1px solid #008000 !important;
+	border-left:1px solid #AAFF55;
+
+	text-shadow:1px 1px 0px rgba(255, 255, 255, 0.5);
+	box-shadow:0 0px 4px 0px rgba(0, 0, 0, 1);
+
+}
+.button_green_dark{
+
+	
+	color:#111 !important;
+	background:#00AA00;
+	background:linear-gradient(to bottom, #55AA00 0%, #008800 100%);
+	border-top:1px solid #80FF00;
+	border-right:1px solid #003300;
+	border-bottom:1px solid #003300 !important;
+	border-left:1px solid #80FF00;
+
+	text-shadow:1px 1px 0px rgba(255, 255, 255, 0.25);
+	box-shadow:0 0px 4px 0px rgba(0, 0, 0, 1);
+
+}
+
+.button_silver{
+
+	
+	color:#333 !important;
+	background:#CCC;
+	background:linear-gradient(to bottom, #FFF 0%, #999 100%);
+	border-top:1px solid #fff;
+	border-right:1px solid #555;
+	border-bottom:1px solid #555 !important;
+	border-left:1px solid #fff;
+
+	text-shadow:1px 1px 0px rgba(255, 255, 255, 0.65);
+	box-shadow:0 0px 4px 0px rgba(0, 0, 0, 1);
+	/*
+	padding:5px 10px 5px 10px;
+	margin:3px auto 3px auto;
+	*/
+
+
+}
+.button_silver:hover{
+	/*
+	padding:8px 13px 8px 13px;
+	margin:0 auto 0 auto;
+	*/
+}
+select {
+	background-color:#222;
+	color: #fff;
+	text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.35);
+	border-width:2px;
+}
+select option:hover {
+	background-color:#222;
+	color: #fff;
+	text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.35);
+}
+
+.mobile_break{
+	display:none;
+}
