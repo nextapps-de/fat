@@ -2,43 +2,82 @@
 <html lang="en">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
-	<link rel="stylesheet" href="../style.css" media="screen" type="text/css">
-	<link href="http://fonts.googleapis.com/css?family=Oswald:700" rel="stylesheet" type='text/css'>
 	<title>Test: Control</title>
 	<style>
 		.square{
-			position: relative;
+			position: absolute;
 			display: inline-block;
 			left:0;
 			width: auto;
 			height: auto;
 			vertical-align: text-bottom;
-			background-color: #fff;
+			background-color: #000;
 			padding: 20px;
 			margin-bottom: 5%;
 		}
 	</style>
 </head>
 <body>
-<div id="container">
-	<br><br><br><br><br><br>
-	<div id="square_1" class="square"></div><br>
-</div>
+<div id="square_1" class="square"></div><br>
 <script type="text/javascript" src="../fat.js"></script>
 <script>
-	let animation = Fat.animate("#square_1", { left: "50%" },{ duration: 10000 });
-	window.setTimeout(function(){
-		animation.pause();
+
+	const scene = Fat.animate("#square_1", {
+
+		left: "50%"
+	},{
+		duration: 20000,
+		callback: function(){
+			console.log("finished");
+		}
+	});
+
+	setTimeout(function(){
+		scene.seek(0.5);
 	}, 1000);
-	window.setTimeout(function(){
-		animation.start();
+
+	setTimeout(function(){
+		scene.seek(0);
 	}, 2000);
-	window.setTimeout(function(){
-		animation.reverse();
+
+	setTimeout(function(){
+		scene.pause();
 	}, 3000);
-	window.setTimeout(function(){
-		animation.reverse();
+
+	setTimeout(function(){
+		scene.start();
 	}, 4000);
+
+	setTimeout(function(){
+		scene.reverse();
+	}, 5000);
+
+	setTimeout(function(){
+		scene.reverse();
+	}, 6000);
+
+	setTimeout(function(){
+		scene.speed(2);
+	}, 7000);
+
+	setTimeout(function(){
+		scene.speed(0.5);
+	}, 8000);
+
+	setTimeout(function(){
+		scene.reset();
+	}, 9000);
+
+	/*
+	setTimeout(function(){
+		scene.stop();
+	}, 10000);
+	*/
+
+	setTimeout(function(){
+		scene.finish();
+	}, 10000);
+
 </script>
 </body>
 </html>

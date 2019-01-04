@@ -2,31 +2,34 @@
 <html lang="en">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
-	<link rel="stylesheet" href="../style.css" media="screen" type="text/css">
-	<link href="http://fonts.googleapis.com/css?family=Oswald:700" rel="stylesheet" type='text/css'>
 	<title>Test: Force</title>
 	<style>
 		.square{
-			position: relative;
+			position: absolute;
 			display: inline-block;
 			left: 0 !important;
 			width: auto;
 			height: auto;
 			vertical-align: text-bottom;
-			background-color: #fff;
+			background-color: #000;
 			padding: 20px;
 			margin-bottom: 5%;
 		}
 	</style>
 </head>
 <body>
-<div id="container">
-	<br><br><br><br><br><br>
-	<div id="square_1" class="square"></div><br>
-</div>
+<div id="square_1" class="square"></div><br>
 <script type="text/javascript" src="../fat.js"></script>
 <script>
-	Fat.animate("#square_1", { left: "50%" },{ duration: 2000, force: true });
+
+	Fat.animate("#square_1", {
+
+		left: "50%"
+	},{
+		duration: 2000,
+		force: true
+	});
+
 </script>
 </body>
 </html>

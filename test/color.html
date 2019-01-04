@@ -2,8 +2,6 @@
 <html lang="en">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
-	<link rel="stylesheet" href="../style.css" media="screen" type="text/css">
-	<link href="http://fonts.googleapis.com/css?family=Oswald:700" rel="stylesheet" type='text/css'>
 	<title>Test: Color</title>
 	<style>
 		.square{
@@ -13,52 +11,133 @@
 			width: auto;
 			height: auto;
 			vertical-align: text-bottom;
-			background-color: #fff;
+			border: 5px solid;
+			background-color: #00f;
 		    border-color: #0f0;
-			color: #000;
+			color: #fff;
 			padding: 20px;
 			margin-bottom: 5%;
+		}
+		#square_a{
+			color: rgba(0, 0, 0, 0.5);
+			background-color: rgba(0, 0, 0, 0.5);
+			border-color: rgba(0, 0, 0, 0.5);
+		}
+		#square_b{
+			color: #000000;
+			background-color: #000000;
+			border-color: #000000;
+		}
+		#square_c{
+			color: #000;
+			background-color: hsl(0, 0%, 0%);
+			border-color: rgb(0%, 0%, 0%);
+		}
+		#square_d{
+			background-color: rgba(0, 0, 0, 0.5);
+		}
+		#square_e{
+			background-color: hsla(0, 0%, 0%, 0.5);
+		}
+		#square_f{
+			background-color: rgba(0, 0, 0, 0.5);
+		}
+		#square_g{
+			background-color: rgba(0%, 0%, 0%, 0.5);
+		}
+		#square_h{
+			background-color: hsla(0, 0%, 0%, 0.5);
 		}
 	</style>
 </head>
 <body>
-<div id="container">
-	<br><br><br><br><br><br>
-	<div id="square_1" class="square">Test</div><br>
-</div>
+<div id="square_1" class="square">Test A</div>
+<div id="square_2" class="square">Test B</div>
+<div id="square_3" class="square">Test C</div>
+<div id="square_4" class="square">Test D</div>
+<div id="square_5" class="square">Test E</div>
+<div id="square_6" class="square">Test F</div>
+<div id="square_7" class="square">Test G</div>
+<div id="square_8" class="square">Test H</div>
+<br>
+<div id="square_a" class="square">Test A</div>
+<div id="square_b" class="square">Test B</div>
+<div id="square_c" class="square">Test C</div>
+<div id="square_d" class="square">Test D</div>
+<div id="square_e" class="square">Test E</div>
+<div id="square_f" class="square">Test F</div>
+<div id="square_g" class="square">Test G</div>
+<div id="square_h" class="square">Test H</div>
 <script type="text/javascript" src="../fat.js"></script>
 <script>
 
-
 	Fat.animate("#square_1", {
 
-		color: "#fff",
-		backgroundColor: "#00f",
-		borderColor: "#f00"
-
-	},{ duration: 2000 });
-
-
-	/*
-	Fat.animate("#square_1", {
-
-		colorR: 255,
-		colorG: 255,
-		colorB: 255,
-		colorAlpha: 255,
+		colorR: 0,
+		colorG: 0,
+		colorB: 0,
+		colorA: 0.5,
 
 		backgroundColorR: 0,
 		backgroundColorG: 0,
-		backgroundColorB: 255,
-		backgroundColorAlpha: 255,
+		backgroundColorB: 0,
+		backgroundColorA: 0.5,
 
 		borderColorR: 0,
 		borderColorG: 0,
-		borderColorB: 255,
-		borderColorAlpha: 255
+		borderColorB: 0,
+		borderColorA: 0.5
 
 	},{ duration: 2000 });
-	*/
+
+	Fat.animate("#square_2", {
+
+		color: "#000000",
+		backgroundColor: "#000000",
+		borderColor: "#000000"
+
+	},{ duration: 2000 });
+
+	Fat.animate("#square_3", {
+
+		color: "#000",
+		backgroundColor: "hsl(0, 0, 0)",
+		borderColor: "rgb(0%, 0%, 0%)"
+
+	},{ duration: 2000 });
+
+	Fat.animate("#square_4", {
+
+		backgroundColor: "rgba(0, 0, 0, 0.5)"
+
+	},{ duration: 2000 });
+
+	Fat.animate("#square_5", {
+
+		backgroundColor: "hsla(0, 0, 0, 0.5)"
+
+	},{ duration: 2000 });
+
+	Fat.animate("#square_6", {
+
+		backgroundColorR: 0,
+		backgroundColorG: 0,
+		backgroundColorB: 0,
+		backgroundColorA: 0.5
+
+	},{ duration: 2000 });
+
+	Fat.animate("#square_7", {
+
+		backgroundColor: "rgba(0%, 0%, 0%, 0.5)"
+
+	},{ duration: 2000 });
+
+	Fat.animate("#square_8", {
+
+		backgroundColor: "hsla(0, 0%, 0%, 0.5)"
+
+	},{ duration: 2000 });
 
 </script>
 </body>

@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
-	<title>Test: Init</title>
+	<title>Test: Sequence</title>
 	<style>
 		.square{
 			position: absolute;
 			display: inline-block;
+			top:0;
 			left:0;
 			width: auto;
 			height: auto;
@@ -22,17 +23,21 @@
 <script type="text/javascript" src="../fat.js"></script>
 <script>
 
-	Fat.animate("#square_1", { left: "50%" },{ duration: 2000, callback: function(){
+	Fat.animate("#square_1", [{
 
-		this.style.left = "0%";
+		left: "50%",
+		top: "50%"
+	},{
+		left: 0,
+		top: 0
+	}],{
+		duration: 2000,
+		loop: -1,
+		callback: function(){
 
-		Fat.init().animate("#square_1", { left: "50%" },{ duration: 2000, callback: function(){
-
-			this.style.left = "0%";
-
-			Fat.animate("#square_1", { left: "50%" },{ duration: 2000, init: true });
-		}});
-	}});
+			console.log("loop");
+		}
+	});
 
 </script>
 </body>

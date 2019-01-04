@@ -1,6 +1,6 @@
 {
   "name": "fat",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The fast animation tool with zero dependencies.",
   "homepage": "https://github.com/nextapps-de/fat/",
   "author": "Thomas Wilkerling",
@@ -29,9 +29,9 @@
     "url": "git+https://github.com/nextapps-de/fat.git"
   },
   "scripts": {
-    "build": "node compile RELEASE=min SUPPORT_DEBUG=false SUPPORT_COLOR=true SUPPORT_CONTROL=true SUPPORT_ENGINE='all' SUPPORT_TRANSFORM=true SUPPORT_EASING=true && exit 0",
-    "build-light": "node compile RELEASE=light SUPPORT_DEBUG=false SUPPORT_COLOR=false SUPPORT_CONTROL=false SUPPORT_ENGINE='js' SUPPORT_TRANSFORM=false SUPPORT_EASING=false && exit 0",
-    "build-custom": "node compile RELEASE=custom SUPPORT_DEBUG=false SUPPORT_COLOR=false SUPPORT_CONTROL=false SUPPORT_ENGINE='none' SUPPORT_TRANSFORM=false SUPPORT_EASING=false && exit 0",
+    "build": "node compile RELEASE=min SUPPORT_DEBUG=false SUPPORT_COLOR=true SUPPORT_CONTROL=true SUPPORT_SEQUENCES=true SUPPORT_ENGINE='all' SUPPORT_TRANSFORM=true SUPPORT_EASING=true",
+    "build-light": "node compile RELEASE=light SUPPORT_DEBUG=false SUPPORT_COLOR=false SUPPORT_CONTROL=false SUPPORT_SEQUENCES=false SUPPORT_ENGINE='js' SUPPORT_TRANSFORM=false SUPPORT_EASING=false",
+    "build-custom": "node compile RELEASE=custom SUPPORT_DEBUG=false SUPPORT_COLOR=false SUPPORT_CONTROL=false SUPPORT_SEQUENCES=false SUPPORT_ENGINE='none' SUPPORT_TRANSFORM=false SUPPORT_EASING=false",
     "build-all": "npm run build && npm run build-light",
     "test": "mocha-phantomjs test/index.html",
     "update": "updtr --to non-breaking",

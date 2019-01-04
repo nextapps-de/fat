@@ -1,5 +1,5 @@
 ;/**!
- * @preserve FAT v0.1.0
+ * @preserve FAT v0.2.0
  * Copyright 2019 Nextapps GmbH
  * Author: Thomas Wilkerling
  * Released under the Apache 2.0 Licence
@@ -9,8 +9,9 @@
 /** @define {boolean} */ const SUPPORT_DEBUG = true;
 /** @define {boolean} */ const SUPPORT_COLOR = true;
 /** @define {boolean} */ const SUPPORT_CONTROL = true;
+/** @define {boolean} */ const SUPPORT_SEQUENCES = true;
 /** @define {boolean} */ const SUPPORT_TRANSFORM = true;
-/** @define {string} */  const SUPPORT_ENGINE = "all";
+/** @define {string} */  const SUPPORT_ENGINE = "";
 /** @define {boolean} */ const SUPPORT_ANIMATE = SUPPORT_ENGINE ? SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "js" : true;
 /** @define {boolean} */ const SUPPORT_TRANSITION = SUPPORT_ENGINE ? SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "css" : true;
 /** @define {boolean} */ const SUPPORT_NATIVE = SUPPORT_ENGINE ? SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "native" || SUPPORT_ENGINE === "waapi" : true;
@@ -57,15 +58,13 @@
         const res = Math.max(screen.width, screen.height);
         const prefetch = create_object();
         const prefetch_resolution = 1000;
+        const float_resolution = 1000;
+
         const vendor = (SUPPORT_TRANSFORM || SUPPORT_TRANSITION) && (function(){
 
-            const styles = getComputedStyle(document.body, null);
+            const styles = getComputedStyle(document.body);
 
-            if(!is_undefined(styles["transform"])){
-
-                return "";
-            }
-            else{
+            if(is_undefined(styles["transform"])){
 
                 const vendors = ["ms", "moz", "webkit", "o"];
 
@@ -77,12 +76,17 @@
                     }
                 }
             }
+            else{
+
+                return "";
+            }
 
         })();
-        const prefix_transform = SUPPORT_TRANSFORM && vendor && (vendor + "Transform");
-        const prefix_transform_js = SUPPORT_TRANSFORM && vendor && ("-" + prefix_transform.replace("T", "-t"));
-        const prefix_transition = SUPPORT_TRANSITION && vendor && (vendor + "Transition");
-        const prefix_transition_js = SUPPORT_TRANSITION && vendor && ("-" + prefix_transition.replace("T", "-t"));
+
+        const prefix_transform = vendor && (vendor + "Transform");
+        const prefix_transform_js = vendor && ("-" + prefix_transform.replace("T", "-t"));
+        const prefix_transition = vendor && (vendor + "Transition");
+        const prefix_transition_js = vendor && ("-" + prefix_transition.replace("T", "-t"));
 
         let last_update = 0;
 
@@ -402,6 +406,21 @@
         }
 
         /**
+         * @param obj
+         * @param style
+         * @param from
+         * @param to
+         * @param metric
+         * @param force
+         * @param duration
+         * @param ease_str
+         * @param callback
+         * @param step
+         * @param {number=} delay
+         * @param {number=} loop
+         * @param {string=} transform
+         * @param {number=} color
+         * @param {string=} color_group
          * @constructor
          */
 
@@ -409,28 +428,27 @@
 
             obj,
             style,
-            css,
             from,
             to,
             metric,
             force,
             duration,
             ease_str,
-            res,
             callback,
             step,
             delay,
+            loop,
             transform,
-            color
+            color,
+            color_group
         ){
             this.obj = obj;
+            this.css = obj._style;
             this.style = style;
-            this.css = css;
             this.from = from;
             this.to = to;
             this.current = from;
             this.metric = metric;
-            this.metric_type = (metric.length === 0 ? 0 : (metric === "%" ? 1 : 2));
             this.force = force;
             this.duration = duration;
             this.ease_str = ease_str;
@@ -442,25 +460,23 @@
             this.diff = (to - from) / 100;
             this.res = res / duration;
             this.delay = delay;
+            this.loop = loop;
+            this.float = (SUPPORT_COLOR && color ? ((metric === "%") || (style.indexOf("A") !== -1)) : (metric !== "px"));
 
-            if(SUPPORT_CONTROL){
+            if(SUPPORT_COLOR){
 
-                this.dir = true;
-                this.pause = false;
+                if(color){
+
+                    this.color = color;
+                    this.color_group = color_group;
+                }
             }
 
             if(SUPPORT_TRANSFORM){
 
-                this.transform = transform;
-            }
+                if(transform){
 
-            if(SUPPORT_COLOR){
-
-                this.color = color;
-
-                if(color){
-
-                    this.metric_type = 2;
+                    this.transform = transform;
                 }
             }
         }
@@ -475,89 +491,77 @@
 
             Job.prototype.animate = function(time, ratio, direction){
 
-                const style = this.style;
-                const stamp = Math.max((time - (this.start || (this.start = (time /*+ this.delay*/))) ), 0);
+                const bypass = this.from === this.to;
+                const obj = this.obj;
+                const stamp = Math.max((time - (this.start || (this.start = (time /*+ this.delay*/)))) * (SUPPORT_CONTROL ? ratio : 1), 0);
                 const complete = stamp >= this.duration;
 
                 let current_value;
 
-                if(complete){
+                if(!bypass){
 
-                    current_value = !SUPPORT_CONTROL || direction ? this.to : this.from;
-                }
-                else{
+                    if(complete){
 
-                    current_value = this.diff * this.ease[(this.res * stamp + 0.5) >> 0] / prefetch_resolution;
-
-                    if(!SUPPORT_CONTROL || direction){
-
-                        current_value = this.from + current_value;
+                        current_value = (SUPPORT_CONTROL && !direction) ? this.from : this.to;
                     }
                     else{
 
-                        current_value = this.to - current_value;
+                        current_value = this.diff * this.ease[((this.res * stamp + 0.5) >> 0)] / prefetch_resolution;
+
+                        if(SUPPORT_CONTROL && !direction){
+
+                            current_value = this.to - current_value;
+                        }
+                        else{
+
+                            current_value = this.from + current_value;
+                        }
+
+                        current_value = (
+
+                            this.float ? // --> 0.0 - 1.0, %, deg, em
+
+                                ((current_value * float_resolution + 0.5) >> 0) / float_resolution
+                            :
+                                (current_value + 0.5) >> 0
+                        );
                     }
-
-                    const metric_type = this.metric_type;
-
-                    current_value = (
-
-                        metric_type < 2 /*metric_type === 0*/ ? // --> 0.0 - 1.0
-
-                            ((current_value * 1000 + 0.5) >> 0) / 1000
-                        :
-
-                        // metric_type === 1 ? // --> %, deg, em
-                        //
-                        //     ((current_value * 1000 + 0.5) >> 0) / 1000
-                        // :
-
-                            (current_value + 0.5) >> 0
-                    );
                 }
 
-                if(this.current !== current_value){
+                const style = this.style;
+                const has_changes = this.current !== current_value;
+
+                if(has_changes){
 
                     this.current = current_value;
 
                     if(SUPPORT_TRANSFORM && this.transform){
 
-                        this.obj._transform[style] = current_value + this.metric;
-
-                        if(style === this.transform){
-
-                            this.transform_job();
-                        }
+                        obj._transform[style] = current_value + this.metric;
                     }
                     else if(SUPPORT_COLOR && this.color){
 
-                        let style_group = style;
-                        let color = color_keys[style];
-
-                        if(color === 1){
-
-                            style_group = "color";
-                        }
-                        else if(color === 2){
-
-                            style_group = "backgroundColor";
-                        }
-                        else if(color === 3){
-
-                            style_group = "borderColor";
-                        }
-
-                        this.obj["_" + style_group][style] = current_value;
-
-                        if(style === this.color){
-
-                            this.color_job(style_group);
-                        }
+                        obj["_" + this.color_group][style] = current_value;
                     }
                     else{
 
-                        this.render_job(style, current_value);
+                        this.animate_job(style, current_value);
                     }
+                }
+
+                if(SUPPORT_TRANSFORM && (style === this.transform)){
+
+                    current_value = this.transform_job();
+                }
+
+                if(SUPPORT_COLOR && (style === this.color)){
+
+                    current_value = this.color_job(this.color_group);
+                }
+
+                if((has_changes || bypass) && this.step){
+
+                    this.step.call(obj, current_value);
                 }
 
                 if(complete){
@@ -566,11 +570,38 @@
 
                     this.start = -1;
 
-                    /* CALLBACK HANDLER */
-
                     if(this.callback){
 
-                        this.callback.call(this.obj);
+                        if(SUPPORT_SEQUENCES){
+
+                            const sequences = obj._sequences;
+
+                            if(sequences){
+
+                                let current = ++obj._sequence_current;
+
+                                if(this.loop && (current >= sequences.length)){
+
+                                    this.loop--;
+
+                                    obj._sequence_current = current = 0;
+                                }
+
+                                if(current < sequences.length){
+
+                                    if(current > 0){
+
+                                        return;
+                                    }
+                                }
+                                else{
+
+                                    obj._sequences = null;
+                                }
+                            }
+                        }
+
+                        this.callback.call(obj);
                     }
                 }
             };
@@ -578,7 +609,7 @@
 
         if(SUPPORT_ANIMATE){
 
-            Job.prototype.render_job = function(style, value){
+            Job.prototype.animate_job = function(style, value){
 
                 if(style === "scrollTop"){
 
@@ -586,12 +617,7 @@
                 }
                 else{
 
-                    this.css.setProperty(style, value + this.metric, this.force ? "important" : "");
-                }
-
-                if(this.step){
-
-                    this.step.call(this.obj, value);
+                    set_style(this.css, style, value + this.metric, this.force);
                 }
             };
         }
@@ -609,16 +635,17 @@
                 obj[suffix + "R"] = index;
                 obj[suffix + "G"] = index;
                 obj[suffix + "B"] = index;
-                obj[suffix + "Alpha"] = index;
+                obj[suffix + "A"] = index;
             }
 
             construct("color", 1);
             construct("backgroundColor", 2);
             construct("borderColor", 3);
-            construct("borderLeftColor", 3);
-            construct("borderTopColor", 3);
-            construct("borderRightColor", 3);
-            construct("borderBottomColor", 3);
+            // TODO:
+            // construct("borderLeftColor", 3);
+            // construct("borderTopColor", 3);
+            // construct("borderRightColor", 3);
+            // construct("borderBottomColor", 3);
 
             return obj;
 
@@ -654,6 +681,7 @@
          * @dict
          */
 
+        // TODO: parse matrix data
         /*
         const matrix2d_index = {
 
@@ -666,20 +694,39 @@
         };
         */
 
+        let hex_to_int_table;
+        let int_to_hex_table;
+
+        if(SUPPORT_COLOR){
+
+            hex_to_int_table = create_object();
+            int_to_hex_table = new Array(255);
+
+            for(let i = 0; i < 256; i++){
+
+                let hex = (i).toString(16);
+
+                if(hex.length % 2){
+
+                    hex = "0" + hex;
+                }
+
+                hex_to_int_table[hex] = i;
+                int_to_hex_table[i] = hex;
+            }
+        }
+
         if(SUPPORT_TRANSFORM){
 
             Job.prototype.transform_job = function(){
 
                 const transform = this.obj._transform;
 
-                this.css.setProperty(prefix_transform_js || "transform", merge_transform(transform, "rotate") +
-                                                                         merge_transform(transform, "scale") +
-                                                                         merge_transform(transform, "skew") +
-                                                                         merge_transform(transform, "translate"), this.force ? "important" : "");
-                if(this.step){
-
-                    this.step.call(this.obj, transform);
-                }
+                set_style(this.css, prefix_transform_js || "transform", merge_transform(transform, "rotate") +
+                                                                        merge_transform(transform, "scale") +
+                                                                        merge_transform(transform, "skew") +
+                                                                        merge_transform(transform, "translate"), this.force);
+                return transform;
             };
         }
 
@@ -689,32 +736,36 @@
 
                 const color = this.obj["_" + color_group];
 
-                this.css.setProperty(color_group.replace("C", "-c"), merge_color(color, color_group), this.force ? "important" : "");
+                set_style(this.css, color_group.replace("C", "-c"), merge_color(color, color_group, this.metric), this.force);
 
-                if(this.step){
-
-                    this.step.call(this.obj, color);
-                }
+                return color;
             };
         }
 
-        function parse_color(hex_or_rgba, key){
+        /**
+         * @param hex_or_rgba
+         * @param key
+         * @param {number=} default_alpha
+         * @returns {Object<string, number>}
+         */
 
-            let r, g, b, alpha = -1, tmp;
+        function parse_color(hex_or_rgba, key, default_alpha){
+
+            let r, g, b, a = default_alpha || -1, tmp;
 
             if(hex_or_rgba[0] === "#"){
 
                 if(hex_or_rgba.length === 4){
 
-                    r = parseInt((tmp = hex_or_rgba[1]) + tmp, 16);
-                    g = parseInt((tmp = hex_or_rgba[2]) + tmp, 16);
-                    b = parseInt((tmp = hex_or_rgba[3]) + tmp, 16);
+                    r = hex_to_int_table[(tmp = hex_or_rgba[1]) + tmp];
+                    g = hex_to_int_table[(tmp = hex_or_rgba[2]) + tmp];
+                    b = hex_to_int_table[(tmp = hex_or_rgba[3]) + tmp];
                 }
                 else{
 
-                    r = parseInt(hex_or_rgba.substring(1, 3), 16);
-                    g = parseInt(hex_or_rgba.substring(3, 5), 16);
-                    b = parseInt(hex_or_rgba.substring(5, 7), 16);
+                    r = hex_to_int_table[hex_or_rgba.substring(1, 3)];
+                    g = hex_to_int_table[hex_or_rgba.substring(3, 5)];
+                    b = hex_to_int_table[hex_or_rgba.substring(5, 7)];
                 }
             }
             else{
@@ -722,13 +773,22 @@
                 tmp = hex_or_rgba.indexOf("(");
                 tmp = hex_or_rgba.substring(tmp + 1, hex_or_rgba.indexOf(")")).split(',');
 
-                r = tmp[0];
-                g = tmp[1];
-                b = tmp[2];
+                r = parseInt(tmp[0], 10);
+                g = parseInt(tmp[1], 10);
+                b = parseInt(tmp[2], 10);
 
                 if(tmp.length > 3){
 
-                    alpha = tmp[3];
+                    a = parseFloat(tmp[3]);
+                }
+
+                if(hex_or_rgba.indexOf("hsl") !== -1){
+
+                    const rgb = hsl_to_rgb(r, g, b);
+
+                    r = rgb.r;
+                    g = rgb.g;
+                    b = rgb.b;
                 }
             }
 
@@ -738,19 +798,129 @@
             obj[key + "G"] = g;
             obj[key + "B"] = b;
 
-            if(alpha !== -1){
+            if(a !== -1){
 
-                obj[key + "Alpha"] = alpha;
+                obj[key + "A"] = a;
             }
 
             return obj;
         }
 
         /**
+         * http://en.wikipedia.org/wiki/HSL_color_space
+         *
+         * @param {number} h
+         * @param {number} s
+         * @param {number} l
+         * @return {Object<string, number>}
+         */
+
+        function hsl_to_rgb(h, s, l){
+
+            let r, g, b;
+
+            if(s === 0){
+
+                r = g = b = l;
+            }
+            else{
+
+                const q = (
+
+                    l < 0.5 ?
+
+                        l * (1 + s)
+                    :
+                        l + s - l * s
+                );
+
+                const p = 2 * l - q;
+
+                r = hue_to_rgb(p, q, h + 1/3);
+                g = hue_to_rgb(p, q, h);
+                b = hue_to_rgb(p, q, h - 1/3);
+            }
+
+            return {
+
+                r: (r * 255 + 0.5) >> 0,
+                g: (g * 255 + 0.5) >> 0,
+                b: (b * 255 + 0.5) >> 0
+            };
+        }
+
+        function hue_to_rgb(p, q, t){
+
+            if(t < 0) t += 1;
+            else if(t > 1) t -= 1;
+
+            if(t < 1/6) return p + (q - p) * 6 * t;
+            if(t < 1/2) return q;
+            if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+
+            return p;
+        }
+
+        /**
+         * http://en.wikipedia.org/wiki/HSL_color_space
+         *
+         * @param {number} r
+         * @param {number} g
+         * @param {number} b
+         * @return {Object<string, number>}
+         */
+
+        function rgb_to_hsl(r, g, b){
+
+            r /= 255;
+            g /= 255;
+            b /= 255;
+
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const l = (max + min) / 2;
+
+            let h, s;
+
+            if(max === min){
+
+                h = s = 0;
+
+            }
+            else{
+
+                const d = max - min;
+
+                s = (
+
+                    l > 0.5 ?
+
+                        d / (2 - max - min)
+                    :
+                        d / (max + min)
+                );
+
+                     if(max === r) h = (g - b) / d + (g < b ? 6 : 0);
+                else if(max === g) h = (b - r) / d + 2;
+                else if(max === b) h = (r - g) / d + 4;
+
+                h /= 6;
+            }
+
+            return {
+
+                h: h,
+                s: s,
+                l: l
+            };
+        }
+
+        /**
+         * @param {Object<string, number|boolean>=} config
          * @constructor
          */
 
-        function Fat(){
+        function Fat(config){
 
             if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM){
 
@@ -759,11 +929,14 @@
                 this.exec = 0;
                 this.resync = false;
 
-                //TODO:
-                //this.autoplay = true;
-
                 if(SUPPORT_CONTROL){
 
+                    config || (config = create_object());
+
+                    //TODO:
+                    this.autostart = !(config["autostart"] === false);
+                    //TODO:
+                    this.fps = config["fps"];
                     this.plays = true;
                     this.direction = true;
                     this.ratio = 1;
@@ -776,8 +949,6 @@
             Fat.prototype.handle = handle;
             /** @export */
             Fat.prototype.animate = animate;
-            /** @export */
-            Fat.prototype.update = update;
             /** @export */
             Fat.prototype.destroy = destroy;
             /** @export */
@@ -807,19 +978,50 @@
         if(SUPPORT_CONTROL){
 
             /** @export */
-            Fat.prototype.pause = function(){ this.plays = false; };
+            Fat.prototype.update = update;
+
             /** @export */
-            Fat.prototype.start = function(){ this.plays = true; };
+            Fat.prototype.seek = seek;
+
             /** @export */
-            Fat.prototype.speed = function(ratio){ this.ratio = ratio; };
+            Fat.prototype.pause = function(){
+
+                this.plays = false;
+                return this;
+            };
+
             /** @export */
-            Fat.prototype.reset = function(){};
+            Fat.prototype.start = function(){
+
+                this.plays = true;
+                return this;
+            };
+
             /** @export */
-            Fat.prototype.finish = function(){};
+            Fat.prototype.stop = function(){
+
+                return this.reset().pause();
+            };
+
             /** @export */
-            Fat.prototype.seek = function(){};
+            Fat.prototype.speed = function(ratio){
+
+                this.ratio = ratio;
+                return this;
+            };
+
             /** @export */
-            Fat.prototype.stop = function(){};
+            Fat.prototype.reset = function(){
+
+                return this.seek(0);
+            };
+
+            /** @export */
+            Fat.prototype.finish = function(){
+
+                return this.seek(1);
+            };
+
             /** @export */
             Fat.prototype.reverse = function(_reverse){
 
@@ -831,6 +1033,8 @@
 
                     this.direction = !_reverse;
                 }
+
+                return this;
             };
         }
 
@@ -845,34 +1049,110 @@
 
         return new Fat();
 
-        function update(obj, style, value){
+        function seek(progress){
 
-            if(is_undefined(value)){
+            for(let i = 0, len = this.stack.length; i < len; i++){
 
-                const keys = Object.keys(style);
-                let key;
+                const cur_job = this.stack[i];
+                const cur_from = cur_job.from;
+                const duration = cur_job.duration / this.ratio;
 
-                for(let i = 0; i < keys.length; i++){
+                cur_job.start += ((cur_job.current - cur_from) / (cur_job.to - cur_from) * duration) - (progress * duration);
+            }
 
-                    key = keys[i];
+            return this;
+        }
 
-                    this.update(obj, key, style[key]);
+        /**
+         * @param obj
+         * @param style
+         * @param {number|string=} value
+         * @param {boolean=} force
+         */
+
+        function update(obj, style, value, force){
+
+            if(is_string(style)){
+
+                if(is_string(obj)){
+
+                    obj = document.querySelectorAll(/** @type {string} */ (obj));
+                }
+
+                let obj_length = obj.length;
+
+                if(!obj_length){
+
+                    obj = [obj];
+                    obj_length = 1;
+                }
+
+                for(let i = 0; i < obj_length; i++){
+
+                    const cur_obj = obj[i];
+                    const cur_job = cur_obj["_fat_" + style];
+
+                    let found = true;
+
+                    if(cur_job){
+
+                        // TODO:
+                        //if(SUPPORT_TRANSFORM){}
+                        //if(SUPPORT_COLOR){}
+
+                        if(cur_job.current === value){
+
+                            found = false;
+                        }
+                        else{
+
+                            if(is_string(value)){
+
+                                value = parseFloat(value);
+                            }
+                            else if(is_undefined(value)){
+
+                                value = cur_job.from;
+                            }
+
+                            if(cur_job.start !== -1){
+
+                                cur_job.from = value;
+                                cur_job.diff = (cur_job.to - value) / 100;
+                            }
+
+                            cur_job.current = value;
+
+                            force || (force = cur_job.force);
+
+                            if(cur_job.metric){
+
+                                value += cur_job.metric;
+                            }
+                        }
+                    }
+                    else if(get_style(cur_obj, style) === value){
+
+                        found = false;
+                    }
+
+                    if(found){
+
+                        const css = cur_obj._style || (cur_obj._style = cur_obj.style);
+
+                        set_style(css, style, value, force);
+                    }
                 }
             }
             else{
 
-                const cur_job = obj["_fat_" + style];
+                const keys = Object.keys(style);
 
-                if(cur_job){
+                for(let i = 0, len = keys.length; i < len; i++){
 
-                    if(cur_job.current !== value){
+                    const key = keys[i];
 
-                        cur_job.current = value;
-
-                        const css = obj._style || (obj._style = obj.style);
-
-                        css.setProperty(style, value + cur_job.metric, cur_job.force ? "important" : "");
-                    }
+                    this.update(obj, key, style[key]);
                 }
             }
 
@@ -883,7 +1163,7 @@
 
             if(this.exec){
 
-                cancelAnimationFrame(this.exec);
+                //cancelAnimationFrame(this.exec);
 
                 this.exec = 0;
                 this.stack = [];
@@ -911,7 +1191,7 @@
 
                 prefetch[ease] || (
 
-                    prefetch[ease] = ease_prefetch(ease)
+                    prefetch[ease] = prefetch_ease(ease)
                 )
             );
         }
@@ -922,7 +1202,7 @@
          * @return {Array<number>|Int32Array<number>}
          */
 
-        function ease_prefetch(ease){
+        function prefetch_ease(ease){
 
             /**
              * @type {Array<number>|Int32Array<number>}
@@ -942,7 +1222,7 @@
 
             for(let i = 0; i < res; i++){
 
-                arr[i] = (fn_ease(i, 0, 100, res) * prefetch_resolution) >> 0;
+                arr[i] = (fn_ease(i, 0, 100, res) * prefetch_resolution + 0.5) >> 0;
             }
 
             return arr;
@@ -970,20 +1250,27 @@
 
                         if(current_job.start === -1){
 
-                            // TODO: may some other props stay animated, use counter
-                            //current_job.obj._transform = null;
-                            //current_job.obj._style = null;
+                            if(SUPPORT_SEQUENCES && current_job.callback){
 
-                            /*
-                                var observer = new MutationObserver(function(mutations) {
-                                    mutations.forEach(function(mutationRecord) {
-                                        console.log('style changed!');
+                                const current_obj = current_job.obj;
+                                const sequences = current_obj._sequences;
+
+                                if(sequences){
+
+                                    this.animate(current_obj, sequences[current_obj._sequence_current], {
+
+                                        "duration": current_job.duration,
+                                        "ease": current_job.ease_str,
+                                        "callback": current_job.callback,
+                                        "step": current_job.step,
+                                        "force": current_job.force
                                     });
-                                });
 
-                                var target = document.getElementById('myId');
-                                observer.observe(target, { attributes : true, attributeFilter : ['style'] });
-                             */
+                                    in_progress = true;
+
+                                    continue;
+                                }
+                            }
 
                             current_job.obj[current_job.checkkey] = null;
 
@@ -1077,19 +1364,24 @@
          * @param {HTMLElement} obj
          * @param {string} style
          * @param {string|number} to
+         * @param {boolean} force
          * @param {number|string|Function} duration
          * @param {string} ease_str
          * @param {Function} callback
          * @param {Function} step
          * @param {number} delay
-         * @param {string} transform
-         * @param {number} color
-         * @param {boolean} force
+         * @param {number=} loop
+         * @param {string=} transform
+         * @param {number=} color
+         * @param {string=} color_group
          */
 
-        function handle(obj, style, to, duration, ease_str, callback, step, delay, transform, color, force){
+        function handle(obj, style, to, force, duration, ease_str, callback, step, delay, loop, transform, color, color_group){
 
             const checkkey = "_fat_" + style;
+
+            /** @type Job */
+
             const cur_job = obj[checkkey];
 
             let from;
@@ -1117,12 +1409,19 @@
 
                 if(SUPPORT_TRANSFORM){
 
-                    cur_job.transform = transform;
+                    if(transform){
+
+                        cur_job.transform = transform;
+                    }
                 }
 
                 if(SUPPORT_COLOR){
 
-                    cur_job.color = color;
+                    if(color){
+
+                        cur_job.color = color;
+                        cur_job.color_group = color_group;
+                    }
                 }
             }
             else{
@@ -1139,10 +1438,7 @@
                         :
                             get_style
 
-                )(obj, style);
-
-                /** @type {CSSStyleDeclaration} */
-                const css = obj._style;
+                )(obj, style, color_group);
 
                 if(style_from === "auto") style_from = "0";
                 from = parseFloat(style_from);
@@ -1157,23 +1453,38 @@
                     metric = style_from.substring(("" + from).length);
                 }
 
-                const job = (new Job(
+                const job = SUPPORT_TRANSFORM && SUPPORT_COLOR ? (new Job(
 
                     obj,
                     style,
-                    css,
                     from,
                     to,
                     metric,
                     force,
                     duration,
                     ease_str,
-                    res,
                     callback,
                     step,
                     delay,
+                    loop,
                     transform,
-                    color
+                    color,
+                    color_group
+
+                )) : (new Job(
+
+                    obj,
+                    style,
+                    from,
+                    to,
+                    metric,
+                    force,
+                    duration,
+                    ease_str,
+                    callback,
+                    step,
+                    delay,
+                    loop
                 ));
 
                 this.stack[this.stack.length] = job;
@@ -1195,7 +1506,7 @@
 
                 return (
 
-                    obj._style_comp || (obj._style_comp = getComputedStyle(obj, null))
+                    obj._style_comp || (obj._style_comp = getComputedStyle(obj))
 
                 )[style];
             }
@@ -1209,38 +1520,47 @@
 
             if(!style_prop){
 
-                const style_value = get_style(obj, prefix_transform || "transform");
-                const parts = style_value.split(' ');
-
                 obj._transform = style_prop = create_object();
 
-                for(let i = 0; i < parts.length; i++){
+                const style_value = get_style(obj, prefix_transform || "transform");
 
-                    const current_part = parts[i];
-                    const part_val = current_part.indexOf("(");
+                if(style_value === "none"){
 
-                    if(part_val === -1){
+                    style_prop["translateX"] = 0;
+                    style_prop["translateY"] = 0;
+                }
+                else{
 
-                        continue;
-                    }
+                    const parts = style_value.split(' ');
 
-                    const values = current_part.substring(part_val + 1, current_part.indexOf(")")).split(',');
-                    let prop = current_part.substring(0, part_val);
+                    for(let i = 0; i < parts.length; i++){
 
-                    if(values.length > 2){
+                        const current_part = parts[i];
+                        const part_val = current_part.indexOf("(");
 
-                        prop = prop.replace("3d", "");
-                        style_prop[prop + "Z"] = values[2];
-                    }
+                        if(part_val === -1){
 
-                    if(values.length > 1){
+                            continue;
+                        }
 
-                        style_prop[prop + "X"] = values[0];
-                        style_prop[prop + "Y"] = values[1];
-                    }
-                    else{
+                        const values = current_part.substring(part_val + 1, current_part.indexOf(")")).split(',');
+                        let prop = current_part.substring(0, part_val);
 
-                        style_prop[prop] = values[0];
+                        if(values.length > 2){
+
+                            prop = prop.replace("3d", "");
+                            style_prop[prop + "Z"] = values[2];
+                        }
+
+                        if(values.length > 1){
+
+                            style_prop[prop + "X"] = values[0];
+                            style_prop[prop + "Y"] = values[1];
+                        }
+                        else{
+
+                            style_prop[prop] = values[0];
+                        }
                     }
                 }
             }
@@ -1248,32 +1568,23 @@
             return style_prop[style];
         }
 
-        function get_color(obj, style){
+        /**
+         * @param {Element} obj
+         * @param {string} style
+         * @param {string} color_group
+         * @returns {Object<string, number>}
+         */
 
-            const color = color_keys[style];
-            let style_group = style;
+        function get_color(obj, style, color_group){
 
-            if(color === 1){
-
-                style_group = "color";
-            }
-            else if(color === 2){
-
-                style_group = "backgroundColor";
-            }
-            else if(color === 3){
-
-                style_group = "borderColor";
-            }
-
-            let key = "_" + style_group;
+            const key = "_" + color_group;
             let style_prop = obj[key];
 
             if(!style_prop){
 
-                const style_value = get_style(obj, style_group);
+                const style_value = get_style(obj, color_group);
 
-                obj[key] = style_prop = parse_color(style_value, style_group);
+                obj[key] = style_prop = parse_color(style_value, color_group, /* default_alpha: */ 1);
             }
 
             return style_prop[style];
@@ -1308,31 +1619,65 @@
         }
 
         /**
-         * @param {Object<string, string|number>} color
+         * @param {Object<string, number>} color
          * @param {string} prop
+         * @param {string} metric
          * @returns {string}
          */
 
-        function merge_color(color, prop){
+        function merge_color(color, prop, metric){
 
-            const r = color[prop + "R"] || 0;
-            const g = color[prop + "G"] || 0;
-            const b = color[prop + "B"] || 0;
-            const alpha = color[prop + "Alpha"] || 0;
+            let r = color[prop + "R"] || 0;
+            let g = color[prop + "G"] || 0;
+            let b = color[prop + "B"] || 0;
+            let a = color[prop + "A"];
 
-            if(r || g || b || alpha){
+            if(metric === "%"){
 
-                if(alpha && (parseFloat(alpha) !== 255)){
+                r = (2.55 * r + 0.5) >> 0;
+                g = (2.55 * g + 0.5) >> 0;
+                b = (2.55 * b + 0.5) >> 0;
 
-                    return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
-                }
-                else{
+                if(a){
 
-                    return "rgb(" + r + "," + g + "," + b + ")";
+                    a /= 100;
                 }
             }
 
-            return "";
+            if((a === 1) || is_undefined(a)){
+
+                return "#" + int_to_hex_table[r]
+                           + int_to_hex_table[g]
+                           + int_to_hex_table[b];
+            }
+            else{
+
+                return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+            }
+        }
+        
+        function merge_arrays_at(first, second, pos){
+
+            const second_length = second.length;
+            const first_length = first.length;
+            const result = new Array(first_length + second_length);
+            
+            for(let i = 0; i < pos; i++){
+
+                result[i] = first[i];
+            }
+
+            for(let i = 0; i < second_length; i++){
+
+                result[i + pos] = second[i];
+            }
+
+            for(let i = pos; i < first_length; i++){
+
+                result[i + second_length] = first[i];
+            }
+
+            return result;
         }
 
         /*
@@ -1359,8 +1704,8 @@
 
         /**
          * @param {Array<(Node|null)>|Node|NodeList|string|null} obj
-         * @param {Object} styles
-         * @param {Object} config
+         * @param {Object<string, number|string>|Array<Object<string, number|string>>} styles
+         * @param {Object<string, number|string|boolean>} config
          */
 
         function animate(obj, styles, config){
@@ -1399,121 +1744,226 @@
                     obj_length = 1;
                 }
 
-                const style_keys = Object.keys(styles);
+                if(SUPPORT_SEQUENCES){
+
+                    if(styles.constructor === Array){
+
+                        for(let i = 0; i < obj_length; i++){
+
+                            const current_obj = obj[i];
+
+                            current_obj._sequences = styles;
+                            current_obj._sequence_current = 0;
+                        }
+
+                        styles = styles[0];
+                    }
+                }
+
                 const config_duration = config["duration"] || 400;
                 const config_ease = config["ease"] || "linear";
-                const config_callback = config["callback"] || false;
+                const config_callback = config["callback"] || (SUPPORT_SEQUENCES && function(){/* TODO: mark last style */});
                 const config_step = config["step"] || false;
                 const config_delay = config["delay"] || 0;
-                const config_force = config["force"];
+                const config_force = config["force"] || false;
                 const config_init = this.resync || config["init"];
+                const config_loop = SUPPORT_SEQUENCES && config["loop"];
 
+                let style_keys = Object.keys(styles);
                 let style_length = style_keys.length;
-                let init_transform;
-                let init_color;
-                let init_color_background;
-                let init_color_border;
+
+                let last_transform;
+                let last_color;
+                let last_color_background;
+                let last_color_border;
+
+                if(SUPPORT_TRANSFORM || SUPPORT_COLOR){
+
+                    for(let k = style_length; k-- > 0;){
+
+                        const key = style_keys[k];
+
+                        if(SUPPORT_TRANSFORM){
+
+                            if(!last_transform && transform_keys[key]){
+
+                                last_transform = key;
+
+                                if(SUPPORT_COLOR){
+
+                                    continue;
+                                }
+                                else{
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        if(SUPPORT_COLOR){
+
+                            const color_type = color_keys[key];
+
+                            if(color_type){
+
+                                if(color_type < 0){
+
+                                    const value = styles[key];
+                                    const color = parse_color(value, key);
+                                    let tmp, val;
+
+                                    style_keys.unshift(tmp = key + "R");
+                                    styles[tmp] = color[tmp];
+
+                                    style_keys.unshift(tmp = key + "G");
+                                    styles[tmp] = color[tmp];
+
+                                    style_keys.unshift(tmp = key + "B");
+                                    styles[tmp] = color[tmp];
+
+                                    const has_alpha = !is_undefined(val = color[tmp = key + "A"]);
+
+                                    if(has_alpha){
+
+                                        style_keys.unshift(tmp);
+                                        styles[tmp] = val;
+                                    }
+
+                                    k += has_alpha ? 4 : 3;
+                                    style_length += has_alpha ? 4 : 3;
+                                }
+                                else{
+
+                                    if(!last_color && (color_type === 1)){
+
+                                        last_color = key;
+                                    }
+                                    else if(!last_color_background && (color_type === 2)){
+
+                                        last_color_background = key;
+                                    }
+                                    else if(!last_color_border && (color_type === 3)){
+
+                                        last_color_border = key;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
 
                 /* Create Jobs */
 
-                for(let k = style_length - 1; k >= 0; k--){
+                for(let k = 0; k < style_length; k++){
 
-                    const first = (k === 0);
+                    let has_transform;
+                    let has_color;
+                    let has_color_background;
+                    let has_color_border;
+                    let color_group;
+
+                    const last = (k === style_length - 1);
                     const key = style_keys[k];
-                    const value = "" + styles[key];
+                    const value = styles[key];
 
-                    let has_transform = (SUPPORT_TRANSFORM && transform_keys[key]) ? key : "";
-                    let has_color = (SUPPORT_COLOR && color_keys[key]) ? key : "";
+                    if(SUPPORT_TRANSFORM){
 
-                    if(has_transform){
-
-                        if(init_transform){
-
-                            has_transform = "1";
-                        }
-                        else{
-
-                            init_transform = true;
-                        }
+                        has_transform = transform_keys[key] && last_transform;
                     }
 
-                    if(has_color){
+                    if(SUPPORT_COLOR){
 
-                        if(init_color){
+                        const color_type = color_keys[key];
 
-                            has_color = "1";
+                        if(color_type){
+
+                            if(color_type < 0){
+
+                                continue;
+                            }
+
+                            if(color_type === 1){
+
+                                has_color = last_color;
+                                color_group = "color";
+                            }
+                            else if(color_type === 2){
+
+                                has_color_background = last_color_background;
+                                color_group = "backgroundColor";
+                            }
+                            else if(color_type === 3){
+
+                                has_color_border = last_color_border;
+                                color_group = "borderColor";
+                            }
                         }
-                        else{
-
-                            init_color = true;
-                        }
-                    }
-
-                    if(SUPPORT_COLOR && has_color && (color_keys[key] < 0)){
-
-                        const color = parse_color(value, key);
-
-                        let tmp, val;
-
-                        style_keys[style_length++] = (tmp = key + "R");
-                        styles[tmp] = color[tmp];
-
-                        style_keys[style_length++] = (tmp = key + "G");
-                        styles[tmp] = color[tmp];
-
-                        style_keys[style_length++] = (tmp = key + "B");
-                        styles[tmp] = color[tmp];
-
-                        tmp = key + "Alpha";
-
-                        if(!is_undefined(val = color[tmp])){
-
-                            style_keys[style_length++] = tmp;
-                            styles[tmp] = val;
-                        }
-
-                        init_color = false;
-                        init_color_background = false;
-                        init_color_border = false;
-
-                        continue;
                     }
 
                     for(let i = 0; i < obj_length; i++){
 
                         const current_obj = obj[i];
 
-                        if(config_init && (k === 0)){
+                        if(config_init){
 
-                            current_obj._style_comp = null;
+                            if(k === 0){
 
-                            if(has_transform) {
+                                current_obj._style_comp = null;
 
-                                current_obj._transform = null;
-                            }
+                                if(last_transform) {
 
-                            if(has_color) {
+                                    current_obj._transform = null;
+                                }
+                                else if(last_color) {
 
-                                current_obj._color = null;
-                                current_obj._backgroundColor = null;
-                                current_obj._borderColor = null;
+                                    current_obj._color = null;
+                                }
+                                else if(last_color_background) {
+
+                                    current_obj._backgroundColor = null;
+                                }
+                                else if(last_color_border) {
+
+                                    current_obj._borderColor = null;
+                                }
                             }
                         }
 
-                        this.handle(
+                        if(SUPPORT_TRANSFORM && SUPPORT_COLOR){
 
-                            current_obj,
-                            key,
-                            value,
-                            config_duration,
-                            config_ease,
-                            first && config_callback,
-                            first && config_step,
-                            config_delay,
-                            has_transform,
-                            has_color,
-                            config_force
-                        );
+                            this.handle(
+
+                                current_obj,
+                                key,
+                                value,
+                                config_force,
+                                config_duration,
+                                config_ease,
+                                last && config_callback,
+                                last && config_step,
+                                config_delay,
+                                config_loop,
+                                has_transform,
+                                has_color || has_color_background || has_color_border,
+                                color_group
+                            );
+                        }
+                        else{
+
+                            this.handle(
+
+                                current_obj,
+                                key,
+                                value,
+                                config_force,
+                                config_duration,
+                                config_ease,
+                                last && config_callback,
+                                last && config_step,
+                                config_delay,
+                                config_loop
+                            );
+                        }
                     }
                 }
 
@@ -1563,6 +2013,7 @@
                 const config_duration = (config["duration"] || 400) + "ms";
                 const config_ease = config["ease"] || "linear";
                 const config_callback = config["callback"] || false;
+                // TODO:
                 //const config_step = config["step"] || false;
                 const config_delay = (config["delay"] || 0) + "ms";
                 const config_force = config["force"];
@@ -1578,8 +2029,6 @@
                     }
                 }
 
-                const transition_str = " " + config_duration + " " + config_ease + " " + config_delay;
-                const props_str = style_keys.join(transition_str + ",") + transition_str;
                 const event = prefix_transition ? prefix_transition + "End" : "transitionend";
 
                 /* Create Jobs */
@@ -1587,10 +2036,7 @@
                 for(let i = 0; i < obj_length; i++){
 
                     const current_obj = obj[i];
-                    const current_style = current_obj._style || (current_obj._style = current_obj.style);
                     const current_listener = current_obj.current_listener;
-
-                    current_style.setProperty(prefix_transition_js || "transition", props_str, config_force ? "important" : "");
 
                     if(!config_callback || (config_callback !== current_listener)){
 
@@ -1609,17 +2055,35 @@
 
                     requestAnimationFrame(function(){
 
+                        const transition_str = " " + config_duration + " " + config_ease + " " + config_delay;
+                        const props_str = style_keys.join(transition_str + ",") + transition_str;
+                        const current_style = current_obj._style || (current_obj._style = current_obj.style);
+
+                        set_style(current_style, prefix_transition_js || "transition", props_str, config_force);
+
                         for(let k = 0; k < style_length; k++){
 
                             const key = style_keys[k];
 
-                            current_style.setProperty(key, styles[key], config_force ? "important" : "");
+                            set_style(current_style, key, styles[key], config_force);
                         }
                     });
                 }
             }
 
             return this;
+        }
+
+        /**
+         * @param {CSSStyleDeclaration} css
+         * @param {string} key
+         * @param {string} value
+         * @param {boolean=} force
+         */
+
+        function set_style(css, key, value, force){
+
+            css.setProperty(key, value, force ? "important" : void 0);
         }
 
         /**
@@ -1656,6 +2120,7 @@
                 const config_duration = (config["duration"] || 400);
                 const config_ease = config["ease"] || "linear";
                 const config_callback = config["callback"];
+                // TODO:
                 //const config_step = config["step"];
                 const config_cancel = config["cancel"];
                 const config_delay = (config["delay"] || 0);
@@ -1694,7 +2159,7 @@
 
                                 const key = style_keys[k];
 
-                                current_obj._style.setProperty(key, styles[key]);
+                                set_style(current_obj._style, key, styles[key]);
                             }
 
                             config_callback.call(current_obj);
@@ -1743,7 +2208,7 @@
             prop[name.toLowerCase()] = factory;
         }
         // CommonJS (Node.js)
-        else if(typeof module !== "undefined"){
+        else if(typeof exports === "object"){
 
             /** @export */
             module.exports = factory;

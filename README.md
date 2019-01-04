@@ -1,13 +1,11 @@
 <img src="docs/fat_logo_dark.svg">
-
-#
-
+<h1></h1>
 <a target="_blank" href="https://github.com/nextapps-de/fat/issues"><img src="https://img.shields.io/github/issues/nextapps-de/fat.svg"></a>
 <a target="_blank" href="https://github.com/nextapps-de/fat/blob/master/LICENSE.md"><img src="https://img.shields.io/npm/l/xone.svg"></a>
 
 ### World's fastest and most lightweight web animation tool.
 
-When it comes to raw animation speed <a href="#compare">FAT outperforms every single web animation library out there</a> and also provides flexible animation capabilities like scenes, controlling and easing. 
+When it comes to raw animation speed <a href="#compare">FAT outperforms every single web animation library out there</a> and also provides flexible animation capabilities like scenes, sequences, controlling and easing. 
 
 <a href="#installation">Installation Guide</a> &ensp;&bull;&ensp; <a href="#api">API Reference</a> &ensp;&bull;&ensp; <a href="#builds">Custom Builds</a> &ensp;&bull;&ensp; <a href="#compare">Benchmark Ranking</a>
 
@@ -51,7 +49,7 @@ All Features:
     </tr>
     <tr>
         <td>
-            <a href="#scenes">Scenes (Animation Groups)</a><br>
+            <a href="#scene">Scenes (Groups)</a><br>
         </td>
         <td>x</td>
         <td>x</td>
@@ -60,7 +58,7 @@ All Features:
     <tr></tr>
     <tr>
         <td>
-            <a href="#easing">Built-in Easing Library</a><br>
+            <a href="#easing">Easing Collection</a><br>
         </td>
         <td>x</td>
         <td>-</td>
@@ -69,7 +67,7 @@ All Features:
     <tr></tr>
     <tr>
         <td>
-            <a href="#scenes">Controlling</a><br>
+            <a href="#control">Controlling</a><br>
         </td>
         <td>x</td>
         <td>-</td>
@@ -78,16 +76,16 @@ All Features:
     <tr></tr>
     <tr>
         <td>
-            <a href="#scenes">Sequences</a><br>
+            <a href="#sequence">Sequences</a><br>
         </td>
         <td>x</td>
         <td>-</td>
-        <td>work in progress</td>
+        <td>stable</td>
     </tr>
     <tr></tr>
     <tr>
         <td>
-            <a href="#scenes">Transforms (2D/3D)</a><br>
+            <a href="#transform">Transforms (2D/3D)</a><br>
         </td>
         <td>x</td>
         <td>-</td>
@@ -107,14 +105,23 @@ All Features:
         <td>
             <a href="#color">Canvas (2D)</a><br>
         </td>
-        <td>x</td>
+        <td>-</td>
         <td>-</td>
         <td>work in progress</td>
     </tr>
     <tr></tr>
     <tr>
         <td>
-            <a href="#scenes">Render Engines</a>
+            <a href="#svg">SVG</a><br>
+        </td>
+        <td>-</td>
+        <td>-</td>
+        <td>work in progress</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>
+            <a href="#engine">Render Engines</a>
         </td>
         <td>JS, CSS3, WAAPI</td>
         <td>JS</td>
@@ -123,7 +130,7 @@ All Features:
     <tr>
         <td>File Size (gzip)</td>
         <td>8.1 kb</td>
-        <td>2.1 kb</td>
+        <td>2.0 kb</td>
         <td></td>
     </tr>
 </table>
@@ -148,8 +155,8 @@ All Features:
         <td>FAT</td>
         <td>0.1.0</td>
         <td>2.0 kb</td>
-        <td><b>97224</b></td>
-        <td><b>50.2</b></td>
+        <td><b>97371</b></td>
+        <td><b>50.3</b></td>
     </tr>
     <tr></tr>
     <tr>
@@ -450,6 +457,52 @@ scene.animate(element, {left: "100%"});
 scene.update(element, {left: "0%"});
 ```
 
+<a name="engine"></a>
+## Render Engines
+
+<table>
+    <tr></tr>
+    <tr>
+        <td>Engine</td>
+        <td>js</td>
+        <td>css</td>
+        <td>native</td>
+    </tr>
+    <tr>
+        <td>Renderer</td>
+        <td>Javascript (Default)</td>
+        <td>CSS Transition</td>
+        <td>Web Animation API</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>Support Control</td>
+        <td>x</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>Support SVG</td>
+        <td>x</td>
+        <td>x</td>
+        <td>-</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>Support Scenes</td>
+        <td>x</td>
+        <td>x</td>
+        <td>x</td>
+    </tr>
+    <tr>
+        <td>File Size (gzip)</td>
+        <td>7.2 kb</td>
+        <td>0.8 kb</td>
+        <td>0.5 kb</td>
+    </tr>
+</table>
+
 <a name="builds"></a>
 ## Custom Builds
 
@@ -473,11 +526,12 @@ Supported flags (boolean):
 - SUPPORT_DEBUG
 - SUPPORT_COLOR
 - SUPPORT_CONTROL
+- SUPPORT_SEQUENCES
 - SUPPORT_TRANSFORM
 - SUPPORT_ANIMATE
 - SUPPORT_TRANSITION
 - SUPPORT_NATIVE
-- SUPPORT_ENGINE (_string:_ "JS", "CSS", "WAAPI")
+- SUPPORT_ENGINE (_string:_ "all", "js", "css", "native")
 - SUPPORT_EASING (includes all easing built-ins from below)
 
 Supported easing flags (boolean):
