@@ -1,6 +1,6 @@
 {
   "name": "fat",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "The fast animation tool with zero dependencies.",
   "homepage": "https://github.com/nextapps-de/fat/",
   "author": "Thomas Wilkerling",

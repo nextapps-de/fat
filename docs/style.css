@@ -8,9 +8,11 @@ html, body{
 }
 body{
 	position:relative;
-	margin:0 !important;
-	padding:0 !important;
-	background-color:#222; background-image:url(background.png); background-repeat:repeat;
+	margin:0;
+	padding:0;
+	background-color:#222;
+	background-image:url(background.png);
+	background-repeat:repeat;
 }
 #stat_vals{
 	float:right;
@@ -35,8 +37,8 @@ body{
 	bottom:0;
 	width:100%;
 	height:100%;
-	overflow:hidden;
-	pointer-events:none;
+	overflow: hidden;
+	pointer-events: none;
 	contain: strict;
 	margin:0;
 	padding:0;
@@ -81,7 +83,7 @@ table tr{
 #logo{
 	background-image:url(fat_logo_white.svg);
 	background-repeat:no-repeat;
-	background-size:50% 50%;
+	background-size: 61.8vmin auto;
 	background-position:center bottom;
 }
 #buttons{

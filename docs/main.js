@@ -1,8 +1,7 @@
-window.onload = function(){
+(function(window){
 
 	"use strict";
 
-	var window  = this;
 	var document = window.document;
 	var body = document.body;
 
@@ -23,9 +22,6 @@ window.onload = function(){
 	var domMax 		= document.getElementById('max');
 	var domStep		= document.getElementById('step');
 	var domCount	= document.getElementById('ballcount');
-
-	var MOVES 		= 0;
-	var ASYNC		= window.setTimeout;
 
 	const animateBall = {};
 	var fps_val = 0;
@@ -226,7 +222,6 @@ window.onload = function(){
 				duration: (Math.random() * 1000 + 1000) | 0,
 				step: function(){ fps_val++; },
 				complete: animateBall.JQUERY
-
 			});
 		}
 	};
@@ -237,9 +232,8 @@ window.onload = function(){
 
 		if(EXECUTE){
 
+			var coords = getNextCoords(this.direction = !this.direction);
 			var _this = this;
-
-			var coords = getNextCoords(_this.direction = !_this.direction);
 
 			jQuery(this).velocity({
 
@@ -323,7 +317,168 @@ window.onload = function(){
 
 	// #############################################################################################################
 
-/*
+	animateBall.ANIM = function(){
+
+		if(EXECUTE){
+
+			var coords = getNextCoords(this.direction = !this.direction);
+			var _this = this;
+
+			anim(this, {
+
+				left: coords[0],
+				top:  coords[1]
+
+			}, Math.random() + 1, "lin").anim(function(){
+
+				animateBall.ANIMEJS.call(_this);
+			});
+		}
+	};
+
+	// #############################################################################################################
+
+	animateBall.BA = function(){
+
+		if(EXECUTE){
+
+			var coords = getNextCoords(this.direction = !this.direction);
+
+			if(typeof this._x === "undefined"){
+
+				this._x = this.style.left;
+				this._y = this.style.top;
+			}
+
+			bajs.a(this, {
+
+				"curve": "linear",
+				"duration": ((Math.random() * 1000 + 1000) | 0) + "ms",
+				"0%": {
+					left: this._x,
+					top:  this._y
+				},
+				"100%": {
+					left: this._x = coords[0] + "px",
+					top:  this._y = coords[1] + "px"
+				}
+
+			}, animateBall.BA);
+		}
+	};
+
+	// #############################################################################################################
+
+	function ease_linear_fps(t, b, c, d){
+
+		fps_val++;
+
+		return c * t / d + b;
+	}
+
+	animateBall.TINYANIMATE = function(){
+
+		if(EXECUTE){
+
+			var coords = getNextCoords(this.direction = !this.direction);
+			var _this = this;
+
+			if(typeof this._x === "undefined"){
+
+				this._x = parseInt(this.style.left, 10);
+				this._y = parseInt(this.style.top, 10);
+			}
+
+			const from_x = this._x;
+			const from_y = this._y;
+
+			this._x = coords[0];
+			this._y = coords[1];
+
+			const duration = ((Math.random() * 1000 + 1000) | 0);
+
+			TinyAnimate.animateCSS(this, "left", "px", from_x, this._x, duration, "linear");
+			TinyAnimate.animateCSS(this, "top", "px", from_y, this._y, duration, ease_linear_fps, function(){
+
+				animateBall.TINYANIMATE.call(_this);
+			});
+		}
+	};
+
+	// #############################################################################################################
+
+	/*
+	animateBall.DOM = function(){
+
+		if(EXECUTE){
+
+			var coords = getNextCoords(this.direction = !this.direction);
+
+			$dom.animate(this, {
+
+				left: coords[0] + "px",
+				top:  coords[1] + "px"
+
+			}, ((Math.random() * 1000 + 1000) | 0), function(isComplete, elm){
+
+				animateBall.DOM.call(elm);
+			});
+		}
+	};
+	*/
+
+	// #############################################################################################################
+
+	animateBall.MORPHEUS = function(){
+
+		if(EXECUTE){
+
+			var coords = getNextCoords(this.direction = !this.direction);
+			var _this = this;
+
+			morpheus(this, {
+
+				left: coords[0] + "px",
+				top:  coords[1] + "px",
+				duration: ((Math.random() * 1000 + 1000) | 0),
+				easing: function(t){
+
+					fps_val++;
+					return t;
+				},
+				complete: function(){
+
+					animateBall.MORPHEUS.call(_this);
+				}
+			});
+		}
+	};
+
+	// #############################################################################################################
+
+	animateBall.JANIS = function(){
+
+		if(EXECUTE){
+
+			var coords = getNextCoords(this.direction = !this.direction);
+			var _this = this;
+
+			Janis(this).chain().animate({
+
+				"left": coords[0] + "px",
+				"top":  coords[1] + "px",
+				"duration": ((Math.random() * 1000 + 1000) | 0),
+				"easing": "linear",
+				"callback": function(){
+
+					animateBall.JANIS.call(_this);
+				}
+
+			}).execute();
+		}
+	};
+
+	/*
 	var manager;
 	var anim_stack = {};
 
@@ -701,9 +856,9 @@ window.onload = function(){
 				window.clearTimeout(fps_timer);
 			}
 
-			window.setTimeout(function(){
+			window.requestAnimationFrame(function(time){
 
-				const now = Date.now();
+				const now = time || Date.now();
 				var i, ball_max = parseInt(domCount.value);
 
 				var curcheckmask = document.getElementById('checkmask').checked;
@@ -713,9 +868,9 @@ window.onload = function(){
 				if(!balls || ball_max !== balls.length || curlib !== lib || checkmask !== curcheckmask) {
 
 					if(lib === 'FAT_CANVAS') createBallsCanvas(ball_max);
-					else if(lib === 'FAT_TRANS') createBallsTransform(ball_max);
-					else if(lib === 'FAT_CSS3_TRANS') createBallsTransform(ball_max);
-					else if(lib === 'FAT_NATIVE_TRANS') createBallsTransform(ball_max);
+					else if(lib === 'FAT_TRANS') createBalls(ball_max, "transform");
+					else if(lib === 'FAT_CSS3_TRANS') createBalls(ball_max, "transform");
+					else if(lib === 'FAT_NATIVE_TRANS') createBalls(ball_max, "transform");
 					else createBalls(ball_max);
 				}
 
@@ -755,8 +910,6 @@ window.onload = function(){
 
 				fps_timer = requestAnimationFrame(updateFPS);
 
-				//window.setTimeout(startTest, 10000);
-
 			}, 400);
 		}
 		else {
@@ -775,12 +928,7 @@ window.onload = function(){
 		}
 	};
 
-	function createBalls(ball_max){
-
-		//var centerX = (MAX_W / 2 - 35 | 0) + "px";
-		//var centerY = (MAX_H / 2 - 35 | 0) + "px";
-
-		//jQuery(container).empty();
+	function createBalls(ball_max, mode){
 
 		balls = new Array(ball_max);
 
@@ -790,19 +938,26 @@ window.onload = function(){
 		for(var i = 0; i < ball_max; i++) {
 
 			var ball = document.createElement("span");
-			var color = "rgb(" + (Math.random() * 255 | 0) + ", " + (Math.random() * 255 | 0) + ", " + (Math.random() * 255 | 0) + ")";
+			var color = (Math.random() * 255 | 0) + ", " + (Math.random() * 255 | 0) + ", " + (Math.random() * 255 | 0);
 			var direction = Math.random() > 0.5;
 			var coords = getNextCoords(direction);
 
 			ball.className = "ball";
 			ball.id = "ball_" + i;
-			ball.style.left = coords[0] + "px";
-			ball.style.top = coords[1] + "px";
+
+			if(mode === "transform"){
+
+				ball.style.transform = "translateX(" + coords[0] + "px) translateY(" + coords[1] + "px)";
+			}
+			else{
+
+				ball.style.left = coords[0] + "px";
+				ball.style.top = coords[1] + "px";
+			}
 
 			if(curcheckmask && i > 0) {
 
-				ball.style.opacity = 0.2;
-				ball.style.backgroundColor = color;
+				ball.style.backgroundColor = "rgba(" + color + ", 0.2)";
 			}
 			else if(curcheckmask){
 
@@ -810,87 +965,17 @@ window.onload = function(){
 			}
 			else{
 
-				ball.style.backgroundColor = color;
+				ball.style.backgroundColor = "rgb(" + color + ")";
 			}
-			//ball.style.opacity = (Math.random() * 100 | 0) / 100;
-			//ball.style.boxShadow = "0px 0px 3px 0px " + color;
-			ball.direction = direction;
 
-			//observer.observe(ball, { attributes : true, childList: true, characterData: true});
+			ball.direction = direction;
 
 			fragment.appendChild(balls[i] = ball);
 		}
-
-		//window.requestAnimationFrame(function(){
-
-		/*
-			CanvasLayer.canvas.style.display = 'none';
-			CanvasLayer.empty();
-			CanvasLayer.canvas.getContext('2d').clearRect(0, 0, CanvasLayer.width, CanvasLayer.height);
-			*/
-
-			while(container.firstChild) container.removeChild(container.firstChild);
-			container.appendChild(fragment);
-		//});
-	};
-
-	function createBallsTransform(ball_max){
-
-		//var centerX = (MAX_W / 2 - 35 | 0) + "px";
-		//var centerY = (MAX_H / 2 - 35 | 0) + "px";
-
-		//jQuery(container).empty();
-
-		balls = new Array(ball_max);
-
-		var fragment = document.createDocumentFragment();
-		var curcheckmask = document.getElementById('checkmask').checked;
-
-		for(var i = 0; i < ball_max; i++) {
-
-			var ball = document.createElement("span");
-			var color = "rgb(" + (Math.random() * 255 | 0) + ", " + (Math.random() * 255 | 0) + ", " + (Math.random() * 255 | 0) + ")";
-			var direction = Math.random() > 0.5;
-			var coords = getNextCoords(direction);
-
-			ball.className = "ball";
-			ball.id = "ball_" + i;
-			ball.style.transform = "translateX(" + coords[0] + "px) translateY(" + coords[1] + "px)";
-
-			if(curcheckmask && i > 0) {
-
-				ball.style.opacity = 0.2;
-				ball.style.backgroundColor = color;
-			}
-			else if(curcheckmask){
-
-				ball.style.backgroundColor = '#fff';
-			}
-			else{
-
-				ball.style.backgroundColor = color;
-			}
-			//ball.style.opacity = (Math.random() * 100 | 0) / 100;
-			//ball.style.boxShadow = "0px 0px 3px 0px " + color;
-			ball.direction = direction;
-
-			//observer.observe(ball, { attributes : true, childList: true, characterData: true});
-
-			fragment.appendChild(balls[i] = ball);
-		}
-
-		//window.requestAnimationFrame(function(){
-
-		/*
-			CanvasLayer.canvas.style.display = 'none';
-			CanvasLayer.empty();
-			CanvasLayer.canvas.getContext('2d').clearRect(0, 0, CanvasLayer.width, CanvasLayer.height);
-			*/
 
 		while(container.firstChild) container.removeChild(container.firstChild);
 		container.appendChild(fragment);
-		//});
-	};
+	}
 
 	function createBallsCanvas(ball_max){
 
@@ -967,20 +1052,20 @@ window.onload = function(){
 
 	var start_time = 0;
 
-	function updateFPS() {
+	function updateFPS(time) {
 
 		if(EXECUTE) fps_timer = requestAnimationFrame(updateFPS);
 
 		frames++;
 
-		const now = Date.now();
+		const now = time || Date.now();
 		var elapsed = now - lastUpdate;
 
 		start_time || (start_time = now);
 
 		if(elapsed > 1000) {
 
-			var val = ((frames / elapsed * 10000) >> 0) / 10;
+			var val = ((frames * (1000 / elapsed) * 10 + 0.5) >> 0) / 10;
 
 			arr_med[arr_med.length] = val;
 
@@ -990,7 +1075,7 @@ window.onload = function(){
 			domMedian.value = median_val;
 			domMin.value    = arr_med[0];
 			domMax.value    = arr_med[arr_med.length-1];
-			domStep.value   = (fps_val / (now - start_time) * 1000) >> 0;
+			domStep.value   = ((fps_val * (1000 / (now - start_time)) + 0.5)) >> 0;
 
 			lastUpdate		= now;
 			nextUpdate 	    = frames;
@@ -1030,4 +1115,4 @@ window.onload = function(){
 	){
 		document.getElementById("ballcount").selectedIndex = 7;
 	}
-};
+})(this);

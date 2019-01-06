@@ -3,7 +3,7 @@
 <a target="_blank" href="https://github.com/nextapps-de/fat/issues"><img src="https://img.shields.io/github/issues/nextapps-de/fat.svg"></a>
 <a target="_blank" href="https://github.com/nextapps-de/fat/blob/master/LICENSE.md"><img src="https://img.shields.io/npm/l/xone.svg"></a>
 
-### World's fastest and most lightweight web animation tool.
+### Web's fastest and most lightweight animation tool.
 
 When it comes to raw animation speed <a href="#compare">FAT outperforms every single web animation library out there</a> and also provides flexible animation capabilities like scenes, sequences, controlling and easing. 
 
@@ -21,13 +21,13 @@ Get Latest (Stable Release):
     <tr>
         <td>fat.min.js</td>
         <td><a href="https://github.com/nextapps-de/fat/raw/master/fat.min.js" target="_blank">Download</a></td>
-        <td><a href="https://cdn.jsdelivr.net/gh/nextapps-de/fat/fat.min.js" target="_blank">https://cdn.jsdelivr.net/gh/nextapps-de/fat/fat.min.js</a></td>
+        <td><a href="https://cdn.jsdelivr.net/gh/nextapps-de/fat@master/fat.min.js" target="_blank">https://cdn.jsdelivr.net/gh/nextapps-de/fat@master/fat.min.js</a></td>
     </tr>
     <tr></tr>
     <tr>
         <td>fat.light.js</td>
         <td><a href="https://github.com/nextapps-de/fat/raw/master/fat.light.js" target="_blank">Download</a></td>
-        <td><a href="https://cdn.jsdelivr.net/gh/nextapps-de/fat/fat.light.js" target="_blank">https://cdn.jsdelivr.net/gh/nextapps-de/fat/fat.light.js</a></td>
+        <td><a href="https://cdn.jsdelivr.net/gh/nextapps-de/fat@master/fat.light.js" target="_blank">https://cdn.jsdelivr.net/gh/nextapps-de/fat@master/fat.light.js</a></td>
     </tr>
     <tr></tr>
     <tr>
@@ -45,15 +45,13 @@ All Features:
         <td>Feature</td>
         <td>fat.js / fat.min.js</td>
         <td>fat.light.js</td>
-        <td>Current State</td>
     </tr>
     <tr>
         <td>
-            <a href="#scene">Scenes (Groups)</a><br>
+            <a href="#scenes">Scenes (Groups)</a><br>
         </td>
         <td>x</td>
         <td>x</td>
-        <td>stable</td>
     </tr>
     <tr></tr>
     <tr>
@@ -62,25 +60,22 @@ All Features:
         </td>
         <td>x</td>
         <td>-</td>
-        <td>stable</td>
     </tr>
     <tr></tr>
     <tr>
         <td>
-            <a href="#control">Controlling</a><br>
+            <a href="#controls">Controlling</a><br>
         </td>
         <td>x</td>
         <td>-</td>
-        <td>beta</td>
     </tr>
     <tr></tr>
     <tr>
         <td>
-            <a href="#sequence">Sequences</a><br>
+            <a href="#sequences">Sequences</a><br>
         </td>
         <td>x</td>
         <td>-</td>
-        <td>stable</td>
     </tr>
     <tr></tr>
     <tr>
@@ -89,25 +84,22 @@ All Features:
         </td>
         <td>x</td>
         <td>-</td>
-        <td>stable</td>
     </tr>
     <tr></tr>
     <tr>
         <td>
-            <a href="#color">Colors</a><br>
+            <a href="#colors">Colors</a><br>
         </td>
         <td>x</td>
         <td>-</td>
-        <td>alpha</td>
     </tr>
     <tr></tr>
     <tr>
         <td>
-            <a href="#color">Canvas (2D)</a><br>
+            <a href="#canvas">Canvas (2D)</a><br>
         </td>
         <td>-</td>
         <td>-</td>
-        <td>work in progress</td>
     </tr>
     <tr></tr>
     <tr>
@@ -116,7 +108,6 @@ All Features:
         </td>
         <td>-</td>
         <td>-</td>
-        <td>work in progress</td>
     </tr>
     <tr></tr>
     <tr>
@@ -125,13 +116,11 @@ All Features:
         </td>
         <td>JS, CSS3, WAAPI</td>
         <td>JS</td>
-        <td>stable</td>
     </tr>
     <tr>
         <td>File Size (gzip)</td>
-        <td>8.1 kb</td>
-        <td>2.0 kb</td>
-        <td></td>
+        <td>5.3 kb</td>
+        <td>2.1 kb</td>
     </tr>
 </table>
 
@@ -153,9 +142,9 @@ All Features:
     <tr style="color:#900">
         <td>1</td>
         <td>FAT</td>
-        <td>0.1.0</td>
-        <td>2.0 kb</td>
-        <td><b>97371</b></td>
+        <td>0.3.0</td>
+        <td>2.1 kb</td>
+        <td><b>95371</b></td>
         <td><b>50.3</b></td>
     </tr>
     <tr></tr>
@@ -188,6 +177,15 @@ All Features:
     <tr></tr>
     <tr>
         <td>5</td>
+        <td>TinyAnimate</td>
+        <td>0.4.0</td>
+        <td>1.5 kb</td>
+        <td><b>56466</b></td>
+        <td><b>28.2</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>6</td>
         <td>MooTools</td>
         <td>1.6.0</td>
         <td>31.2 kb</td>
@@ -196,7 +194,7 @@ All Features:
     </tr>
     <tr></tr>
     <tr>
-        <td>6</td>
+        <td>7</td>
         <td>CSS3 (Transition)</td>
         <td>-</td>
         <td>-</td>
@@ -205,7 +203,7 @@ All Features:
     </tr>
     <tr></tr>
     <tr>
-        <td>7</td>
+        <td>8</td>
         <td>Velocity</td>
         <td>2.0.5</td>
         <td>16.6 kb</td>
@@ -214,7 +212,7 @@ All Features:
     </tr>
     <tr></tr>
     <tr>
-        <td>8</td>
+        <td>9</td>
         <td>AnimeJS</td>
         <td>2.2.0</td>
         <td>5.9 kb</td>
@@ -223,7 +221,16 @@ All Features:
     </tr>
     <tr></tr>
     <tr>
-        <td>9</td>
+        <td>10</td>
+        <td>Anim.js</td>
+        <td>-</td>
+        <td>1.9 kb</td>
+        <td><b>6994</b></td>
+        <td><b>2.8</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>11</td>
         <td>Dojo</td>
         <td>1.14.2</td>
         <td>53.0 kb</td>
@@ -232,7 +239,16 @@ All Features:
     </tr>
     <tr></tr>
     <tr>
-        <td>10</td>
+        <td>12</td>
+        <td>Morpheus</td>
+        <td>0.7.2</td>
+        <td>2.7 kb</td>
+        <td><b>8543</b></td>
+        <td><b>2.1</b></td>
+    </tr> 
+    <tr></tr>
+    <tr>
+        <td>13</td>
         <td>jQuery</td>
         <td>3.3.1</td>
         <td>30.0 kb</td>
@@ -241,7 +257,16 @@ All Features:
     </tr>
     <tr></tr>
     <tr>
-        <td>11</td>
+        <td>14</td>
+        <td>bajs</td>
+        <td>1.0</td>
+        <td>1.2 kb</td>
+        <td><b>-</b></td>
+        <td><b>0.8</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>15</td>
         <td>JustAnimate</td>
         <td>2.5.1</td>
         <td>7.3 kb</td>
@@ -250,7 +275,7 @@ All Features:
     </tr>
     <tr></tr>
     <tr>
-        <td>12</td>
+        <td>16</td>
         <td>YUI</td>
         <td>3.18.1</td>
         <td>24.4 kb</td>
@@ -259,7 +284,7 @@ All Features:
     </tr>
     <tr></tr>
     <tr>
-        <td>13</td>
+        <td>17</td>
         <td>Zepto</td>
         <td>1.2.0</td>
         <td>11.0 kb</td>
@@ -270,7 +295,8 @@ All Features:
 
 Library Comparison:
 - <a href="https://nextapps-de.github.io/fat/" target="_blank">Benchmark "Bouncing Balls"</a>
-- Benchmark "Starfield" (coming soon)
+- Benchmark "Transform" (coming soon)
+- Benchmark "Coloring" (coming soon)
 
 <a name="installation"></a>
 ## Installation
@@ -296,11 +322,6 @@ Use a specific version from CDN:
 <script src="https://cdn.jsdelivr.net/gh/nextapps-de/fat@v0.1.0/fat.min.js"></script>
 ```
 
-Use latest nightly build from CDN:
-```html
-<script src="https://cdn.jsdelivr.net/gh/nextapps-de/fat@latest/fat.min.js"></script>
-```
-
 __Common JS__
 
 In your code include as follows:
@@ -319,26 +340,25 @@ var Fat = require("./fat.min.js");
 ## API Overview
 
 Global methods / Scene methods:
-- <a href="#fat.animate">Fat.__animate__(elements[], styles{}, options{})</a>
-- <a href="#fat.transform">Fat.__transform__(elements[], styles{}, options{})</a>
-- <a href="#fat.transition">Fat.__transition__(elements[], styles{}, options{})</a>
-- <a href="#fat.native">Fat.__native__(elements[], styles{}, options{})</a>
-- <a href="#fat.update">Fat.__update__(elements[], styles{}, options{})</a>
+- <a href="#fat.animate">Fat.__animate__(selector[] | elements[], styles[{}], options{})</a>
+- <a href="#fat.transform">Fat.__transform__(selector[] | elements[], styles[{}], options{})</a>
+- <a href="#fat.transition">Fat.__transition__(selector[] | elements[], styles{}, options{})</a>
+- <a href="#fat.native">Fat.__native__(selector[] | elements[], styles{}, options{})</a>
+- <a href="#fat.update">Fat.__update__(selector[] | elements[], styles{}, options{})</a>
 - <a href="#fat.init">Fat.__init__()</a>
 - <a href="#fat.destroy">Fat.__destroy__()</a>
 
 Controller methods:
-- <a href="#scene.pause">Scene.__pause__()</a>
-- <a href="#scene.reverse">Scene.__reverse__()</a>
-- <a href="#scene.loop">Scene.__loop__(value)</a>
-- <a href="#scene.seek">Scene.__seek__(value)</a>
-- <a href="#scene.speed">Scene.__speed__(value)</a>
-- <a href="#scene.start">Scene.__start__()</a>
-- <a href="#scene.stop">Scene.__stop__()</a>
+- <a href="#scene.pause">Scene.__pause__(toggle)</a>
+- <a href="#scene.reverse">Scene.__reverse__(toggle)</a>
+- <a href="#scene.loop">Scene.__loop__(int)</a>
+- <a href="#scene.seek">Scene.__seek__(float)</a>
+- <a href="#scene.speed">Scene.__speed__(float)</a>
+- <a href="#scene.start">Scene.__start__(toggle)</a>
 - <a href="#scene.reset">Scene.__reset__()</a>
-- <a href="#scene.finish">Scene.__finish__()</a>
+- <a href="#scene.finish">Scene.__finish__(boolean)</a>
 
-<a name="fat.options"></a>
+<a name="options"></a>
 ## Options
 
 <table>
@@ -406,55 +426,252 @@ Controller methods:
     </tr>
 </table>
 
-<a name="fat.easing"></a>
+## Basic Usage
+
+> Fat.__animate__(selector[] | elements[], styles[{}], options{})
+
+```js
+Fat.animate("#mydiv", { left: "100px" },{ duration: 2000 });
+```
+
+Pass in custom options for each property:
+
+```js
+Fat.animate("#mydiv", { 
+    left: {
+        from: 0,
+        to: "100%",
+        duration: 2000,
+        ease: "linear"
+    },
+    top: {
+        from: 0,
+        to: "100%",
+        duration: 2000,
+        ease: "quadIn",
+        delay: 2000
+    }
+});
+```
+
+Use relative values:
+
+```js
+Fat.animate("#mydiv", { 
+    left: "+=100px",
+    top: "*=2"
+});
+```
+
+<a name="transform"></a>
+## Transform
+
+```js
+Fat.animate("#mydiv", { 
+    translateX: "100px",
+    translateY: "100%"
+});
+```
+
+same as:
+
+```js
+Fat.transform("#mydiv", ...
+```
+
+<a name="colors"></a>
+## Colors
+
+```js
+Fat.animate("#mydiv", { 
+    color: "#f00",
+    backgroundColor: "rgba(0, 255, 0, 1)",
+    borderColor: "hsla(0, 100%, 100%, 1)"
+});
+```
+
+<a name="easing"></a>
 ## Easing
 
+Built-in easing:
+
 - linear
-- easeIn, easeOut, easeInOut
-- quadIn, quadOut, quadInOut
+- easeIn, easeOut, easeInOut (same as: quadIn, quadOut, quadInOut)
 - cubicIn, cubicOut, cubicInOut
 - quartIn, quartOut, quartInOut
 - quintIn, quintOut, quintInOut
 - sineIn, sineOut, sineInOut
 - expoIn, expoOut, expoInOut
 - circIn, circOut, circInOut
-- elasticIn, elasticOut, elasticInOut
 - backIn, backOut, backInOut
-- bounceIn, bounceOut, bounceInOut
-- bezier
+- snap
 
-## Usage
-<a name="flexsearch.create"></a>
-#### Create a new scene
+__Static (Pre-Cached) vs. Dynamic Easing__
 
-> Fat.__create()__
+There are two ways to define easing functions. When your easing is a static curve (like easeIn, backInOut, elastic, etc.) you should define the easing via `Fat.ease["myEasing"] = fn()` and simply pass the name as string within the `Fat.animate` options. This will prefetch all the calculations, so you are free to use really heavy easing definitions without any performance drawbacks.
 
+When you want to use dynamic easing, which depends on runtime calculations, you should pass the easing function directly to the `Fat.animate` options. In this case the easing calculation will not prefetch. This allows you to control easing programmatically and adding logic during runtime.
+
+Define custom static easing function (1-parameter style):
+
+```js
+Fat.ease["linear"] = function(x){
+    
+    return x;
+};
+```
+
+> __x__: current progress (0.0 - 1.0)
+
+Define custom static easing function (4-parameter style):
+
+```js
+Fat.ease["linear"] = function(t, b, c, d){
+    
+    return b + (c - b) * (t / d);
+};
+```
+
+> __t__: current time, __b__: from value, __c__: to value, __d__: duration
+
+Apply the custom static easing:
+
+```js
+Fat.animate("#mydiv", { left: "100px" },{ ease: "linear" });
+```
+
+Use cubic bezier:
+```js
+Fat.animate("#mydiv", { left: "100px" },{ ease: "cubic(0, 1, 0, 1)" });
+```
+
+Alternatively use array notation for a bezier:
+```js
+... ,{ ease: [0, 1, 0, 1] });
+```
+
+Define custom __dynamic easing__ function (1-parameter style):
+```js
+Fat.animate("#mydiv", { left: "100px" },{ ease: function(x){
+    
+    // doing some crazy calculations depends on runtime
+    return x;
+}});
+```
+
+Define custom __dynamic easing__ function (4-parameter style):
+```js
+Fat.animate("#mydiv", { left: "100px" },{ ease: function(t, b, c, d){
+    
+    // doing some crazy calculations depends on runtime
+    return x;
+}});
+```
+
+<a name="sequences"></a>
+## Sequences
+
+```js
+Fat.animate("#mydiv", [
+    { left: "100%" },   // start
+    { top: "100%" },    // 2nd animation
+    { left: 0 },        // 3rd animation
+    { top: 0 }          // end
+],{
+    callback: function(){ alert("finished, call next loop") },
+    loop: -1 // infinite
+});
+```
+
+<a name="scenes"></a>
+## Scenes
+
+Create a new scene:
 ```js
 var scene = new Fat();
 ```
 
-alternatively you can also use:
-
+Alternatively you can also use:
 ```js
 var scene = Fat.create();
 ```
 
-<a name="index.add"></a>
-#### Add animations to a scene
-
-> Scene.__animate__(element, {_STYLE: VALUE_})
-
+Add animations to a scene:
 ```js
 scene.animate(element, {left: "100%"});
 ```
 
-<a name="scene.update"></a>
-#### Update scene styles
-
-> scene.__update__(element, {_STYLE: VALUE_})
-
+Update scene styles:
 ```js
 scene.update(element, {left: "0%"});
+```
+
+Destroy scene:
+```js
+scene.destroy();
+```
+
+<a name="controls"></a>
+## Controls
+
+Pause a new scene:
+```js
+scene.pause();
+```
+
+alternatively:
+```js
+scene.play(false);
+```
+
+Play a new scene:
+```js
+scene.play();
+```
+
+alternatively:
+```js
+scene.pause(false);
+```
+
+Revert playback (toggle):
+```js
+scene.reverse();
+```
+
+alternatively set direction:
+```js
+scene.reverse(false);
+```
+
+Stop animation and jump back to the start:
+```js
+scene.reset();
+```
+
+Stop animation and jump to the end:
+```js
+scene.finish();
+```
+
+Finish and also execute callback:
+
+```js
+scene.finish(true);
+```
+
+Set playback speed:
+```js
+scene.speed(0.5); // half
+scene.speed(1);   // normal
+scene.speed(2);   // double
+```
+
+Seek a scene to a specific position:
+```js
+scene.seek(0);   // start
+scene.seek(0.5); // half
+scene.seek(1);   // end
 ```
 
 <a name="engine"></a>
@@ -485,7 +702,7 @@ scene.update(element, {left: "0%"});
     <tr>
         <td>Support SVG</td>
         <td>x</td>
-        <td>x</td>
+        <td>-</td>
         <td>-</td>
     </tr>
     <tr></tr>
@@ -505,6 +722,13 @@ scene.update(element, {left: "0%"});
 
 <a name="builds"></a>
 ## Custom Builds
+
+> You need Node.js including Node Package Manager (NPM)
+
+Install Dependencies:
+```bash
+npm install
+```
 
 Full Build:
 ```bash
@@ -532,44 +756,7 @@ Supported flags (boolean):
 - SUPPORT_TRANSITION
 - SUPPORT_NATIVE
 - SUPPORT_ENGINE (_string:_ "all", "js", "css", "native")
-- SUPPORT_EASING (includes all easing built-ins from below)
-
-Supported easing flags (boolean):
-
-- SUPPORT_EASE_IN
-- SUPPORT_EASE_OUT
-- SUPPORT_EASE_IN_OUT
-- SUPPORT_EASE_QUAD_IN
-- SUPPORT_EASE_QUAD_OUT
-- SUPPORT_EASE_QUAD_IN_OUT
-- SUPPORT_EASE_CUBIC_IN
-- SUPPORT_EASE_CUBIC_OUT
-- SUPPORT_EASE_CUBIC_IN_OUT
-- SUPPORT_EASE_QUART_IN
-- SUPPORT_EASE_QUART_OUT
-- SUPPORT_EASE_QUART_IN_OUT
-- SUPPORT_EASE_QUINT_IN
-- SUPPORT_EASE_QUINT_OUT
-- SUPPORT_EASE_QUINT_IN_OUT
-- SUPPORT_EASE_SINE_IN
-- SUPPORT_EASE_SINE_OUT
-- SUPPORT_EASE_SINE_IN_OUT
-- SUPPORT_EASE_EXPO_IN
-- SUPPORT_EASE_EXPO_OUT
-- SUPPORT_EASE_EXPO_IN_OUT
-- SUPPORT_EASE_CIRC_IN
-- SUPPORT_EASE_CIRC_OUT
-- SUPPORT_EASE_CIRC_IN_OUT
-- SUPPORT_EASE_ELASTIC_IN
-- SUPPORT_EASE_ELASTIC_OUT
-- SUPPORT_EASE_ELASTIC_IN_OUT
-- SUPPORT_EASE_BACK_IN
-- SUPPORT_EASE_BACK_OUT
-- SUPPORT_EASE_BACK_IN_OUT
-- SUPPORT_EASE_BOUNCE_IN
-- SUPPORT_EASE_BOUNCE_OUT
-- SUPPORT_EASE_BOUNCE_IN_OUT
-- SUPPORT_EASE_BEZIER
+- SUPPORT_EASING (includes all easing built-ins)
 
 Alternatively you can also use this style:
 ```bash

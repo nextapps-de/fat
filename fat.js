@@ -1,5 +1,5 @@
 ;/**!
- * @preserve FAT v0.2.0
+ * @preserve FAT v0.3.0
  * Copyright 2019 Nextapps GmbH
  * Author: Thomas Wilkerling
  * Released under the Apache 2.0 Licence
@@ -16,37 +16,6 @@
 /** @define {boolean} */ const SUPPORT_TRANSITION = SUPPORT_ENGINE ? SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "css" : true;
 /** @define {boolean} */ const SUPPORT_NATIVE = SUPPORT_ENGINE ? SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "native" || SUPPORT_ENGINE === "waapi" : true;
 /** @define {boolean} */ const SUPPORT_EASING = true;
-/** @define {boolean} */ const SUPPORT_EASE_QUAD_IN = false;
-/** @define {boolean} */ const SUPPORT_EASE_QUAD_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_QUAD_IN_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_CUBIC_IN = false;
-/** @define {boolean} */ const SUPPORT_EASE_CUBIC_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_CUBIC_IN_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_QUART_IN = false;
-/** @define {boolean} */ const SUPPORT_EASE_QUART_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_QUART_IN_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_QUINT_IN = false;
-/** @define {boolean} */ const SUPPORT_EASE_QUINT_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_QUINT_IN_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_SINE_IN = false;
-/** @define {boolean} */ const SUPPORT_EASE_SINE_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_SINE_IN_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_EXPO_IN = false;
-/** @define {boolean} */ const SUPPORT_EASE_EXPO_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_EXPO_IN_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_CIRC_IN = false;
-/** @define {boolean} */ const SUPPORT_EASE_CIRC_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_CIRC_IN_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_ELASTIC_IN = false;
-/** @define {boolean} */ const SUPPORT_EASE_ELASTIC_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_ELASTIC_IN_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_BACK_IN = false;
-/** @define {boolean} */ const SUPPORT_EASE_BACK_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_BACK_IN_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_BOUNCE_IN = false;
-/** @define {boolean} */ const SUPPORT_EASE_BOUNCE_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_BOUNCE_IN_OUT = false;
-/** @define {boolean} */ const SUPPORT_EASE_BEZIER = false;
 
 // noinspection ThisExpressionReferencesGlobalObjectJS
 (function(){
@@ -56,9 +25,10 @@
         "use strict";
 
         const res = Math.max(screen.width, screen.height);
-        const prefetch = create_object();
-        const prefetch_resolution = 1000;
-        const float_resolution = 1000;
+        const prefetch_resolution = 10000;
+        const float_resolution = res;
+        const prefetch = {};
+        const easing = {};
 
         const vendor = (SUPPORT_TRANSFORM || SUPPORT_TRANSITION) && (function(){
 
@@ -88,329 +58,198 @@
         const prefix_transition = vendor && (vendor + "Transition");
         const prefix_transition_js = vendor && ("-" + prefix_transition.replace("T", "-t"));
 
+        const parse_float = parseFloat;
+
+        let id_counter = 0;
         let last_update = 0;
 
-        const easing = {
+        /*
+         * Penner equations
+         * http://matthewlein.com/ceaser/
+         */
 
-            "linear": function(t, b, c, d) {
+        const builtin_easing = {
 
-                return (c * (t / d) + b);
-            }
+            "easeIn": [.55, .085, .68, .53], // quadIn
+            "easeOut": [.25, .46, .45, .94], // quadOut
+            "easeInOut": [.455, .03, .515, .955], // quadInOut
+            "cubicIn": [.55, .055, .675, .19],
+            "cubicOut": [.215, .61, .355, 1],
+            "cubicInOut": [.645, .045, .355, 1],
+            "quartIn": [.895, .03, .685, .22],
+            "quartOut": [.165, .84, .44, 1],
+            "quartInOut": [.77, 0, .175, 1],
+            "quintIn": [.755, .05, .855, .06],
+            "quintOut": [.23, 1, .32, 1],
+            "quintInOut": [.86, 0, .07, 1],
+            "expoIn": [.95, .05, .795, .035],
+            "expoOut": [.19, 1, .22, 1],
+            "expoInOut": [1, 0, 0, 1],
+            "circIn": [.6, .04, .98, .335],
+            "circOut": [.075, .82, .165, 1],
+            "circInOut": [.785, .135, .15, .86],
+            "sineIn": [.47, 0, .745, .715],
+            "sineOut": [.39, .575, .565, 1],
+            "sineInOut": [.445, .05, .55, .95],
+            "backIn": [.6, -.28, .735, .045],
+            "backOut": [.175, .885, .32, 1.275],
+            "backInOut": [.68, -.55, .265, 1.55],
+            "snap": [.1, 1, .1, 1]
         };
 
-        if(SUPPORT_EASING || SUPPORT_EASE_QUAD_IN){
+        // BezierEasing
+        // https://github.com/gre/bezier-easing
+        // https://github.com/Pomax/bezierjs
 
-            easing["quadIn"] = function(t, b, c, d){
+        const easing_bezier = (function(){
 
-                return c * (t /= d) * t + b;
-            };
-        }
+            const kSplineTableSize = 11;
+            const kSampleStepSize = 1.0 / (kSplineTableSize - 1.0);
 
-        if(SUPPORT_EASING || SUPPORT_EASE_QUAD_OUT){
+            function A(aA1, aA2){
 
-            easing["quadOut"] = function(t, b, c, d){
+                return 1.0 - 3.0 * aA2 + 3.0 * aA1;
+            }
 
-                return -c * (t /= d) * (t - 2) + b;
-            };
-        }
+            function B(aA1, aA2){
 
-        if(SUPPORT_EASING || SUPPORT_EASE_QUAD_IN_OUT){
+                return 3.0 * aA2 - 6.0 * aA1;
+            }
 
-            easing["quadInOut"] = function(t, b, c, d){
+            function C(aA1){
 
-                if((t /= d / 2) < 1) return c / 2 * t * t + b;
-                return -c / 2 * ((--t) * (t - 2) - 1) + b;
-            };
-        }
+                return 3.0 * aA1;
+            }
 
-        if(SUPPORT_EASING || SUPPORT_EASE_CUBIC_IN){
+            function calcBezier(aT, aA1, aA2){
 
-            easing["cubicIn"] = function(t, b, c, d){
+                return ((A(aA1, aA2) * aT + B(aA1, aA2)) * aT + C(aA1)) * aT;
+            }
 
-                return c * (t /= d) * t * t + b;
-            };
-        }
+            function getSlope(aT, aA1, aA2){
 
-        if(SUPPORT_EASING || SUPPORT_EASE_CUBIC_OUT){
+                return 3.0 * A(aA1, aA2) * aT * aT + 2.0 * B(aA1, aA2) * aT + C(aA1);
+            }
 
-            easing["cubicOut"] = function(t, b, c, d){
+            function binarySubdivide(aX, aA, aB, mX1, mX2){
 
-                return c * ((t = t / d - 1) * t * t + 1) + b;
-            };
-        }
+                let currentX, currentT, i = 0;
 
-        if(SUPPORT_EASING || SUPPORT_EASE_CUBIC_IN_OUT){
+                do{
+                    currentT = aA + (aB - aA) / 2.0;
+                    currentX = calcBezier(currentT, mX1, mX2) - aX;
 
-            easing["cubicInOut"] = function(t, b, c, d){
+                    if(currentX > 0.0){
 
-                if((t /= d / 2) < 1) return c / 2 * t * t * t + b;
-                return c / 2 * ((t -= 2) * t * t + 2) + b;
-            };
-        }
+                        aB = currentT;
+                    }
+                    else{
 
-        if(SUPPORT_EASING || SUPPORT_EASE_QUART_IN){
-
-            easing["quartIn"] = function(t, b, c, d){
-
-                return c * (t /= d) * t * t * t + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_QUART_OUT){
-
-            easing["quartOut"] = function(t, b, c, d){
-
-                return -c * ((t = t / d - 1) * t * t * t - 1) + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_QUART_IN_OUT){
-
-            easing["quartInOut"] = function(t, b, c, d){
-
-                if((t /= d / 2) < 1) return c / 2 * t * t * t * t + b;
-                return -c / 2 * ((t -= 2) * t * t * t - 2) + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_QUINT_IN){
-
-            easing["quintIn"] = function(t, b, c, d){
-
-                return c * (t /= d) * t * t * t * t + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_QUINT_OUT){
-
-            easing["quintOut"] = function(t, b, c, d){
-
-                return c * ((t = t / d - 1) * t * t * t * t + 1) + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_QUINT_IN_OUT){
-
-            easing["quintInOut"] = function(t, b, c, d){
-
-                if((t /= d / 2) < 1) return c / 2 * t * t * t * t * t + b;
-                return c / 2 * ((t -= 2) * t * t * t * t + 2) + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_SINE_IN){
-
-            easing["sineIn"] = function(t, b, c, d){
-
-                return -c * Math.cos(t / d * (1.5708)) + c + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_SINE_OUT){
-
-            easing["sineOut"] = function(t, b, c, d){
-
-                return c * Math.sin(t / d * (1.5708)) + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_SINE_IN_OUT){
-
-            easing["sineInOut"] = function(t, b, c, d){
-
-                return -c / 2 * (Math.cos(3.1416 * t / d) - 1) + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_EXPO_IN){
-
-            easing["expoIn"] = function(t, b, c, d){
-
-                return (t === 0) ? b : c * Math.pow(2, 10 * (t / d - 1)) + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_EXPO_OUT){
-
-            easing["expoOut"] = function(t, b, c, d){
-
-                return (t === d) ? b + c : c * (-Math.pow(2, -10 * t / d) + 1) + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_EXPO_IN_OUT){
-
-            easing["expoInOut"] = function(t, b, c, d){
-
-                if(t === 0) return b;
-                if(t === d) return b + c;
-                if((t /= d / 2) < 1) return c / 2 * Math.pow(2, 10 * (t - 1)) + b;
-                return c / 2 * (-Math.pow(2, -10 * --t) + 2) + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_CIRC_IN){
-
-            easing["circIn"] = function(t, b, c, d){
-
-                return -c * (Math.sqrt(1 - (t /= d) * t) - 1) + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_CIRC_OUT){
-
-            easing["circOut"] = function(t, b, c, d){
-
-                return c * Math.sqrt(1 - (t = t / d - 1) * t) + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_CIRC_IN_OUT){
-
-            easing["circInOut"] = function(t, b, c, d){
-
-                if((t /= d / 2) < 1) return -c / 2 * (Math.sqrt(1 - t * t) - 1) + b;
-                return c / 2 * (Math.sqrt(1 - (t -= 2) * t) + 1) + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_ELASTIC_IN){
-
-            easing["elasticIn"] = function(t, b, c, d, s){
-
-                s = 1.70158;
-                let p = 0;
-                let a = c;
-                if(t === 0) return b;
-                if((t /= d) === 1) return b + c;
-                if(!p) p = d * .3;
-                if(a < Math.abs(c)){
-                    a = c;
-                    s = p / 4;
+                        aA = currentT;
+                    }
                 }
-                else s = p / (6.2832) * Math.asin(c / a);
-                return -(a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t * d - s) * (6.2832) / p)) + b;
-            };
-        }
+                while(Math.abs(currentX) > 0.0000001 && ++i < 10);
 
-        if(SUPPORT_EASING || SUPPORT_EASE_ELASTIC_OUT){
+                return currentT;
+            }
 
-            easing["elasticOut"] = function(t, b, c, d, s){
+            function newtonRaphsonIterate(aX, aGuessT, mX1, mX2){
 
-                s = 1.70158;
-                let p = 0;
-                let a = c;
-                if(t === 0) return b;
-                if((t /= d) === 1) return b + c;
-                if(!p) p = d * .3;
-                if(a < Math.abs(c)){
-                    a = c;
-                    s = p / 4;
+                for(let i = 0; i < 4; ++i){
+
+                    const currentSlope = getSlope(aGuessT, mX1, mX2);
+                    if(currentSlope === 0.0) return aGuessT;
+                    const currentX = calcBezier(aGuessT, mX1, mX2) - aX;
+
+                    aGuessT -= currentX / currentSlope;
                 }
-                else s = p / (6.2832) * Math.asin(c / a);
-                return a * Math.pow(2, -10 * t) * Math.sin((t * d - s) * (6.2832) / p) + c + b;
-            };
-        }
 
-        if(SUPPORT_EASING || SUPPORT_EASE_ELASTIC_IN_OUT){
+                return aGuessT;
+            }
 
-            easing["elasticInOut"] = function(t, b, c, d, s){
+            function getTForX(aX, sampleValues, mX1, mX2){
 
-                s = 1.70158;
-                let p = 0;
-                let a = c;
-                if(t === 0) return b;
-                if((t /= d / 2) === 2) return b + c;
-                if(!p) p = d * (0.45);
-                if(a < Math.abs(c)){
-                    a = c;
-                    s = p / 4;
+                let intervalStart = 0.0;
+                let currentSample = 1;
+                const lastSample = kSplineTableSize - 1;
+
+                for(; currentSample !== lastSample && sampleValues[currentSample] <= aX; ++currentSample){
+
+                    intervalStart += kSampleStepSize;
                 }
-                else s = p / (6.2832) * Math.asin(c / a);
-                if(t < 1) return -.5 * (a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t * d - s) * (6.2832) / p)) + b;
-                return a * Math.pow(2, -10 * (t -= 1)) * Math.sin((t * d - s) * (6.2832) / p) * .5 + c + b;
-            };
-        }
 
-        if(SUPPORT_EASING || SUPPORT_EASE_BACK_IN){
+                --currentSample;
 
-            easing["backIn"] = function(t, b, c, d, s){
+                const dist = (aX - sampleValues[currentSample]) / (sampleValues[currentSample + 1] - sampleValues[currentSample]);
+                const guessForT = intervalStart + dist * kSampleStepSize;
+                const initialSlope = getSlope(guessForT, mX1, mX2);
 
-                if(is_undefined(s)) s = 1.70158;
-                return c * (t /= d) * t * ((s + 1) * t - s) + b;
-            };
-        }
+                if(initialSlope >= 0.001){
 
-        if(SUPPORT_EASING || SUPPORT_EASE_BACK_OUT){
-
-            easing["backOut"] = function(t, b, c, d, s){
-
-                if(is_undefined(s)) s = 1.70158;
-                return c * ((t = t / d - 1) * t * ((s + 1) * t + s) + 1) + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_BACK_IN_OUT){
-
-            easing["backInOut"] = function(t, b, c, d, s){
-
-                if(is_undefined(s)) s = 1.70158;
-                if((t /= d / 2) < 1) return c / 2 * (t * t * (((s *= (1.525)) + 1) * t - s)) + b;
-                return c / 2 * ((t -= 2) * t * (((s *= (1.525)) + 1) * t + s) + 2) + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_BOUNCE_IN){
-
-            easing["bounceIn"] = function(t, b, c, d){
-
-                return c - easing["easeOutBounce"](d - t, 0, c, d) + b;
-            };
-        }
-
-        if(SUPPORT_EASING || SUPPORT_EASE_BOUNCE_OUT){
-
-            easing["bounceOut"] = function(t, b, c, d){
-
-                if((t /= d) < (1 / 2.75)){
-                    return c * (7.5625 * t * t) + b;
+                    return newtonRaphsonIterate(aX, guessForT, mX1, mX2);
                 }
-                else if(t < (0.7273)){
-                    return c * (7.5625 * (t -= (0.5454)) * t + .75) + b;
-                }
-                else if(t < (0.9091)){
-                    return c * (7.5625 * (t -= (0.8182)) * t + .9375) + b;
+                else if(initialSlope === 0.0){
+
+                    return guessForT;
                 }
                 else{
-                    return c * (7.5625 * (t -= (0.9545)) * t + .984375) + b;
+
+                    return binarySubdivide(aX, intervalStart, intervalStart + kSampleStepSize, mX1, mX2);
                 }
-            };
-        }
+            }
 
-        if(SUPPORT_EASING || SUPPORT_EASE_BOUNCE_IN_OUT){
+            function bezier(mX1, mY1, mX2, mY2){
 
-            easing["bounceInOut"] = function(t, b, c, d){
+                if(!(0 <= mX1 && mX1 <= 1 && 0 <= mX2 && mX2 <= 1)) return;
+                let sampleValues = new Float32Array(kSplineTableSize);
 
-                if(t < d / 2) return easing["easeInBounce"](t * 2, 0, c, d) * .5 + b;
-                return easing["easeOutBounce"](t * 2 - d, 0, c, d) * .5 + c * .5 + b;
-            };
-        }
+                if(mX1 !== mY1 || mX2 !== mY2){
 
-        if(SUPPORT_EASING || SUPPORT_EASE_BEZIER){
+                    for(let i = 0; i < kSplineTableSize; ++i){
 
-            easing["bezier"] = function(t, b, c, d){
+                        sampleValues[i] = calcBezier(i * kSampleStepSize, mX1, mX2);
+                    }
+                }
 
-                // TODO
-                // https://github.com/gre/bezier-easing/blob/master/src/index.js
-            };
-        }
+                return function(x){
+
+                    if(mX1 === mY1 && mX2 === mY2) return x;
+                    if(x === 0) return 0;
+                    if(x === 1) return 1;
+
+                    return calcBezier(
+
+                        getTForX(x, sampleValues, mX1, mX2),
+                        mY1,
+                        mY2
+                    );
+                }
+            }
+
+            /*
+            easing["easeInElastic"] = elastic;
+            easing["easeOutElastic"] = function(t, f){ return 1 - elastic(1 - t, f); };
+            easing["easeInOutElastic"] = function(t, f){ return t < .5 ? elastic(t * 2, f) / 2 : 1 - elastic(t * -2 + 2, f) / 2; };
+            */
+
+            return bezier;
+
+            // http://api.jqueryui.com/easings/
+
+            function elastic(t, p) {
+
+                return t === 0 || t === 1 ? t : -Math.pow(2, 10 * (t - 1)) * Math.sin((((t - 1) - (p / (Math.PI * 2.0) * Math.asin(1))) * (Math.PI * 2)) / p);
+            }
+
+        })();
 
         /**
          * @param obj
          * @param style
+         * @param job_id
          * @param from
          * @param to
-         * @param metric
+         * @param unit
          * @param force
          * @param duration
          * @param ease_str
@@ -428,9 +267,10 @@
 
             obj,
             style,
+            job_id,
             from,
             to,
-            metric,
+            unit,
             force,
             duration,
             ease_str,
@@ -448,7 +288,7 @@
             this.from = from;
             this.to = to;
             this.current = from;
-            this.metric = metric;
+            this.unit = unit;
             this.force = force;
             this.duration = duration;
             this.ease_str = ease_str;
@@ -456,12 +296,10 @@
             this.start = 0;
             this.callback = callback;
             this.step = step;
-            this.checkkey = "_fat_" + style;
-            this.diff = (to - from) / 100;
-            this.res = res / duration;
+            this.job_id = job_id;
             this.delay = delay;
             this.loop = loop;
-            this.float = (SUPPORT_COLOR && color ? ((metric === "%") || (style.indexOf("A") !== -1)) : (metric !== "px"));
+            this.float = (SUPPORT_COLOR && color ? ((unit === "%") || (style.indexOf("A") !== -1)) : (unit !== "px"));
 
             if(SUPPORT_COLOR){
 
@@ -481,6 +319,8 @@
             }
         }
 
+        const JobPrototype = Job.prototype;
+
         if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM){
 
             /**
@@ -489,7 +329,7 @@
              * @param {boolean=} direction
              */
 
-            Job.prototype.animate = function(time, ratio, direction){
+            JobPrototype.animate = function(time, ratio, direction){
 
                 const bypass = this.from === this.to;
                 const obj = this.obj;
@@ -506,7 +346,30 @@
                     }
                     else{
 
-                        current_value = this.diff * this.ease[((this.res * stamp + 0.5) >> 0)] / prefetch_resolution;
+                        if(this.ease){
+
+                            if(this.ease.length){
+
+                                current_value = (this.to - this.from) * this.ease[((res / this.duration * stamp + 0.5) >> 0)] / prefetch_resolution;
+                            }
+                            else{
+
+                                current_value = (this.to - this.from) * stamp / this.duration;
+                            }
+                        }
+                        else{
+
+                            if(this.ease_str.length === 1){
+
+                                // fn(x)
+                                current_value = this.ease_str(stamp / this.duration);
+                            }
+                            else{
+
+                                // fn(current, from, to, total)
+                                current_value = this.ease_str(stamp, this.from, this.to, this.duration);
+                            }
+                        }
 
                         if(SUPPORT_CONTROL && !direction){
 
@@ -537,7 +400,7 @@
 
                     if(SUPPORT_TRANSFORM && this.transform){
 
-                        obj._transform[style] = current_value + this.metric;
+                        obj._transform[style] = current_value + this.unit;
                     }
                     else if(SUPPORT_COLOR && this.color){
 
@@ -589,10 +452,7 @@
 
                                 if(current < sequences.length){
 
-                                    if(current > 0){
-
-                                        return;
-                                    }
+                                    return;
                                 }
                                 else{
 
@@ -605,11 +465,78 @@
                     }
                 }
             };
+
+            JobPrototype.render_job = function(fat, time){
+
+                if(this.start === -1){
+
+                    if(SUPPORT_SEQUENCES && this.callback){
+
+                        const current_obj = this.obj;
+                        const sequences = current_obj._sequences;
+
+                        if(sequences){
+
+                            fat.animate(current_obj, sequences[current_obj._sequence_current], {
+
+                                "duration": this.duration,
+                                "ease": this.ease_str,
+                                "callback": this.callback,
+                                "step": this.step,
+                                "force": this.force,
+                                "loop": this.loop
+                            });
+
+                            if(this.start === 0){
+
+                                return true;
+                            }
+                        }
+                    }
+
+                    this.obj[this.job_id] = null;
+
+                    return;
+                }
+                else{
+
+                    const delay = time - last_update;
+
+                    if(this.delay) {
+
+                        if((this.delay -= delay) > 0){
+
+                            return true;
+                        }
+                        else{
+
+                            this.delay = 0;
+                        }
+                    }
+
+                    if(SUPPORT_CONTROL){
+
+                        if(!fat.plays){
+
+                            this.start += delay;
+                            return true;
+                        }
+
+                        this.animate(time, fat.ratio, fat.direction);
+                    }
+                    else{
+
+                        this.animate(time);
+                    }
+                }
+
+                return true;
+            };
         }
 
         if(SUPPORT_ANIMATE){
 
-            Job.prototype.animate_job = function(style, value){
+            JobPrototype.animate_job = function(style, value){
 
                 if(style === "scrollTop"){
 
@@ -617,9 +544,58 @@
                 }
                 else{
 
-                    set_style(this.css, style, value + this.metric, this.force);
+                    set_style(this.css, style, value + this.unit, this.force);
                 }
             };
+        }
+
+        if(SUPPORT_CONTROL){
+
+            JobPrototype.seek = function(progress, ratio){
+
+                const duration = this.duration / ratio;
+
+                this.start += ((this.current - this.from) / (this.to - this.from) * duration) - (progress * duration);
+            };
+
+            JobPrototype.update = function(value/*, force*/){
+
+                // TODO:
+                //if(SUPPORT_TRANSFORM){}
+                //if(SUPPORT_COLOR){}
+
+                if(this.current === value){
+
+                    return false;
+                }
+                else{
+
+                    if(is_string(value)){
+
+                        value = parse_float(value);
+                    }
+                    else if(is_undefined(value)){
+
+                        value = this.from;
+                    }
+
+                    if(this.start !== -1){
+
+                        this.from = value;
+                    }
+
+                    this.current = value;
+
+                    //force || (force = this.force);
+
+                    if(this.unit){
+
+                        value += this.unit;
+                    }
+                }
+
+                return value;
+            }
         }
 
         /**
@@ -649,7 +625,7 @@
 
             return obj;
 
-        })(create_object()) : null;
+        })({}) : null;
 
         /**
          * @const
@@ -674,7 +650,15 @@
 
             return obj;
 
-        })(create_object()) : null;
+        })({}) : null;
+
+        const operators = {
+
+            "+=": 1,
+            "-=": 1,
+            "*=": 1,
+            "/=": 1
+        };
 
         /**
          * @const
@@ -699,7 +683,7 @@
 
         if(SUPPORT_COLOR){
 
-            hex_to_int_table = create_object();
+            hex_to_int_table = {};
             int_to_hex_table = new Array(255);
 
             for(let i = 0; i < 256; i++){
@@ -718,7 +702,7 @@
 
         if(SUPPORT_TRANSFORM){
 
-            Job.prototype.transform_job = function(){
+            JobPrototype.transform_job = function(){
 
                 const transform = this.obj._transform;
 
@@ -732,11 +716,11 @@
 
         if(SUPPORT_COLOR){
 
-            Job.prototype.color_job = function(color_group){
+            JobPrototype.color_job = function(color_group){
 
                 const color = this.obj["_" + color_group];
 
-                set_style(this.css, color_group.replace("C", "-c"), merge_color(color, color_group, this.metric), this.force);
+                set_style(this.css, color_group.replace("C", "-c"), merge_color(color, color_group, this.unit), this.force);
 
                 return color;
             };
@@ -763,15 +747,14 @@
                 }
                 else{
 
-                    r = hex_to_int_table[hex_or_rgba.substring(1, 3)];
-                    g = hex_to_int_table[hex_or_rgba.substring(3, 5)];
-                    b = hex_to_int_table[hex_or_rgba.substring(5, 7)];
+                    r = hex_to_int_table[hex_or_rgba[1] + hex_or_rgba[2]];
+                    g = hex_to_int_table[hex_or_rgba[3] + hex_or_rgba[4]];
+                    b = hex_to_int_table[hex_or_rgba[5] + hex_or_rgba[6]];
                 }
             }
             else{
 
-                tmp = hex_or_rgba.indexOf("(");
-                tmp = hex_or_rgba.substring(tmp + 1, hex_or_rgba.indexOf(")")).split(',');
+                tmp = substring_match(hex_or_rgba, "(", ")").split(',');
 
                 r = parseInt(tmp[0], 10);
                 g = parseInt(tmp[1], 10);
@@ -779,7 +762,7 @@
 
                 if(tmp.length > 3){
 
-                    a = parseFloat(tmp[3]);
+                    a = parse_float(tmp[3]);
                 }
 
                 if(hex_or_rgba.indexOf("hsl") !== -1){
@@ -792,7 +775,7 @@
                 }
             }
 
-            const obj = create_object();
+            const obj = {};
 
             obj[key + "R"] = r;
             obj[key + "G"] = g;
@@ -924,6 +907,7 @@
 
             if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM){
 
+                this.id = id_counter++;
                 this.stack = [];
                 this.render = render_frames.bind(this);
                 this.exec = 0;
@@ -931,99 +915,97 @@
 
                 if(SUPPORT_CONTROL){
 
-                    config || (config = create_object());
-
                     //TODO:
-                    this.autostart = !(config["autostart"] === false);
-                    //TODO:
-                    this.fps = config["fps"];
-                    this.plays = true;
+                    this.fps = config && config["fps"];
+                    this.plays = !config || (config["autostart"] !== false);
                     this.direction = true;
                     this.ratio = 1;
                 }
             }
         }
 
+        const FatPrototype = Fat.prototype;
+
         if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM){
 
-            Fat.prototype.handle = handle;
+            FatPrototype.handle = handle;
             /** @export */
-            Fat.prototype.animate = animate;
+            FatPrototype.animate = animate;
             /** @export */
-            Fat.prototype.destroy = destroy;
+            FatPrototype.destroy = destroy;
             /** @export */
-            Fat.prototype.init = init;
+            FatPrototype.init = init;
             /** @export */
-            Fat.prototype.easing = easing;
+            FatPrototype.ease = easing;
         }
 
         if(SUPPORT_TRANSFORM){
 
             /** @export */
-            Fat.prototype.transform = animate;
+            FatPrototype.transform = animate;
         }
 
         if(SUPPORT_TRANSITION){
 
             /** @export */
-            Fat.prototype.transition = transition;
+            FatPrototype.transition = transition;
         }
 
         if(SUPPORT_NATIVE){
 
             /** @export */
-            Fat.prototype.native = native;
+            FatPrototype.native = native;
         }
 
         if(SUPPORT_CONTROL){
 
             /** @export */
-            Fat.prototype.update = update;
+            FatPrototype.update = update;
 
             /** @export */
-            Fat.prototype.seek = seek;
+            FatPrototype.seek = seek;
 
             /** @export */
-            Fat.prototype.pause = function(){
+            FatPrototype.pause = function(){
 
                 this.plays = false;
                 return this;
             };
 
             /** @export */
-            Fat.prototype.start = function(){
+            FatPrototype.start = function(){
 
                 this.plays = true;
                 return this;
             };
 
             /** @export */
-            Fat.prototype.stop = function(){
+            FatPrototype.stop = function(){
 
                 return this.reset().pause();
             };
 
             /** @export */
-            Fat.prototype.speed = function(ratio){
+            FatPrototype.speed = function(ratio){
 
                 this.ratio = ratio;
                 return this;
             };
 
             /** @export */
-            Fat.prototype.reset = function(){
+            FatPrototype.reset = function(){
 
                 return this.seek(0);
             };
 
             /** @export */
-            Fat.prototype.finish = function(){
+            FatPrototype.finish = function(){
 
                 return this.seek(1);
             };
 
             /** @export */
-            Fat.prototype.reverse = function(_reverse){
+            FatPrototype.reverse = function(_reverse){
 
                 if(is_undefined(_reverse)){
 
@@ -1041,95 +1023,59 @@
         if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM || SUPPORT_TRANSITION || SUPPORT_NATIVE){
 
             /** @export */
-            Fat.prototype.create = function(){
+            FatPrototype.create = function(){
 
                 return new Fat();
             };
         }
 
-        return new Fat();
-
         function seek(progress){
 
-            for(let i = 0, len = this.stack.length; i < len; i++){
+            const stack = this.stack;
+            const ratio = this.ratio;
 
-                const cur_job = this.stack[i];
-                const cur_from = cur_job.from;
-                const duration = cur_job.duration / this.ratio;
-
-                cur_job.start += ((cur_job.current - cur_from) / (cur_job.to - cur_from) * duration) - (progress * duration);
-            }
+            for(let i = 0, len = stack.length; i < len; stack[i++].seek(progress, ratio)){}
 
             return this;
+        }
+
+        function get_nodes(obj){
+
+            if(is_string(obj)){
+
+                obj = document.querySelectorAll(/** @type {string} */ (obj));
+            }
+            else{
+
+                obj.length || (obj = [obj]);
+            }
+
+            return obj;
         }
 
         /**
          * @param obj
          * @param style
-         * @param {number|string=} value
+         * @param value
          * @param {boolean=} force
          */
 
         function update(obj, style, value, force){
 
+            obj = get_nodes(obj);
+
             if(is_string(style)){
 
-                if(is_string(obj)){
-
-                    obj = document.querySelectorAll(/** @type {string} */ (obj));
-                }
-
-                let obj_length = obj.length;
-
-                if(!obj_length){
-
-                    obj = [obj];
-                    obj_length = 1;
-                }
-
-                for(let i = 0; i < obj_length; i++){
+                for(let i = 0, len = obj.length; i < len; i++){
 
                     const cur_obj = obj[i];
-                    const cur_job = cur_obj["_fat_" + style];
+                    const cur_job = cur_obj["_fat_" + style + this.id];
 
                     let found = true;
 
                     if(cur_job){
 
-                        // TODO:
-                        //if(SUPPORT_TRANSFORM){}
-                        //if(SUPPORT_COLOR){}
-
-                        if(cur_job.current === value){
-
-                            found = false;
-                        }
-                        else{
-
-                            if(is_string(value)){
-
-                                value = parseFloat(value);
-                            }
-                            else if(is_undefined(value)){
-
-                                value = cur_job.from;
-                            }
-
-                            if(cur_job.start !== -1){
-
-                                cur_job.from = value;
-                                cur_job.diff = (cur_job.to - value) / 100;
-                            }
-
-                            cur_job.current = value;
-
-                            force || (force = cur_job.force);
-
-                            if(cur_job.metric){
-
-                                value += cur_job.metric;
-                            }
-                        }
+                        found = cur_job.update(value, force);
                     }
                     else if(get_style(cur_obj, style) === value){
 
@@ -1152,7 +1098,7 @@
 
                     const key = keys[i];
 
-                    this.update(obj, key, style[key]);
+                    this.update(obj, key, style[key], /* force: */ value);
                 }
             }
 
@@ -1189,40 +1135,46 @@
 
             return (
 
-                prefetch[ease] || (
+                is_string(ease) ? (
 
-                    prefetch[ease] = prefetch_ease(ease)
-                )
+                    ease ? prefetch[ease] || (
+
+                        prefetch[ease] = prefetch_ease(ease)
+
+                    ) : []
+
+                ) : null
             );
         }
 
         /**
          * @const
          * @param {string=} ease
-         * @return {Array<number>|Int32Array<number>}
+         * @return {Array<number>|Int16Array<number>}
          */
 
         function prefetch_ease(ease){
 
+            let fn_ease = easing[ease] || (
+
+                SUPPORT_EASING && (easing[ease] = easing_bezier.apply(null, builtin_easing[ease]))
+            );
+
+            if(!fn_ease){
+
+                return [];
+            }
+
             /**
-             * @type {Array<number>|Int32Array<number>}
+             * @type {Array<number>|Int16Array<number>}
              * @const
              */
 
-            const arr = (
-
-                is_undefined(Int32Array) ?
-
-                    new Array(res)
-                :
-                    new Int32Array(res)
-            );
-
-            const fn_ease = easing[ease] || easing["linear"];
+            const arr = new (Int16Array || Array)(res);
 
             for(let i = 0; i < res; i++){
 
-                arr[i] = (fn_ease(i, 0, 100, res) * prefetch_resolution + 0.5) >> 0;
+                arr[i] = (fn_ease(i / res) * prefetch_resolution + 0.5) >> 0;
             }
 
             return arr;
@@ -1236,10 +1188,6 @@
 
                 this.exec = requestAnimationFrame(this.render);
 
-                const delay = time - last_update;
-
-                last_update = time;
-
                 let in_progress = false;
 
                 for(let i = 0; i < len; i++){
@@ -1248,67 +1196,18 @@
 
                     if(current_job){
 
-                        if(current_job.start === -1){
+                        if(current_job.render_job(this, time)){
 
-                            if(SUPPORT_SEQUENCES && current_job.callback){
-
-                                const current_obj = current_job.obj;
-                                const sequences = current_obj._sequences;
-
-                                if(sequences){
-
-                                    this.animate(current_obj, sequences[current_obj._sequence_current], {
-
-                                        "duration": current_job.duration,
-                                        "ease": current_job.ease_str,
-                                        "callback": current_job.callback,
-                                        "step": current_job.step,
-                                        "force": current_job.force
-                                    });
-
-                                    in_progress = true;
-
-                                    continue;
-                                }
-                            }
-
-                            current_job.obj[current_job.checkkey] = null;
-
-                            this.stack[i] = null;
+                            in_progress = true;
                         }
                         else{
 
-                            in_progress = true;
-
-                            if(current_job.delay) {
-
-                                if((current_job.delay -= delay) > 0){
-
-                                    continue;
-                                }
-                                else{
-
-                                    current_job.delay = 0;
-                                }
-                            }
-
-                            if(SUPPORT_CONTROL){
-
-                                if(!this.plays){
-
-                                    current_job.start += delay;
-                                    continue;
-                                }
-
-                                current_job.animate(time, this.ratio, this.direction);
-                            }
-                            else{
-
-                                current_job.animate(time);
-                            }
+                            this.stack[i] = null;
                         }
                     }
                 }
+
+                last_update = time;
 
                 if(!in_progress){
 
@@ -1360,9 +1259,78 @@
             return Object.create(null);
         }
 
+        if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM){
+
+            /**
+             * @param {string|number} from
+             * @param {string|number} to
+             * @param {boolean} force
+             * @param {number|string|Function} duration
+             * @param {string} ease_str
+             * @param {Function} callback
+             * @param {Function} step
+             * @param {number} delay
+             * @param {string=} transform
+             * @param {number=} color
+             * @param {string=} color_group
+             */
+
+            JobPrototype.handle = function(from, to, force, duration, ease_str, callback, step, delay, transform, color, color_group){
+
+                if(is_undefined(from)){
+
+                    from = this.current;
+                }
+                else{
+
+                    from = parse_float(from);
+                }
+
+                if(is_string(to)){
+
+                    to = parse_relative_value(from, to);
+                }
+
+                this.from = from;
+                this.to = to;
+                this.duration = duration;
+                this.start = 0;
+                this.force = force;
+
+                if(this.ease_str !== ease_str){
+
+                    this.ease = init_easing(ease_str);
+                    this.ease_str = ease_str;
+                }
+
+                this.callback = callback;
+                this.step = step;
+                this.delay = delay;
+
+                if(SUPPORT_TRANSFORM){
+
+                    if(transform){
+
+                        this.transform = transform;
+                    }
+                }
+
+                if(SUPPORT_COLOR){
+
+                    if(color){
+
+                        this.color = color;
+                        this.color_group = color_group;
+                    }
+                }
+            };
+        }
+
         /**
          * @param {HTMLElement} obj
          * @param {string} style
+         * @param {string} job_id
+         * @param {string|number} from
          * @param {string|number} to
          * @param {boolean} force
          * @param {number|string|Function} duration
@@ -1376,52 +1344,44 @@
          * @param {string=} color_group
          */
 
-        function handle(obj, style, to, force, duration, ease_str, callback, step, delay, loop, transform, color, color_group){
-
-            const checkkey = "_fat_" + style;
+        function handle(obj, style, job_id, from, to, force, duration, ease_str, callback, step, delay, loop, transform, color, color_group){
 
             /** @type Job */
 
-            const cur_job = obj[checkkey];
-
-            let from;
+            const cur_job = obj[job_id];
 
             if(cur_job){
 
-                cur_job.from = from = cur_job.current;
-                cur_job.to = to = parseFloat(to);
-                cur_job.duration = duration;
-                cur_job.start = 0;
-                cur_job.force = force;
+                if(SUPPORT_TRANSFORM && SUPPORT_COLOR){
 
-                if(cur_job.ease_str !== ease_str){
+                    cur_job.handle(
 
-                    cur_job.ease = init_easing(ease_str);
-                    cur_job.ease_str = ease_str;
+                        from,
+                        to,
+                        force,
+                        duration,
+                        ease_str,
+                        callback,
+                        step,
+                        delay,
+                        transform,
+                        color,
+                        color_group
+                    );
                 }
+                else{
 
-                cur_job.diff = (to - from) / 100;
-                cur_job.res = res / duration;
+                    cur_job.handle(
 
-                cur_job.callback = callback;
-                cur_job.step = step;
-                cur_job.delay = delay;
-
-                if(SUPPORT_TRANSFORM){
-
-                    if(transform){
-
-                        cur_job.transform = transform;
-                    }
-                }
-
-                if(SUPPORT_COLOR){
-
-                    if(color){
-
-                        cur_job.color = color;
-                        cur_job.color_group = color_group;
-                    }
+                        from,
+                        to,
+                        force,
+                        duration,
+                        ease_str,
+                        callback,
+                        step,
+                        delay
+                    );
                 }
             }
             else{
@@ -1438,28 +1398,47 @@
                         :
                             get_style
 
-                )(obj, style, color_group);
+                )(obj, style, from, color_group);
 
-                if(style_from === "auto") style_from = "0";
-                from = parseFloat(style_from);
+                if(style_from === "auto"){
+
+                    style_from = "0";
+                }
+
+                from = parse_float(style_from);
 
                 let style_to = "" + to;
-                to = parseFloat(to);
 
-                let metric = style_to.substring(("" + to).length);
+                if(is_string(to)){
 
-                if(!metric){
+                    const operator = to[0] + to[1];
 
-                    metric = style_from.substring(("" + from).length);
+                    if(operators[operator]){
+
+                        style_to = style_to.substring(2);
+                        to = parse_relative_value(from, style_to, operator);
+                    }
+                    else{
+
+                        to = parse_float(to);
+                    }
+                }
+
+                let unit = style_to.substring(("" + to).length);
+
+                if(!unit){
+
+                    unit = style_from.substring(("" + from).length);
                 }
 
                 const job = SUPPORT_TRANSFORM && SUPPORT_COLOR ? (new Job(
 
                     obj,
                     style,
+                    job_id,
                     from,
                     to,
-                    metric,
+                    unit,
                     force,
                     duration,
                     ease_str,
@@ -1475,9 +1454,10 @@
 
                     obj,
                     style,
+                    job_id,
                     from,
                     to,
-                    metric,
+                    unit,
                     force,
                     duration,
                     ease_str,
@@ -1488,25 +1468,81 @@
                 ));
 
                 this.stack[this.stack.length] = job;
-                obj[checkkey] = job;
+                obj[job_id] = job;
             }
         }
 
-        function get_style(obj, style){
+        /**
+         * @param from
+         * @param to
+         * @param {string=} operator
+         * @returns {number}
+         */
+
+        function parse_relative_value(from, to, operator){
+
+            if(to.length < 3){
+
+                return parseInt(to, 10);
+            }
+
+            if(!operator){
+
+                operator = to[0] + to[1];
+
+                if(operators[operator]){
+
+                    to = to.substring(2);
+                }
+            }
+
+            to = parse_float(to);
+
+            if(operator === "+="){
+
+                to = from + to;
+            }
+            else if(operator === "-="){
+
+                to = from - to;
+            }
+            else if(operator === "*="){
+
+                to = from * to;
+            }
+            else if(operator === "/="){
+
+                to = from / to;
+            }
+
+            return to;
+        }
+
+        /**
+         * @param obj
+         * @param style
+         * @param {string|number=} from
+         * @returns {string}
+         */
+
+        function get_style(obj, style, from){
 
             if(style === "scrollTop"){
 
-                return obj.scrollTop;
+                return is_undefined(from) ? obj.scrollTop : from;
             }
 
             const css = obj._style || (obj._style = obj.style);
-            const style_value = css[style];
+            const style_value = is_undefined(from) ? css[style] : from;
 
             if(!style_value){
 
                 return (
 
-                    obj._style_comp || (obj._style_comp = getComputedStyle(obj))
+                    obj._style_comp || (
+
+                        obj._style_comp = getComputedStyle(obj)
+                    )
 
                 )[style];
             }
@@ -1514,52 +1550,44 @@
             return style_value;
         }
 
-        function get_transform(obj, style){
+        function get_transform(obj, style, from){
 
             let style_prop = obj._transform;
 
             if(!style_prop){
 
-                obj._transform = style_prop = create_object();
+                obj._transform = style_prop = {};
 
-                const style_value = get_style(obj, prefix_transform || "transform");
+                const style_value = from || get_style(obj, prefix_transform || "transform");
 
-                if(style_value === "none"){
-
-                    style_prop["translateX"] = 0;
-                    style_prop["translateY"] = 0;
-                }
-                else{
+                if(style_value && (style_value !== "none")){
 
                     const parts = style_value.split(' ');
 
                     for(let i = 0; i < parts.length; i++){
 
-                        const current_part = parts[i];
-                        const part_val = current_part.indexOf("(");
+                        const part = parts[i];
+                        let prop = substring_match(part, "(");
 
-                        if(part_val === -1){
+                        if(prop){
 
-                            continue;
-                        }
+                            const values = substring_match(part, "(", ")").split(',');
 
-                        const values = current_part.substring(part_val + 1, current_part.indexOf(")")).split(',');
-                        let prop = current_part.substring(0, part_val);
+                            if(values.length > 2){
 
-                        if(values.length > 2){
+                                prop = prop.replace("3d", "");
+                                style_prop[prop + "Z"] = values[2];
+                            }
 
-                            prop = prop.replace("3d", "");
-                            style_prop[prop + "Z"] = values[2];
-                        }
+                            if(values.length > 1){
 
-                        if(values.length > 1){
+                                style_prop[prop + "X"] = values[0];
+                                style_prop[prop + "Y"] = values[1];
+                            }
+                            else{
 
-                            style_prop[prop + "X"] = values[0];
-                            style_prop[prop + "Y"] = values[1];
-                        }
-                        else{
-
-                            style_prop[prop] = values[0];
+                                style_prop[prop] = values[0];
+                            }
                         }
                     }
                 }
@@ -1571,18 +1599,19 @@
         /**
          * @param {Element} obj
          * @param {string} style
+         *  @param {string} from
          * @param {string} color_group
          * @returns {Object<string, number>}
          */
 
-        function get_color(obj, style, color_group){
+        function get_color(obj, style, from, color_group){
 
             const key = "_" + color_group;
             let style_prop = obj[key];
 
             if(!style_prop){
 
-                const style_value = get_style(obj, color_group);
+                const style_value = from || get_style(obj, color_group);
 
                 obj[key] = style_prop = parse_color(style_value, color_group, /* default_alpha: */ 1);
             }
@@ -1604,7 +1633,7 @@
 
             if(x || y || z){
 
-                if(z && parseFloat(z)){
+                if(z && parse_float(z)){
 
 
                     return prop + "3d(" + x + "," + y + "," + z + ") ";
@@ -1621,18 +1650,18 @@
         /**
          * @param {Object<string, number>} color
          * @param {string} prop
-         * @param {string} metric
+         * @param {string} unit
          * @returns {string}
          */
 
-        function merge_color(color, prop, metric){
+        function merge_color(color, prop, unit){
 
             let r = color[prop + "R"] || 0;
             let g = color[prop + "G"] || 0;
             let b = color[prop + "B"] || 0;
             let a = color[prop + "A"];
 
-            if(metric === "%"){
+            if(unit === "%"){
 
                 r = (2.55 * r + 0.5) >> 0;
                 g = (2.55 * g + 0.5) >> 0;
@@ -1678,6 +1707,70 @@
             }
 
             return result;
+        }
+
+        /**
+         * @param {string} str
+         * @param {string} from
+         * @param {string=} to
+         * @returns {string}
+         */
+
+        function substring_match(str, from, to){
+
+            const pos = str.indexOf(from);
+
+            if(pos !== -1){
+
+                if(to){
+
+                    return str.substring(pos + from.length, str.indexOf(to));
+                }
+                else{
+
+                    return str.substring(0, pos);
+                }
+            }
+
+            return "";
+        }
+
+        function parse_bezier(config_ease){
+
+            if(config_ease){
+
+                let bezier;
+                let values;
+
+                if(is_string(config_ease)){
+
+                    if((bezier = substring_match(config_ease, "bezier(", ")"))){
+
+                        bezier = bezier.replace(/ /g, "");
+                        values = bezier.split(",");
+                    }
+                }
+                else if(config_ease.constructor === Array){
+
+                    bezier = config_ease.join(",");
+                    values = config_ease;
+                }
+
+                if(bezier){
+
+                    easing[bezier] || (easing[bezier] = easing_bezier(
+
+                        values[0],
+                        values[1],
+                        values[2],
+                        values[3]
+                    ));
+
+                    config_ease = bezier;
+                }
+            }
+
+            return config_ease;
         }
 
         /*
@@ -1728,46 +1821,32 @@
                 }
                 else{
 
-                    config = create_object();
+                    config = {};
                 }
 
-                if(is_string(obj)){
+                obj = get_nodes(obj);
 
-                    obj = document.querySelectorAll(/** @type {string} */ (obj));
-                }
-
-                let obj_length = obj.length;
-
-                if(!obj_length){
-
-                    obj = [obj];
-                    obj_length = 1;
-                }
+                let sequences;
 
                 if(SUPPORT_SEQUENCES){
 
                     if(styles.constructor === Array){
 
-                        for(let i = 0; i < obj_length; i++){
-
-                            const current_obj = obj[i];
-
-                            current_obj._sequences = styles;
-                            current_obj._sequence_current = 0;
-                        }
-
+                        sequences = styles;
                         styles = styles[0];
                     }
                 }
 
+                let obj_length = obj.length;
+
                 const config_duration = config["duration"] || 400;
-                const config_ease = config["ease"] || "linear";
-                const config_callback = config["callback"] || (SUPPORT_SEQUENCES && function(){/* TODO: mark last style */});
+                const config_callback = config["callback"] || (SUPPORT_SEQUENCES && sequences && function(){/* TODO: mark last style */});
                 const config_step = config["step"] || false;
                 const config_delay = config["delay"] || 0;
                 const config_force = config["force"] || false;
                 const config_init = this.resync || config["init"];
                 const config_loop = SUPPORT_SEQUENCES && config["loop"];
+                const config_ease = (SUPPORT_EASING ? parse_bezier(config["ease"]) : config["ease"]) || "";
 
                 let style_keys = Object.keys(styles);
                 let style_length = style_keys.length;
@@ -1808,7 +1887,13 @@
 
                                 if(color_type < 0){
 
-                                    const value = styles[key];
+                                    let value = styles[key];
+
+                                    if(typeof value === "object"){
+
+                                        value = value["to"];
+                                    }
+
                                     const color = parse_color(value, key);
                                     let tmp, val;
 
@@ -1864,7 +1949,22 @@
 
                     const last = (k === style_length - 1);
                     const key = style_keys[k];
-                    const value = styles[key];
+                    const job_id = "_fat_" + key + this.id;
+
+                    let value = styles[key];
+                    let from;
+                    let ease;
+                    let duration;
+                    let delay;
+
+                    if(typeof value === "object"){
+
+                        delay = value["delay"];
+                        duration = value["duration"];
+                        ease = value["ease"];
+                        from = value["from"];
+                        value = value["to"];
+                    }
 
                     if(SUPPORT_TRANSFORM){
 
@@ -1904,6 +2004,12 @@
 
                         const current_obj = obj[i];
 
+                        if(last && sequences){
+
+                            current_obj._sequences = sequences;
+                            current_obj._sequence_current = 0;
+                        }
+
                         if(config_init){
 
                             if(k === 0){
@@ -1935,13 +2041,15 @@
 
                                 current_obj,
                                 key,
+                                job_id,
+                                from,
                                 value,
                                 config_force,
-                                config_duration,
-                                config_ease,
+                                duration || config_duration,
+                                ease || config_ease,
                                 last && config_callback,
                                 last && config_step,
-                                config_delay,
+                                delay || config_delay,
                                 config_loop,
                                 has_transform,
                                 has_color || has_color_background || has_color_border,
@@ -1954,13 +2062,15 @@
 
                                 current_obj,
                                 key,
+                                job_id,
+                                from,
                                 value,
                                 config_force,
-                                config_duration,
-                                config_ease,
+                                duration || config_duration,
+                                ease || config_ease,
                                 last && config_callback,
                                 last && config_step,
-                                config_delay,
+                                delay || config_delay,
                                 config_loop
                             );
                         }
@@ -1993,20 +2103,9 @@
 
                 /* Create Empty Config Fallback */
 
-                config || (config = create_object());
+                config || (config = {});
 
-                if(is_string(obj)){
-
-                    obj = document.querySelectorAll(/** @type {string} */ (obj));
-                }
-
-                let obj_length = obj.length;
-
-                if(!obj_length){
-
-                    obj = [obj];
-                    obj_length = 1;
-                }
+                obj = get_nodes(obj);
 
                 const style_keys = Object.keys(styles);
                 const style_length = style_keys.length;
@@ -2033,7 +2132,7 @@
 
                 /* Create Jobs */
 
-                for(let i = 0; i < obj_length; i++){
+                for(let i = 0, len = obj.length; i < len; i++){
 
                     const current_obj = obj[i];
                     const current_listener = current_obj.current_listener;
@@ -2098,24 +2197,13 @@
 
                 /* Create Empty Config Fallback */
 
-                config || (config = create_object());
+                config || (config = {});
 
                 /* Handle Delay */
 
                 const style_keys = Object.keys(styles);
 
-                if(is_string(obj)){
-
-                    obj = document.querySelectorAll(/** @type {string} */ (obj));
-                }
-
-                let obj_length = obj.length;
-
-                if(!obj_length){
-
-                    obj = [obj];
-                    obj_length = 1;
-                }
+                obj = get_nodes(obj);
 
                 const config_duration = (config["duration"] || 400);
                 const config_ease = config["ease"] || "linear";
@@ -2128,10 +2216,10 @@
 
                 /* Create Jobs */
 
-                for(let i = 0; i < obj_length; i++){
+                for(let i = 0, len = obj.length; i < len; i++){
 
                     const current_obj = obj[i];
-                    const styles_arr = create_object();
+                    const styles_arr = {};
 
                     for(let k = 0; k < style_length; k++){
 
@@ -2178,6 +2266,8 @@
 
             return this;
         }
+
+        return new Fat();
 
     })(), this);
 

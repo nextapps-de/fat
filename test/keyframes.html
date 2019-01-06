@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<title>Test: Color</title>
+	<style>
+		.square{
+			position: relative;
+			display: inline-block;
+			left: 0;
+			width: auto;
+			height: auto;
+			vertical-align: text-bottom;
+			background-color: #000;
+			color: #fff;
+			padding: 20px;
+			margin-bottom: 5px;
+		}
+	</style>
+</head>
+<body>
+<div id="square_1" class="square">1</div><br>
+<div id="square_2" class="square">2</div><br>
+<div id="square_3" class="square">3</div><br>
+<div id="square_4" class="square">4</div><br>
+<div id="square_5" class="square">5</div>
+<script type="text/javascript" src="../fat.js"></script>
+<script>
+
+	Fat.animate("#square_1", [
+
+		{ translateX: "+=200px" },
+		{ translateY: "+=200px" },
+		{ translateX: "-=200" },
+		{ translateY: "-=200" }
+	],{
+		duration: 2000,
+		loop: -1
+	});
+
+	// -----------------------------------------
+
+	Fat.animate("#square_2", [
+
+		{ left: "+=200px" },
+		{ top: "+=200px" },
+		{ left: "*=0" },
+		{ top: "*=0" }
+	],{
+		duration: 2000,
+		loop: -1
+	});
+
+	// -----------------------------------------
+
+	Fat.animate("#square_3", [{
+
+		left: {
+			from: 0,
+			to: 200,
+			duration: 2000
+		}
+	},{
+		top: {
+			from: 0,
+			to: 200,
+			duration: 2000
+		}
+	},{
+		left: {
+			to: 0,
+			duration: 2000
+		}
+	},{
+		top: {
+			to: 0,
+			duration: 2000
+		}
+	}],{
+		duration: 2000,
+		loop: -1
+	});
+
+	// -----------------------------------------
+
+	(function loop(){
+
+		Fat.animate("#square_4", {
+
+			left: "200px"
+		},{
+			duration: 2000,
+			callback: function(){
+
+				Fat.animate(this, {
+
+					top: "200px"
+				},{
+					duration: 2000,
+					callback: function(){
+
+						Fat.animate(this, {
+
+							left: 0
+						},{
+							duration: 2000,
+							callback: function(){
+
+								Fat.animate(this, {
+
+									top: 0
+								},{
+									duration: 2000,
+									callback: loop
+								});
+							}
+						});
+					}
+				});
+			}
+		});
+	})();
+
+	// -----------------------------------------
+
+	const scene_1 = Fat.create();
+	const scene_2 = Fat.create();
+
+	(function loop(){
+
+		scene_1.animate("#square_5", {
+
+			left: "200px"
+		},{
+			delay: 0,
+			duration: 2000
+		});
+
+		scene_1.animate("#square_5", {
+
+			top: "200px"
+		},{
+			delay: 2000,
+			duration: 2000
+		});
+
+		scene_2.animate("#square_5", {
+
+			left: 0
+		},{
+			delay: 4000,
+			duration: 2000
+		});
+
+		scene_2.animate("#square_5", {
+
+			top: 0
+		},{
+			delay: 6000,
+			duration: 2000,
+			callback: loop
+		});
+
+	})();
+
+</script>
+</body>
+</html>
