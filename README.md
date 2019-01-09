@@ -1,4 +1,4 @@
-<img src="docs/fat_logo_dark.svg">
+<img src="https://cdn.jsdelivr.net/gh/nextapps-de/fat@master/docs/fat_logo_dark.svg">
 <h1></h1>
 <a target="_blank" href="https://github.com/nextapps-de/fat/issues"><img src="https://img.shields.io/github/issues/nextapps-de/fat.svg"></a>
 <a target="_blank" href="https://github.com/nextapps-de/fat/blob/master/LICENSE.md"><img src="https://img.shields.io/npm/l/xone.svg"></a>
@@ -136,16 +136,18 @@ All Features:
         <td align="left">Library Name</td>
         <td align="left">Library Version</td>
         <td align="left">Library Size (gzip)</td>
+        <td align="left">Memory Allocation</td>
         <td align="left">Updates per second</td>
         <td align="left">Frames per second</td>
     </tr>
     <tr style="color:#900">
         <td>1</td>
         <td>FAT</td>
-        <td>0.3.0</td>
+        <td>0.3.3</td>
         <td>2.1 kb</td>
-        <td><b>95371</b></td>
-        <td><b>50.3</b></td>
+        <td>9.4 Mb</td>
+        <td><b>96464</b></td>
+        <td><b>51.2</b></td>
     </tr>
     <tr></tr>
     <tr>
@@ -153,8 +155,9 @@ All Features:
         <td>GSAP</td>
         <td>2.0.2</td>
         <td>25.8 kb</td>
-        <td><b>83866</b></td>
-        <td><b>41.1</b></td>
+        <td>30 Mb</td>
+        <td><b>87249</b></td>
+        <td><b>43.1</b></td>
     </tr>
     <tr></tr>
     <tr>
@@ -162,8 +165,9 @@ All Features:
         <td>TweenJS</td>
         <td>1.0.2</td>
         <td>8.3 kb</td>
-        <td><b>70145</b></td>
-        <td><b>34.6</b></td>
+        <td>30 Mb</td>
+        <td><b>69647</b></td>
+        <td><b>34.4</b></td>
     </tr>
     <tr></tr>
     <tr>
@@ -171,8 +175,9 @@ All Features:
         <td>HTML5 (WAAPI)</td>
         <td>-</td>
         <td>-</td>
-        <td><i>- not supported -</i></td>
-        <td><b>32.7</b></td>
+        <td>-</td>
+        <td>-</td>
+        <td><b>32.2</b></td>
     </tr>
     <tr></tr>
     <tr>
@@ -180,8 +185,9 @@ All Features:
         <td>TinyAnimate</td>
         <td>0.4.0</td>
         <td>1.5 kb</td>
-        <td><b>56466</b></td>
-        <td><b>28.2</b></td>
+        <td>?</td>
+        <td><b>28801</b></td>
+        <td><b>29</b></td>
     </tr>
     <tr></tr>
     <tr>
@@ -189,6 +195,7 @@ All Features:
         <td>MooTools</td>
         <td>1.6.0</td>
         <td>31.2 kb</td>
+        <td>27.6 Mb</td>
         <td><b>26919</b></td>
         <td><b>25.2</b></td>
     </tr>
@@ -198,7 +205,8 @@ All Features:
         <td>CSS3 (Transition)</td>
         <td>-</td>
         <td>-</td>
-        <td><i>- not supported -</i></td>
+        <td>-</td>
+        <td>-</td>
         <td><b>22.3</b></td>
     </tr>
     <tr></tr>
@@ -207,6 +215,7 @@ All Features:
         <td>Velocity</td>
         <td>2.0.5</td>
         <td>16.6 kb</td>
+        <td>59.7 Mb</td>
         <td><b>16820</b></td>
         <td><b>6.3</b></td>
     </tr>
@@ -216,6 +225,7 @@ All Features:
         <td>AnimeJS</td>
         <td>2.2.0</td>
         <td>5.9 kb</td>
+        <td>43.3 Mb</td>
         <td><b>9877</b></td>
         <td><b>2.8</b></td>
     </tr>
@@ -225,6 +235,7 @@ All Features:
         <td>Anim.js</td>
         <td>-</td>
         <td>1.9 kb</td>
+        <td>?</td>
         <td><b>6994</b></td>
         <td><b>2.8</b></td>
     </tr>
@@ -234,6 +245,7 @@ All Features:
         <td>Dojo</td>
         <td>1.14.2</td>
         <td>53.0 kb</td>
+         <td>27.7 Mb</td>
         <td><b>10607</b></td>
         <td><b>2.3</b></td>
     </tr>
@@ -243,6 +255,7 @@ All Features:
         <td>Morpheus</td>
         <td>0.7.2</td>
         <td>2.7 kb</td>
+        <td>?</td>
         <td><b>8543</b></td>
         <td><b>2.1</b></td>
     </tr> 
@@ -252,6 +265,7 @@ All Features:
         <td>jQuery</td>
         <td>3.3.1</td>
         <td>30.0 kb</td>
+        <td>100.3 Mb</td>
         <td><b>14413</b></td>
         <td><b>1.3</b></td>
     </tr>
@@ -261,6 +275,7 @@ All Features:
         <td>bajs</td>
         <td>1.0</td>
         <td>1.2 kb</td>
+        <td>?</td>
         <td><b>-</b></td>
         <td><b>0.8</b></td>
     </tr>
@@ -270,6 +285,7 @@ All Features:
         <td>JustAnimate</td>
         <td>2.5.1</td>
         <td>7.3 kb</td>
+        <td>39.4 Mb</td>
         <td><b>5087</b></td>
         <td><b>0.6</b></td>
     </tr>
@@ -279,6 +295,7 @@ All Features:
         <td>YUI</td>
         <td>3.18.1</td>
         <td>24.4 kb</td>
+        <td>?</td>
         <td><b>2182</b></td>
         <td><b>0.5</b></td>
     </tr>
@@ -288,7 +305,8 @@ All Features:
         <td>Zepto</td>
         <td>1.2.0</td>
         <td>11.0 kb</td>
-        <td><i>- not supported -</i></td>
+        <td>30.5 Mb</td>
+        <td>-</td>
         <td><b>0.3</b></td>
     </tr>
 </table>
@@ -314,12 +332,12 @@ Library Comparison:
 
 Use latest stable release from CDN:
 ```html
-<script src="https://cdn.jsdelivr.net/gh/nextapps-de/fat/fat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/nextapps-de/fat@master/fat.min.js"></script>
 ```
 
 Use a specific version from CDN:
 ```html
-<script src="https://cdn.jsdelivr.net/gh/nextapps-de/fat@v0.1.0/fat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/nextapps-de/fat@0.3.0/fat.min.js"></script>
 ```
 
 __Common JS__
@@ -340,11 +358,11 @@ var Fat = require("./fat.min.js");
 ## API Overview
 
 Global methods / Scene methods:
-- <a href="#fat.animate">Fat.__animate__(selector[] | elements[], styles[{}], options{})</a>
-- <a href="#fat.transform">Fat.__transform__(selector[] | elements[], styles[{}], options{})</a>
-- <a href="#fat.transition">Fat.__transition__(selector[] | elements[], styles{}, options{})</a>
-- <a href="#fat.native">Fat.__native__(selector[] | elements[], styles{}, options{})</a>
-- <a href="#fat.update">Fat.__update__(selector[] | elements[], styles{}, options{})</a>
+- <a href="#fat.animate">Fat.__animate__(selector[] | elements[], styles[]{}, options{})</a>
+- <a href="#transform">Fat.__transform__(selector[] | elements[], styles[]{}, options{})</a>
+- <a href="#fat.transition">Fat.__transition__(selector[] | elements[], styles[]{}, options{})</a>
+- <a href="#fat.native">Fat.__native__(selector[] | elements[], styles[]{}, options{})</a>
+- <a href="#fat.update">Fat.__update__(selector[] | elements[], styles[]{}, options{})</a>
 - <a href="#fat.init">Fat.__init__()</a>
 - <a href="#fat.destroy">Fat.__destroy__()</a>
 
@@ -419,6 +437,13 @@ Controller methods:
     </tr>
     <tr></tr>
     <tr>
+        <td align="left"><b>strict</b></td>
+        <td align="left"><i>Boolean</i></td>
+        <td align="left">false</td>
+        <td align="left">Do not override and keep different animations on same object's properties.</td>
+    </tr>
+    <tr></tr>
+    <tr>
         <td align="left"><b>engine</b></td>
         <td align="left"><i>String</i></td>
         <td align="left">"js"</td>
@@ -427,12 +452,29 @@ Controller methods:
 </table>
 
 ## Basic Usage
-
-> Fat.__animate__(selector[] | elements[], styles[{}], options{})
+<a name="fat.animate"></a>
+> Fat.__animate__(selector[] | elements[], styles[]{}, options{})
 
 ```js
-Fat.animate("#mydiv", { left: "100px" },{ duration: 2000 });
+Fat.animate("#mydiv", { left: "100px" },{ /* options */ });
 ```
+
+```js
+Fat.animate("#mydiv", { 
+    left: "100px",
+    top: "100px"
+},{ 
+    delay: 1000,
+    duration: 2000,
+    ease: "easeInOut",
+    callback: function(){ 
+        // done
+        console.log(this.style.left);
+    }
+});
+```
+
+> See all available <a href="#options">options</a> above
 
 Pass in custom options for each property:
 
@@ -440,7 +482,8 @@ Pass in custom options for each property:
 Fat.animate("#mydiv", { 
     left: {
         from: 0,
-        to: "100%",
+        to: 100,
+        unit: "%",
         duration: 2000,
         ease: "linear"
     },
@@ -545,7 +588,7 @@ Use cubic bezier:
 Fat.animate("#mydiv", { left: "100px" },{ ease: "cubic(0, 1, 0, 1)" });
 ```
 
-Alternatively use array notation for a bezier:
+Array notation for a bezier is recommended:
 ```js
 ... ,{ ease: [0, 1, 0, 1] });
 ```
@@ -569,7 +612,7 @@ Fat.animate("#mydiv", { left: "100px" },{ ease: function(t, b, c, d){
 ```
 
 <a name="sequences"></a>
-## Sequences
+## Sequences (Keyframes)
 
 ```js
 Fat.animate("#mydiv", [
@@ -584,47 +627,57 @@ Fat.animate("#mydiv", [
 ```
 
 <a name="scenes"></a>
-## Scenes
+## Scenes (Groups)
 
-Create a new scene:
+Get the global scene (default):
 ```js
-var scene = new Fat();
+var scene = Fat.animate(element, { left: "100%" });
 ```
 
-Alternatively you can also use:
+Create a new scene:
 ```js
 var scene = Fat.create();
 ```
 
 Add animations to a scene:
 ```js
-scene.animate(element, {left: "100%"});
-```
-
-Update scene styles:
-```js
-scene.update(element, {left: "0%"});
+scene.animate(element, { left: "100%" });
 ```
 
 Destroy scene:
+<a name="fat.destroy"></a>
 ```js
 scene.destroy();
+```
+
+Re-initialize styles before next update:
+<a name="fat.init"></a>
+```js
+scene.init();
 ```
 
 <a name="controls"></a>
 ## Controls
 
-Pause a new scene:
+Update current animation styles:
+<a name="fat.update"></a>
+```js
+scene.update("#mydiv", { left: "0%" });
+```
+
+Pause a scene:
+<a name="scene.pause"></a>
 ```js
 scene.pause();
 ```
 
 alternatively:
+<a name="scene.play"></a>
 ```js
 scene.play(false);
 ```
 
-Play a new scene:
+Play a scene:
 ```js
 scene.play();
 ```
@@ -635,6 +688,7 @@ scene.pause(false);
 ```
 
 Revert playback (toggle):
+<a name="scene.reverse"></a>
 ```js
 scene.reverse();
 ```
@@ -645,11 +699,13 @@ scene.reverse(false);
 ```
 
 Stop animation and jump back to the start:
+<a name="scene.reset"></a>
 ```js
 scene.reset();
 ```
 
 Stop animation and jump to the end:
+<a name="scene.finish"></a>
 ```js
 scene.finish();
 ```
@@ -661,6 +717,7 @@ scene.finish(true);
 ```
 
 Set playback speed:
+<a name="scene.speed"></a>
 ```js
 scene.speed(0.5); // half
 scene.speed(1);   // normal
@@ -668,6 +725,7 @@ scene.speed(2);   // double
 ```
 
 Seek a scene to a specific position:
+<a name="scene.seek"></a>
 ```js
 scene.seek(0);   // start
 scene.seek(0.5); // half
@@ -719,6 +777,42 @@ scene.seek(1);   // end
         <td>0.5 kb</td>
     </tr>
 </table>
+
+Use CSS Transitions:
+<a name="fat.transition"></a>
+
+```js
+Fat.transition("#mydiv", { 
+    left: "100px",
+    top: "100px"
+},{ 
+    delay: 1000,
+    duration: 2000,
+    ease: "easeInOut",
+    callback: function(){ 
+        // done
+        console.log(this.style.left);
+    }
+});
+```
+
+Use Web Animation API:
+<a name="fat.native"></a>
+
+```js
+Fat.native("#mydiv", { 
+    left: "100px",
+    top: "100px"
+},{ 
+    delay: 1000,
+    duration: 2000,
+    ease: "easeInOut",
+    callback: function(){ 
+        // done
+        console.log(this.style.left);
+    }
+});
+```
 
 <a name="builds"></a>
 ## Custom Builds

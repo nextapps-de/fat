@@ -3,7 +3,6 @@
 	"use strict";
 
 	var document = window.document;
-	var body = document.body;
 
 	// #############################################################################################################
 
@@ -23,12 +22,13 @@
 	var domStep		= document.getElementById('step');
 	var domCount	= document.getElementById('ballcount');
 
-	const animateBall = {};
+	var animateBall = {};
 	var fps_val = 0;
+    var start_time = 0;
 
 	// #############################################################################################################
 
-	var getNextCoords = function(direction){
+	function getNextCoords(direction){
 
 		return (
 
@@ -40,7 +40,7 @@
 				[	Math.random() * MAX_W | 0,
 					Math.random() > 0.5 ? 0 : MAX_H ]
 		)
-	};
+	}
 
 	// #############################################################################################################
 
@@ -48,7 +48,7 @@
 
 		if(EXECUTE){
 
-			const coords = getNextCoords(this.direction = !this.direction);
+			var coords = getNextCoords(this.direction = !this.direction);
 
 			Fat.animate(this, {
 
@@ -71,7 +71,7 @@
 
 		if(EXECUTE){
 
-			const coords = getNextCoords(this.direction = !this.direction);
+			var coords = getNextCoords(this.direction = !this.direction);
 
 			Fat.transform(this, {
 
@@ -94,7 +94,7 @@
 
 		if(EXECUTE){
 
-			const coords = getNextCoords(this.direction = !this.direction);
+			var coords = getNextCoords(this.direction = !this.direction);
 
 			Fat.transition(this, {
 
@@ -117,7 +117,7 @@
 
 		if(EXECUTE){
 
-			const coords = getNextCoords(this.direction = !this.direction);
+			var coords = getNextCoords(this.direction = !this.direction);
 
 			Fat.transition(this, {
 
@@ -139,7 +139,7 @@
 
 		if(EXECUTE){
 
-			const coords = getNextCoords(this.direction = !this.direction);
+			var coords = getNextCoords(this.direction = !this.direction);
 
 			Fat.native(this, {
 
@@ -162,7 +162,7 @@
 
 		if(EXECUTE){
 
-			const coords = getNextCoords(this.direction = !this.direction);
+			var coords = getNextCoords(this.direction = !this.direction);
 
 			Fat.native(this, {
 
@@ -371,7 +371,7 @@
 
 	function ease_linear_fps(t, b, c, d){
 
-		fps_val++;
+		fps_val+=0.5;
 
 		return c * t / d + b;
 	}
@@ -389,13 +389,13 @@
 				this._y = parseInt(this.style.top, 10);
 			}
 
-			const from_x = this._x;
-			const from_y = this._y;
+			var from_x = this._x;
+			var from_y = this._y;
 
 			this._x = coords[0];
 			this._y = coords[1];
 
-			const duration = ((Math.random() * 1000 + 1000) | 0);
+			var duration = ((Math.random() * 1000 + 1000) | 0);
 
 			TinyAnimate.animateCSS(this, "left", "px", from_x, this._x, duration, "linear");
 			TinyAnimate.animateCSS(this, "top", "px", from_y, this._y, duration, ease_linear_fps, function(){
@@ -816,6 +816,7 @@
 
 	var balls;
 	var fps_timer;
+    var test_timer;
 
 	var frames;
 	var arr_med;
@@ -834,31 +835,18 @@
 
 	function startTest(lib){
 
-		if(EXECUTE = !EXECUTE){
-
-			/*
-		  (function() {
-			  console.timeline();
-			  console.profile();
-			  setTimeout(function() {
-				  console.timelineEnd();
-				  console.profileEnd();
-				  EXECUTE = false;
-			  }, 2000);
-			})();
-			*/
+		if((EXECUTE = !EXECUTE)){
 
 			document.getElementById('btn_start').innerHTML = 'Stop';
 			document.getElementsByTagName('table')[0].style.opacity = 0.2;
 
-			if(fps_timer){
+			if(test_timer){
 
-				window.clearTimeout(fps_timer);
+                test_timer = clearTimeout(test_timer);
 			}
 
-			window.requestAnimationFrame(function(time){
+            test_timer = setTimeout(function(){
 
-				const now = time || Date.now();
 				var i, ball_max = parseInt(domCount.value);
 
 				var curcheckmask = document.getElementById('checkmask').checked;
@@ -867,7 +855,7 @@
 
 				if(!balls || ball_max !== balls.length || curlib !== lib || checkmask !== curcheckmask) {
 
-					if(lib === 'FAT_CANVAS') createBallsCanvas(ball_max);
+					     if(lib === 'FAT_CANVAS') createBallsCanvas(ball_max);
 					else if(lib === 'FAT_TRANS') createBalls(ball_max, "transform");
 					else if(lib === 'FAT_CSS3_TRANS') createBalls(ball_max, "transform");
 					else if(lib === 'FAT_NATIVE_TRANS') createBalls(ball_max, "transform");
@@ -887,6 +875,7 @@
 				domMax.value    = '-';
 
 				start_time = 0;
+                lastUpdate = 0;
 
 				//anim_stack 		= {}; // JSANIM
 
@@ -906,21 +895,20 @@
 				}
 
 				checkmask = curcheckmask;
-				startTime = lastUpdate = now;
 
 				fps_timer = requestAnimationFrame(updateFPS);
-
-			}, 400);
+			});
 		}
 		else {
 
-			window.cancelAnimationFrame(fps_timer);
+            if(test_timer) test_timer = clearTimeout(test_timer);
+            if(fps_timer) fps_timer = cancelAnimationFrame(fps_timer);
 
 			domCount.disabled = '';
 
 			document.getElementById('btn_start').innerHTML = 'Start';
 
-			fps_timer = window.setTimeout(function(){
+            test_timer = setTimeout(function(){
 
 				document.getElementsByTagName('table')[0].style.opacity = 1;
 
@@ -1038,7 +1026,7 @@
 		values.sort(/*median_sorter*/);
 
 		var len = arr_med.length;
-		var half = len / 2 | 0;
+		var half = (len / 2) >> 0;
 
 		return (
 
@@ -1046,22 +1034,23 @@
 
 				values[half]
 			:
-				(values[half - 1] + values[half]) / 2
+				(values[half] + values[half - 1]) / 2
 		)
 	}
 
-	var start_time = 0;
-
 	function updateFPS(time) {
 
-		if(EXECUTE) fps_timer = requestAnimationFrame(updateFPS);
+		if(EXECUTE){
+
+		    fps_timer = requestAnimationFrame(updateFPS);
+        }
 
 		frames++;
 
-		const now = time || Date.now();
-		var elapsed = now - lastUpdate;
+        start_time || (start_time = time);
+        lastUpdate || (lastUpdate = time);
 
-		start_time || (start_time = now);
+		var elapsed = time - lastUpdate;
 
 		if(elapsed > 1000) {
 
@@ -1075,9 +1064,9 @@
 			domMedian.value = median_val;
 			domMin.value    = arr_med[0];
 			domMax.value    = arr_med[arr_med.length-1];
-			domStep.value   = ((fps_val * (1000 / (now - start_time)) + 0.5)) >> 0;
+			domStep.value   = ((fps_val * (1000 / (time - start_time)) + 0.5)) >> 0;
 
-			lastUpdate		= now;
+			lastUpdate		= time;
 			nextUpdate 	    = frames;
 			frames			= 0;
 		}
@@ -1098,12 +1087,12 @@
 		event.preventDefault();
 		event.stopImmediatePropagation();
 
-		const select = document.getElementById("anitools");
+		var select = document.getElementById("anitools");
 
 		startTest(select.options[select.selectedIndex].value);
 	};
 
-	const user_agent = navigator.userAgent;
+	var user_agent = navigator.userAgent;
 
 	if(user_agent.match(/Android/i)
 	|| user_agent.match(/webOS/i)

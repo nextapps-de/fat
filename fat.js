@@ -1,5 +1,5 @@
 ;/**!
- * @preserve FAT v0.3.0
+ * @preserve FAT v0.3.3
  * Copyright 2019 Nextapps GmbH
  * Author: Thomas Wilkerling
  * Released under the Apache 2.0 Licence
@@ -29,6 +29,8 @@
         const float_resolution = res;
         const prefetch = {};
         const easing = {};
+
+        let paint;
 
         const vendor = (SUPPORT_TRANSFORM || SUPPORT_TRANSITION) && (function(){
 
@@ -60,7 +62,9 @@
 
         const parse_float = parseFloat;
 
+        let reset_style_id;
         let id_counter = 0;
+        let obj_counter = 0;
         let last_update = 0;
 
         /*
@@ -255,7 +259,8 @@
          * @param ease_str
          * @param callback
          * @param step
-         * @param {number=} delay
+         * @param {string} style_id
+         * @param {number} delay
          * @param {number=} loop
          * @param {string=} transform
          * @param {number=} color
@@ -276,6 +281,7 @@
             ease_str,
             callback,
             step,
+            style_id,
             delay,
             loop,
             transform,
@@ -297,6 +303,7 @@
             this.callback = callback;
             this.step = step;
             this.job_id = job_id;
+            this.style_id = style_id;
             this.delay = delay;
             this.loop = loop;
             this.float = (SUPPORT_COLOR && color ? ((unit === "%") || (style.indexOf("A") !== -1)) : (unit !== "px"));
@@ -323,6 +330,8 @@
 
         if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM){
 
+            // TODO: do not access dom attributes
+
             /**
              * @param {number} time
              * @param {number=} ratio
@@ -331,7 +340,8 @@
 
             JobPrototype.animate = function(time, ratio, direction){
 
-                const bypass = this.from === this.to;
+                const style_id = this.style_id;
+                const bypass = (this.from === this.to) || (style_id && paint[style_id]);
                 const obj = this.obj;
                 const stamp = Math.max((time - (this.start || (this.start = (time /*+ this.delay*/)))) * (SUPPORT_CONTROL ? ratio : 1), 0);
                 const complete = stamp >= this.duration;
@@ -339,6 +349,8 @@
                 let current_value;
 
                 if(!bypass){
+
+                    style_id && (paint[style_id] = 1);
 
                     if(complete){
 
@@ -392,7 +404,7 @@
                 }
 
                 const style = this.style;
-                const has_changes = this.current !== current_value;
+                const has_changes = !bypass && (this.current !== current_value);
 
                 if(has_changes){
 
@@ -410,21 +422,21 @@
 
                         this.animate_job(style, current_value);
                     }
-                }
 
-                if(SUPPORT_TRANSFORM && (style === this.transform)){
+                    if(SUPPORT_TRANSFORM && (style === this.transform)){
 
-                    current_value = this.transform_job();
-                }
+                        current_value = this.transform_job();
+                    }
 
-                if(SUPPORT_COLOR && (style === this.color)){
+                    if(SUPPORT_COLOR && (style === this.color)){
 
-                    current_value = this.color_job(this.color_group);
-                }
+                        current_value = this.color_job(this.color_group);
+                    }
 
-                if((has_changes || bypass) && this.step){
+                    if(this.step){
 
-                    this.step.call(obj, current_value);
+                        this.step.call(obj, current_value);
+                    }
                 }
 
                 if(complete){
@@ -494,7 +506,10 @@
                         }
                     }
 
-                    this.obj[this.job_id] = null;
+                    if(!this.style_id){
+
+                        this.obj[this.job_id] = null;
+                    }
 
                     return;
                 }
@@ -651,14 +666,6 @@
             return obj;
 
         })({}) : null;
-
-        const operators = {
-
-            "+=": 1,
-            "-=": 1,
-            "*=": 1,
-            "/=": 1
-        };
 
         /**
          * @const
@@ -907,7 +914,7 @@
 
             if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM){
 
-                this.id = id_counter++;
+                this.id = ++id_counter;
                 this.stack = [];
                 this.render = render_frames.bind(this);
                 this.exec = 0;
@@ -1113,6 +1120,11 @@
 
                 this.exec = 0;
                 this.stack = [];
+
+                if(obj_counter && (reset_style_id === this.id)){
+
+                    reset_style_id = 0;
+                }
             }
 
             return this;
@@ -1187,6 +1199,19 @@
             if(len){
 
                 this.exec = requestAnimationFrame(this.render);
+
+                if(obj_counter){
+
+                    if(!reset_style_id){
+
+                        paint = {};
+                        reset_style_id = this.id;
+                    }
+                    else if(reset_style_id === this.id){
+
+                        paint = {};
+                    }
+                }
 
                 let in_progress = false;
 
@@ -1264,6 +1289,7 @@
             /**
              * @param {string|number} from
              * @param {string|number} to
+             * @param {string} unit
              * @param {boolean} force
              * @param {number|string|Function} duration
              * @param {string} ease_str
@@ -1275,7 +1301,7 @@
              * @param {string=} color_group
              */
 
-            JobPrototype.handle = function(from, to, force, duration, ease_str, callback, step, delay, transform, color, color_group){
+            JobPrototype.handle_job = function(from, to, unit, force, duration, ease_str, callback, step, delay, transform, color, color_group){
 
                 if(is_undefined(from)){
 
@@ -1288,7 +1314,14 @@
 
                 if(is_string(to)){
 
-                    to = parse_relative_value(from, to);
+                    if(to[1] === "="){
+
+                        to = parse_relative_value(from, to.substring(2), to[0]);
+                    }
+                    else{
+
+                        to = parse_float(to);
+                    }
                 }
 
                 this.from = from;
@@ -1306,6 +1339,11 @@
                 this.callback = callback;
                 this.step = step;
                 this.delay = delay;
+
+                if(unit){
+
+                    this.unit = unit;
+                }
 
                 if(SUPPORT_TRANSFORM){
 
@@ -1332,11 +1370,13 @@
          * @param {string} job_id
          * @param {string|number} from
          * @param {string|number} to
+         * @param {string} unit
          * @param {boolean} force
          * @param {number|string|Function} duration
          * @param {string} ease_str
          * @param {Function} callback
          * @param {Function} step
+         * @param {string} style_id
          * @param {number} delay
          * @param {number=} loop
          * @param {string=} transform
@@ -1344,20 +1384,21 @@
          * @param {string=} color_group
          */
 
-        function handle(obj, style, job_id, from, to, force, duration, ease_str, callback, step, delay, loop, transform, color, color_group){
+        function handle(obj, style, job_id, from, to, unit, force, duration, ease_str, callback, step, style_id, delay, loop, transform, color, color_group){
 
             /** @type Job */
 
             const cur_job = obj[job_id];
 
-            if(cur_job){
+            if(cur_job && !style_id){
 
-                if(SUPPORT_TRANSFORM && SUPPORT_COLOR){
+                if(SUPPORT_TRANSFORM || SUPPORT_COLOR){
 
-                    cur_job.handle(
+                    cur_job.handle_job(
 
                         from,
                         to,
+                        unit,
                         force,
                         duration,
                         ease_str,
@@ -1371,10 +1412,11 @@
                 }
                 else{
 
-                    cur_job.handle(
+                    cur_job.handle_job(
 
                         from,
                         to,
+                        unit,
                         force,
                         duration,
                         ease_str,
@@ -1407,31 +1449,31 @@
 
                 from = parse_float(style_from);
 
-                let style_to = "" + to;
-
                 if(is_string(to)){
 
-                    const operator = to[0] + to[1];
+                    let style_to = to;
 
-                    if(operators[operator]){
+                    if(to[1] === "="){
 
-                        style_to = style_to.substring(2);
-                        to = parse_relative_value(from, style_to, operator);
+                        to = parse_relative_value(from, style_to = to.substring(2), to[0]);
                     }
                     else{
 
                         to = parse_float(to);
                     }
-                }
 
-                let unit = style_to.substring(("" + to).length);
+                    if(!unit){
+
+                        unit = style_to.substring(("" + to).length);
+                    }
+                }
 
                 if(!unit){
 
-                    unit = style_from.substring(("" + from).length);
+                    unit = style_from.substring(("" + from).length) || "";
                 }
 
-                const job = SUPPORT_TRANSFORM && SUPPORT_COLOR ? (new Job(
+                const job = SUPPORT_TRANSFORM || SUPPORT_COLOR ? (new Job(
 
                     obj,
                     style,
@@ -1444,6 +1486,7 @@
                     ease_str,
                     callback,
                     step,
+                    style_id,
                     delay,
                     loop,
                     transform,
@@ -1463,54 +1506,44 @@
                     ease_str,
                     callback,
                     step,
+                    style_id,
                     delay,
                     loop
                 ));
 
                 this.stack[this.stack.length] = job;
-                obj[job_id] = job;
+
+                if(!style_id){
+
+                    obj[job_id] = job;
+                }
             }
         }
 
         /**
          * @param from
          * @param to
-         * @param {string=} operator
+         * @param operator
          * @returns {number}
          */
 
         function parse_relative_value(from, to, operator){
 
-            if(to.length < 3){
-
-                return parseInt(to, 10);
-            }
-
-            if(!operator){
-
-                operator = to[0] + to[1];
-
-                if(operators[operator]){
-
-                    to = to.substring(2);
-                }
-            }
-
             to = parse_float(to);
 
-            if(operator === "+="){
+            if(operator === "+"){
 
                 to = from + to;
             }
-            else if(operator === "-="){
+            else if(operator === "-"){
 
                 to = from - to;
             }
-            else if(operator === "*="){
+            else if(operator === "*"){
 
                 to = from * to;
             }
-            else if(operator === "/="){
+            else if(operator === "/"){
 
                 to = from / to;
             }
@@ -1837,16 +1870,16 @@
                     }
                 }
 
-                let obj_length = obj.length;
-
-                const config_duration = config["duration"] || 400;
                 const config_callback = config["callback"] || (SUPPORT_SEQUENCES && sequences && function(){/* TODO: mark last style */});
-                const config_step = config["step"] || false;
-                const config_delay = config["delay"] || 0;
-                const config_force = config["force"] || false;
+                const config_step = config["step"] || 0;
+
+                const config_force = config["force"] || 0;
+                const config_strict = config["strict"] || 0;
                 const config_init = this.resync || config["init"];
                 const config_loop = SUPPORT_SEQUENCES && config["loop"];
-                const config_ease = (SUPPORT_EASING ? parse_bezier(config["ease"]) : config["ease"]) || "";
+                let config_delay = config["delay"] || 0;
+                let config_duration = config["duration"] || 400;
+                let config_ease = (SUPPORT_EASING ? parse_bezier(config["ease"]) : config["ease"]) || "";
 
                 let style_keys = Object.keys(styles);
                 let style_length = style_keys.length;
@@ -1953,17 +1986,16 @@
 
                     let value = styles[key];
                     let from;
-                    let ease;
-                    let duration;
-                    let delay;
+                    let unit;
 
                     if(typeof value === "object"){
 
-                        delay = value["delay"];
-                        duration = value["duration"];
-                        ease = value["ease"];
+                        config_delay = value["delay"] || config_delay;
+                        config_duration = value["duration"] || config_duration;
+                        config_ease = value["ease"] || config_ease;
                         from = value["from"];
                         value = value["to"];
+                        unit = value["unit"];
                     }
 
                     if(SUPPORT_TRANSFORM){
@@ -2000,9 +2032,10 @@
                         }
                     }
 
-                    for(let i = 0; i < obj_length; i++){
+                    for(let i = 0, len = obj.length; i < len; i++){
 
                         const current_obj = obj[i];
+                        const style_id = config_strict && (key + (current_obj["_id"] || (current_obj["_id"] = obj_counter++)));
 
                         if(last && sequences){
 
@@ -2035,7 +2068,7 @@
                             }
                         }
 
-                        if(SUPPORT_TRANSFORM && SUPPORT_COLOR){
+                        if(SUPPORT_TRANSFORM || SUPPORT_COLOR){
 
                             this.handle(
 
@@ -2044,12 +2077,14 @@
                                 job_id,
                                 from,
                                 value,
+                                unit,
                                 config_force,
-                                duration || config_duration,
-                                ease || config_ease,
+                                config_duration,
+                                config_ease,
                                 last && config_callback,
                                 last && config_step,
-                                delay || config_delay,
+                                style_id,
+                                config_delay,
                                 config_loop,
                                 has_transform,
                                 has_color || has_color_background || has_color_border,
@@ -2065,12 +2100,14 @@
                                 job_id,
                                 from,
                                 value,
+                                unit,
                                 config_force,
-                                duration || config_duration,
-                                ease || config_ease,
+                                config_duration,
+                                config_ease,
                                 last && config_callback,
                                 last && config_step,
-                                delay || config_delay,
+                                style_id,
+                                config_delay,
                                 config_loop
                             );
                         }
