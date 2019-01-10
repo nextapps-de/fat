@@ -1,4 +1,5 @@
-(function(window){
+// noinspection ThisExpressionReferencesGlobalObjectJS
+(function(window, Math){
 
 	"use strict";
 
@@ -820,7 +821,6 @@
 
 	var frames;
 	var arr_med;
-	var startTime;
 	var lastUpdate;
 	var nextUpdate;
 	var curlib;
@@ -1092,16 +1092,8 @@
 		startTest(select.options[select.selectedIndex].value);
 	};
 
-	var user_agent = navigator.userAgent;
+	if(navigator.userAgent.test(/Android|webOS|iPhone|iPad|iPod|BlackBerry|Windows Phone/)){
 
-	if(user_agent.match(/Android/i)
-	|| user_agent.match(/webOS/i)
-	|| user_agent.match(/iPhone/i)
-	|| user_agent.match(/iPad/i)
-	|| user_agent.match(/iPod/i)
-	|| user_agent.match(/BlackBerry/i)
-	|| user_agent.match(/Windows Phone/i)
-	){
-		document.getElementById("ballcount").selectedIndex = 7;
+		domCount.selectedIndex = 7;
 	}
-})(this);
+})(this, Math);

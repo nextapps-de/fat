@@ -102,25 +102,33 @@
 	// TODO:
 	// -------------------------------------
 
-	Fat.animate("#square_3", [
+	Fat.animate("#square_3", [{
+		left: {
+			to: "200px",
+			delay: 0,
+			duration: 2000
+		}
+	},{
+		left: {
+			to: 0,
+			delay: 2000,
+			duration: 2000
+		}
+	}]);
 
-		{ left: "200px" },
-		{ left: 0 }
-	],{
-		delay: 0,
-		duration: 2000,
-		loop: -1
-	});
-
-	Fat.animate("#square_3", [
-
-		{ top: "200px" },
-		{ top: 400 }
-	],{
-		delay: 1000,
-		duration: 2000,
-		loop: -1
-	});
+	Fat.animate("#square_3", [{
+		top: {
+			to: "200px",
+			delay: 1000,
+			duration: 2000
+		}
+	},{
+		top: {
+			to: 400,
+			delay: 0,
+			duration: 2000
+		}
+	}]);
 
 </script>
 </body>

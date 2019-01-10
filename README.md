@@ -135,7 +135,8 @@ All Features:
         <td align="left">Rank</td>
         <td align="left">Library Name</td>
         <td align="left">Library Version</td>
-        <td align="left">Library Size (gzip)</td>
+        <td align="left">Library Size</td>
+        <td align="left">Memory Heap</td>
         <td align="left">Memory Allocation</td>
         <td align="left">Updates per second</td>
         <td align="left">Frames per second</td>
@@ -143,10 +144,11 @@ All Features:
     <tr style="color:#900">
         <td>1</td>
         <td>FAT</td>
-        <td>0.3.3</td>
+        <td>0.4.1</td>
         <td>2.1 kb</td>
-        <td>9.4 Mb</td>
-        <td><b>96464</b></td>
+        <td>0.85 Mb</td>
+        <td>0.15 Mb</td>
+        <td><b>101075</b></td>
         <td><b>51.2</b></td>
     </tr>
     <tr></tr>
@@ -155,7 +157,8 @@ All Features:
         <td>GSAP</td>
         <td>2.0.2</td>
         <td>25.8 kb</td>
-        <td>30 Mb</td>
+        <td>28.32 Mb</td>
+        <td>8.1 Mb</td>
         <td><b>87249</b></td>
         <td><b>43.1</b></td>
     </tr>
@@ -165,7 +168,8 @@ All Features:
         <td>TweenJS</td>
         <td>1.0.2</td>
         <td>8.3 kb</td>
-        <td>30 Mb</td>
+        <td>3.16 Mb</td>
+        <td>3.1 Mb</td>
         <td><b>69647</b></td>
         <td><b>34.4</b></td>
     </tr>
@@ -175,7 +179,8 @@ All Features:
         <td>HTML5 (WAAPI)</td>
         <td>-</td>
         <td>-</td>
-        <td>-</td>
+        <td>0.91 Mb</td>
+        <td>0.75 Mb</td>
         <td>-</td>
         <td><b>32.2</b></td>
     </tr>
@@ -185,7 +190,8 @@ All Features:
         <td>TinyAnimate</td>
         <td>0.4.0</td>
         <td>1.5 kb</td>
-        <td>?</td>
+        <td>1.93 Mb</td>
+        <td>1.98 Mb</td>
         <td><b>28801</b></td>
         <td><b>29</b></td>
     </tr>
@@ -195,7 +201,8 @@ All Features:
         <td>MooTools</td>
         <td>1.6.0</td>
         <td>31.2 kb</td>
-        <td>27.6 Mb</td>
+        <td>3.14 Mb</td>
+        <td>3.42 Mb</td>
         <td><b>26919</b></td>
         <td><b>25.2</b></td>
     </tr>
@@ -205,7 +212,8 @@ All Features:
         <td>CSS3 (Transition)</td>
         <td>-</td>
         <td>-</td>
-        <td>-</td>
+        <td>0 Mb</td>
+        <td>0 Mb</td>
         <td>-</td>
         <td><b>22.3</b></td>
     </tr>
@@ -215,7 +223,8 @@ All Features:
         <td>Velocity</td>
         <td>2.0.5</td>
         <td>16.6 kb</td>
-        <td>59.7 Mb</td>
+        <td>8.33 Mb</td>
+        <td>7.98 Mb</td>
         <td><b>16820</b></td>
         <td><b>6.3</b></td>
     </tr>
@@ -225,7 +234,8 @@ All Features:
         <td>AnimeJS</td>
         <td>2.2.0</td>
         <td>5.9 kb</td>
-        <td>43.3 Mb</td>
+        <td>7.14 Mb</td>
+        <td>8.2 Mb</td>
         <td><b>9877</b></td>
         <td><b>2.8</b></td>
     </tr>
@@ -235,7 +245,8 @@ All Features:
         <td>Anim.js</td>
         <td>-</td>
         <td>1.9 kb</td>
-        <td>?</td>
+        <td>7.08 Mb</td>
+        <td>9.49 Mb</td>
         <td><b>6994</b></td>
         <td><b>2.8</b></td>
     </tr>
@@ -245,7 +256,8 @@ All Features:
         <td>Dojo</td>
         <td>1.14.2</td>
         <td>53.0 kb</td>
-         <td>27.7 Mb</td>
+        <td>9.1 Mb</td>
+        <td>6.5 Mb</td>
         <td><b>10607</b></td>
         <td><b>2.3</b></td>
     </tr>
@@ -255,7 +267,8 @@ All Features:
         <td>Morpheus</td>
         <td>0.7.2</td>
         <td>2.7 kb</td>
-        <td>?</td>
+        <td>4 Mb</td>
+        <td>2.97 Mb</td>
         <td><b>8543</b></td>
         <td><b>2.1</b></td>
     </tr> 
@@ -265,7 +278,8 @@ All Features:
         <td>jQuery</td>
         <td>3.3.1</td>
         <td>30.0 kb</td>
-        <td>100.3 Mb</td>
+        <td>25.14 Mb</td>
+        <td>25.16 Mb</td>
         <td><b>14413</b></td>
         <td><b>1.3</b></td>
     </tr>
@@ -275,7 +289,8 @@ All Features:
         <td>bajs</td>
         <td>1.0</td>
         <td>1.2 kb</td>
-        <td>?</td>
+        <td>1.25 Mb</td>
+        <td>0.91 Mb</td>
         <td><b>-</b></td>
         <td><b>0.8</b></td>
     </tr>
@@ -285,7 +300,8 @@ All Features:
         <td>JustAnimate</td>
         <td>2.5.1</td>
         <td>7.3 kb</td>
-        <td>39.4 Mb</td>
+        <td>109.5 Mb</td>
+        <td>61.18 Mb</td>
         <td><b>5087</b></td>
         <td><b>0.6</b></td>
     </tr>
@@ -295,7 +311,8 @@ All Features:
         <td>YUI</td>
         <td>3.18.1</td>
         <td>24.4 kb</td>
-        <td>?</td>
+        <td>159.59 Mb</td>
+        <td>88.35 Mb</td>
         <td><b>2182</b></td>
         <td><b>0.5</b></td>
     </tr>
@@ -305,11 +322,14 @@ All Features:
         <td>Zepto</td>
         <td>1.2.0</td>
         <td>11.0 kb</td>
-        <td>30.5 Mb</td>
+        <td>40.14 Mb</td>
+        <td>18.49 Mb</td>
         <td>-</td>
         <td><b>0.3</b></td>
     </tr>
 </table>
+
+_Plattform: Windows 10, Browser: Chrome (Desktop), Runtime: 10 seconds, Resolution: 3440 x 1440_
 
 Library Comparison:
 - <a href="https://nextapps-de.github.io/fat/" target="_blank">Benchmark "Bouncing Balls"</a>

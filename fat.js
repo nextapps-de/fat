@@ -1,5 +1,5 @@
 ;/**!
- * @preserve FAT v0.3.3
+ * @preserve FAT v0.4.1
  * Copyright 2019 Nextapps GmbH
  * Author: Thomas Wilkerling
  * Released under the Apache 2.0 Licence
@@ -107,144 +107,148 @@
 
         const easing_bezier = (function(){
 
-            const kSplineTableSize = 11;
-            const kSampleStepSize = 1.0 / (kSplineTableSize - 1.0);
+            /**
+             * @param mX1
+             * @param mY1
+             * @param mX2
+             * @param mY2
+             * @constructor
+             */
 
-            function A(aA1, aA2){
+            function BezierClass(mX1, mY1, mX2, mY2){
+
+               this.mX1 = mX1;
+               this.mY1 = mY1;
+               this.mX2 = mX2;
+               this.mY2 = mY2;
+            }
+
+            /**
+             * @param aA1
+             * @param aA2
+             * @returns {number}
+             */
+
+            BezierClass.prototype.A = function(aA1, aA2){
 
                 return 1.0 - 3.0 * aA2 + 3.0 * aA1;
-            }
+            };
 
-            function B(aA1, aA2){
+            /**
+             * @param aA1
+             * @param aA2
+             * @returns {number}
+             */
+
+            BezierClass.prototype.B = function(aA1, aA2){
 
                 return 3.0 * aA2 - 6.0 * aA1;
-            }
+            };
 
-            function C(aA1){
+            /**
+             * @param aA1
+             * @returns {number}
+             */
+
+            BezierClass.prototype.C = function(aA1){
 
                 return 3.0 * aA1;
-            }
+            };
 
-            function calcBezier(aT, aA1, aA2){
+            /**
+             * @param aT
+             * @param aA1
+             * @param aA2
+             * @returns {number}
+             */
 
-                return ((A(aA1, aA2) * aT + B(aA1, aA2)) * aT + C(aA1)) * aT;
-            }
+            BezierClass.prototype.CalcBezier = function(aT, aA1, aA2){
 
-            function getSlope(aT, aA1, aA2){
+                return ((this.A(aA1, aA2) * aT +
+                         this.B(aA1, aA2)) * aT +
+                         this.C(aA1)) * aT;
+            };
 
-                return 3.0 * A(aA1, aA2) * aT * aT + 2.0 * B(aA1, aA2) * aT + C(aA1);
-            }
+            /**
+             * @param aT
+             * @param aA1
+             * @param aA2
+             * @returns {number}
+             */
 
-            function binarySubdivide(aX, aA, aB, mX1, mX2){
+            BezierClass.prototype.GetSlope = function(aT, aA1, aA2){
 
-                let currentX, currentT, i = 0;
+                return 3.0 * this.A(aA1, aA2) * aT * aT + 2.0 *
+                             this.B(aA1, aA2) * aT +
+                             this.C(aA1);
+            };
 
-                do{
-                    currentT = aA + (aB - aA) / 2.0;
-                    currentX = calcBezier(currentT, mX1, mX2) - aX;
+            /**
+             * @param aX
+             * @returns {*}
+             */
 
-                    if(currentX > 0.0){
+            BezierClass.prototype.GetTForX = function(aX){
 
-                        aB = currentT;
-                    }
-                    else{
-
-                        aA = currentT;
-                    }
-                }
-                while(Math.abs(currentX) > 0.0000001 && ++i < 10);
-
-                return currentT;
-            }
-
-            function newtonRaphsonIterate(aX, aGuessT, mX1, mX2){
+                let aGuessT = aX;
 
                 for(let i = 0; i < 4; ++i){
 
-                    const currentSlope = getSlope(aGuessT, mX1, mX2);
-                    if(currentSlope === 0.0) return aGuessT;
-                    const currentX = calcBezier(aGuessT, mX1, mX2) - aX;
+                    const currentSlope = this.GetSlope(
+
+                        aGuessT,
+                        this.mX1,
+                        this.mX2
+                    );
+
+                    if(currentSlope === 0){
+
+                        return aGuessT;
+                    }
+
+                    const currentX = this.CalcBezier(
+
+                        aGuessT,
+                        this.mX1,
+                        this.mX2
+
+                    ) - aX;
 
                     aGuessT -= currentX / currentSlope;
                 }
 
                 return aGuessT;
+            };
+
+            /**
+             * @param x
+             * @returns {*}
+             */
+
+            BezierClass.prototype.InitBezier = function(x){
+
+                if(x === 0 || x === 1 || (this.mX1 === this.mY1 && this.mX2 === this.mY2)){
+
+                    return x;
+                }
+
+                return this.CalcBezier(
+
+                    this.GetTForX(x),
+                    this.mY1,
+                    this.mY2
+                );
+            };
+
+            if(SUPPORT_EASING){
+
+                return function(mX1, mY1, mX2, mY2){
+
+                    const bezier = new BezierClass(mX1, mY1, mX2, mY2);
+
+                    return bezier.InitBezier.bind(bezier);
+                };
             }
-
-            function getTForX(aX, sampleValues, mX1, mX2){
-
-                let intervalStart = 0.0;
-                let currentSample = 1;
-                const lastSample = kSplineTableSize - 1;
-
-                for(; currentSample !== lastSample && sampleValues[currentSample] <= aX; ++currentSample){
-
-                    intervalStart += kSampleStepSize;
-                }
-
-                --currentSample;
-
-                const dist = (aX - sampleValues[currentSample]) / (sampleValues[currentSample + 1] - sampleValues[currentSample]);
-                const guessForT = intervalStart + dist * kSampleStepSize;
-                const initialSlope = getSlope(guessForT, mX1, mX2);
-
-                if(initialSlope >= 0.001){
-
-                    return newtonRaphsonIterate(aX, guessForT, mX1, mX2);
-                }
-                else if(initialSlope === 0.0){
-
-                    return guessForT;
-                }
-                else{
-
-                    return binarySubdivide(aX, intervalStart, intervalStart + kSampleStepSize, mX1, mX2);
-                }
-            }
-
-            function bezier(mX1, mY1, mX2, mY2){
-
-                if(!(0 <= mX1 && mX1 <= 1 && 0 <= mX2 && mX2 <= 1)) return;
-                let sampleValues = new Float32Array(kSplineTableSize);
-
-                if(mX1 !== mY1 || mX2 !== mY2){
-
-                    for(let i = 0; i < kSplineTableSize; ++i){
-
-                        sampleValues[i] = calcBezier(i * kSampleStepSize, mX1, mX2);
-                    }
-                }
-
-                return function(x){
-
-                    if(mX1 === mY1 && mX2 === mY2) return x;
-                    if(x === 0) return 0;
-                    if(x === 1) return 1;
-
-                    return calcBezier(
-
-                        getTForX(x, sampleValues, mX1, mX2),
-                        mY1,
-                        mY2
-                    );
-                }
-            }
-
-            /*
-            easing["easeInElastic"] = elastic;
-            easing["easeOutElastic"] = function(t, f){ return 1 - elastic(1 - t, f); };
-            easing["easeInOutElastic"] = function(t, f){ return t < .5 ? elastic(t * 2, f) / 2 : 1 - elastic(t * -2 + 2, f) / 2; };
-            */
-
-            return bezier;
-
-            // http://api.jqueryui.com/easings/
-
-            function elastic(t, p) {
-
-                return t === 0 || t === 1 ? t : -Math.pow(2, 10 * (t - 1)) * Math.sin((((t - 1) - (p / (Math.PI * 2.0) * Math.asin(1))) * (Math.PI * 2)) / p);
-            }
-
         })();
 
         /**
@@ -306,7 +310,14 @@
             this.style_id = style_id;
             this.delay = delay;
             this.loop = loop;
-            this.float = (SUPPORT_COLOR && color ? ((unit === "%") || (style.indexOf("A") !== -1)) : (unit !== "px"));
+            this.float = (
+
+                SUPPORT_COLOR && color ?
+
+                    ((unit === "%") || (style.indexOf("A") !== -1))
+                :
+                    (unit !== "px")
+            );
 
             if(SUPPORT_COLOR){
 
@@ -404,9 +415,8 @@
                 }
 
                 const style = this.style;
-                const has_changes = !bypass && (this.current !== current_value);
 
-                if(has_changes){
+                if(!bypass && (this.current !== current_value)){
 
                     this.current = current_value;
 
@@ -422,21 +432,20 @@
 
                         this.animate_job(style, current_value);
                     }
+                }
 
-                    if(SUPPORT_TRANSFORM && (style === this.transform)){
+                if(SUPPORT_TRANSFORM && (style === this.transform)){
 
-                        current_value = this.transform_job();
-                    }
+                    current_value = this.transform_job();
+                }
+                else if(SUPPORT_COLOR && (style === this.color)){
 
-                    if(SUPPORT_COLOR && (style === this.color)){
+                    current_value = this.color_job(this.color_group);
+                }
 
-                        current_value = this.color_job(this.color_group);
-                    }
+                if(this.step){
 
-                    if(this.step){
-
-                        this.step.call(obj, current_value);
-                    }
+                    this.step.call(obj, current_value);
                 }
 
                 if(complete){
@@ -649,19 +658,19 @@
 
         const transform_keys = SUPPORT_TRANSFORM ? (function(obj){
 
-            function construct(suffix){
+            function construct(suffix, index){
 
-                obj[suffix] = 1;
-                obj[suffix + "X"] = 1;
-                obj[suffix + "Y"] = 1;
-                obj[suffix + "Z"] = 1;
-                obj[suffix + "3d"] = 1;
+                obj[suffix] = index;
+                obj[suffix + "X"] = index;
+                obj[suffix + "Y"] = index;
+                obj[suffix + "Z"] = index;
+                obj[suffix + "3d"] = index;
             }
 
-            construct("scale");
-            construct("skew");
-            construct("translate");
-            construct("rotate");
+            construct("translate", 1);
+            construct("scale", 2);
+            construct("rotate", 3);
+            construct("skew", 4);
 
             return obj;
 
@@ -672,8 +681,6 @@
          * @dict
          */
 
-        // TODO: parse matrix data
-        /*
         const matrix2d_index = {
 
             "scaleX": 0,
@@ -683,7 +690,6 @@
             "translateX": 4,
             "translateY": 5
         };
-        */
 
         let hex_to_int_table;
         let int_to_hex_table;
@@ -712,11 +718,10 @@
             JobPrototype.transform_job = function(){
 
                 const transform = this.obj._transform;
+                const order = this.obj._transform_order;
 
-                set_style(this.css, prefix_transform_js || "transform", merge_transform(transform, "rotate") +
-                                                                        merge_transform(transform, "scale") +
-                                                                        merge_transform(transform, "skew") +
-                                                                        merge_transform(transform, "translate"), this.force);
+                set_style(this.css, prefix_transform_js || "transform", merge_transform(transform, order), this.force);
+
                 return transform;
             };
         }
@@ -935,7 +940,7 @@
 
         if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM){
 
-            FatPrototype.handle = handle;
+            FatPrototype.create_job = create_job;
             /** @export */
             FatPrototype.animate = animate;
             /** @export */
@@ -1169,7 +1174,7 @@
 
             let fn_ease = easing[ease] || (
 
-                SUPPORT_EASING && (easing[ease] = easing_bezier.apply(null, builtin_easing[ease]))
+                SUPPORT_EASING && (easing[ease] = easing_bezier.apply(easing_bezier, builtin_easing[ease]))
             );
 
             if(!fn_ease){
@@ -1261,29 +1266,6 @@
             return typeof val === "undefined";
         }
 
-        /**
-         * @param {*} val
-         * @param {string=} type
-         * @returns {boolean}
-         */
-
-        function is_type(val, type){
-
-            if(type){
-
-                return typeof val !== "undefined";
-            }
-            else{
-
-                return typeof val === type;
-            }
-        }
-
-        function create_object(){
-
-            return Object.create(null);
-        }
-
         if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM){
 
             /**
@@ -1297,11 +1279,11 @@
              * @param {Function} step
              * @param {number} delay
              * @param {string=} transform
-             * @param {number=} color
+             * @param {string=} color
              * @param {string=} color_group
              */
 
-            JobPrototype.handle_job = function(from, to, unit, force, duration, ease_str, callback, step, delay, transform, color, color_group){
+            JobPrototype.update_job = function(from, to, unit, force, duration, ease_str, callback, step, delay, transform, color, color_group){
 
                 if(is_undefined(from)){
 
@@ -1384,139 +1366,96 @@
          * @param {string=} color_group
          */
 
-        function handle(obj, style, job_id, from, to, unit, force, duration, ease_str, callback, step, style_id, delay, loop, transform, color, color_group){
+        function create_job(obj, style, job_id, from, to, unit, force, duration, ease_str, callback, step, style_id, delay, loop, transform, color, color_group){
 
-            /** @type Job */
+            let style_from = "" + (
 
-            const cur_job = obj[job_id];
+                SUPPORT_TRANSFORM && transform ?
 
-            if(cur_job && !style_id){
+                    get_transform
+                :
+                    SUPPORT_COLOR && color ?
 
-                if(SUPPORT_TRANSFORM || SUPPORT_COLOR){
+                        get_color
+                    :
+                        get_style
 
-                    cur_job.handle_job(
+            )(obj, style, from, color_group);
 
-                        from,
-                        to,
-                        unit,
-                        force,
-                        duration,
-                        ease_str,
-                        callback,
-                        step,
-                        delay,
-                        transform,
-                        color,
-                        color_group
-                    );
+            if(style_from === "auto"){
+
+                style_from = "0";
+            }
+
+            from = parse_float(style_from);
+
+            if(is_string(to)){
+
+                let style_to = to;
+
+                if(to[1] === "="){
+
+                    to = parse_relative_value(from, style_to = to.substring(2), to[0]);
                 }
                 else{
 
-                    cur_job.handle_job(
-
-                        from,
-                        to,
-                        unit,
-                        force,
-                        duration,
-                        ease_str,
-                        callback,
-                        step,
-                        delay
-                    );
-                }
-            }
-            else{
-
-                let style_from = "" + (
-
-                    SUPPORT_TRANSFORM && transform ?
-
-                        get_transform
-                    :
-                        SUPPORT_COLOR && color ?
-
-                            get_color
-                        :
-                            get_style
-
-                )(obj, style, from, color_group);
-
-                if(style_from === "auto"){
-
-                    style_from = "0";
-                }
-
-                from = parse_float(style_from);
-
-                if(is_string(to)){
-
-                    let style_to = to;
-
-                    if(to[1] === "="){
-
-                        to = parse_relative_value(from, style_to = to.substring(2), to[0]);
-                    }
-                    else{
-
-                        to = parse_float(to);
-                    }
-
-                    if(!unit){
-
-                        unit = style_to.substring(("" + to).length);
-                    }
+                    to = parse_float(to);
                 }
 
                 if(!unit){
 
-                    unit = style_from.substring(("" + from).length) || "";
+                    unit = style_to.substring(("" + to).length);
                 }
+            }
 
-                const job = SUPPORT_TRANSFORM || SUPPORT_COLOR ? (new Job(
+            if(!unit){
 
-                    obj,
-                    style,
-                    job_id,
-                    from,
-                    to,
-                    unit,
-                    force,
-                    duration,
-                    ease_str,
-                    callback,
-                    step,
-                    style_id,
-                    delay,
-                    loop,
-                    transform,
-                    color,
-                    color_group
+                unit = style_from.substring(("" + from).length) || "";
+            }
 
-                )) : (new Job(
+            const job = SUPPORT_TRANSFORM || SUPPORT_COLOR ? (new Job(
 
-                    obj,
-                    style,
-                    job_id,
-                    from,
-                    to,
-                    unit,
-                    force,
-                    duration,
-                    ease_str,
-                    callback,
-                    step,
-                    style_id,
-                    delay,
-                    loop
-                ));
+                obj,
+                style,
+                job_id,
+                from,
+                to,
+                unit,
+                force,
+                duration,
+                ease_str,
+                callback,
+                step,
+                style_id,
+                delay,
+                loop,
+                transform,
+                color,
+                color_group
 
-                this.stack[this.stack.length] = job;
+            )) : (new Job(
 
-                if(!style_id){
+                obj,
+                style,
+                job_id,
+                from,
+                to,
+                unit,
+                force,
+                duration,
+                ease_str,
+                callback,
+                step,
+                style_id,
+                delay,
+                loop
+            ));
 
-                    obj[job_id] = job;
-                }
+            this.stack[this.stack.length] = job;
+
+            if(!style_id){
+
+                obj[job_id] = job;
             }
         }
 
@@ -1587,15 +1526,35 @@
 
             let style_prop = obj._transform;
 
-            if(!style_prop){
+            if(!style_prop || !style_prop[style]){
 
-                obj._transform = style_prop = {};
+                let style_value = from || get_style(obj, prefix_transform || "transform");
 
-                const style_value = from || get_style(obj, prefix_transform || "transform");
+                if(style_value){
 
-                if(style_value && (style_value !== "none")){
+                    let style_order;
+                    let style_order_len = 0;
+
+                    obj._transform = style_prop = {};
+                    obj._transform_order = style_order = [];
+
+                    if(style_value === "none"){
+
+                        if(!style_prop[style]){
+
+                            style_order[style_order.length] = style.substring(0, style.length - 1);
+                            //style_prop[style] = 0;
+                        }
+
+                        return 0;
+                    }
+                    else if(style_value.indexOf("matrix") !== -1){
+
+                        style_value = style + "(" + get_transform_matrix(style_value, style) + ")";
+                    }
 
                     const parts = style_value.split(' ');
+                    const has_prop = {};
 
                     for(let i = 0; i < parts.length; i++){
 
@@ -1605,14 +1564,15 @@
                         if(prop){
 
                             const values = substring_match(part, "(", ")").split(',');
+                            const len = values.length;
 
-                            if(values.length > 2){
+                            if(len > 2){
 
                                 prop = prop.replace("3d", "");
                                 style_prop[prop + "Z"] = values[2];
                             }
 
-                            if(values.length > 1){
+                            if(len > 1){
 
                                 style_prop[prop + "X"] = values[0];
                                 style_prop[prop + "Y"] = values[1];
@@ -1620,6 +1580,13 @@
                             else{
 
                                 style_prop[prop] = values[0];
+                                prop = prop.substring(0, prop.length - 1);
+                            }
+
+                            if(!has_prop[prop]){
+
+                                style_order[style_order_len++] = prop;
+                                has_prop[prop] = 1;
                             }
                         }
                     }
@@ -1654,30 +1621,35 @@
 
         /**
          * @param {Object<string, string|number>} transform
-         * @param {string} prop
+         * @param {Array<string>} order
          * @returns {string}
          */
 
-        function merge_transform(transform, prop){
+        function merge_transform(transform, order){
 
-            const x = transform[prop + "X"] || 0;
-            const y = transform[prop + "Y"] || 0;
-            const z = transform[prop + "Z"] || 0;
+            let str = "";
 
-            if(x || y || z){
+            for(let i = 0, len = order.length; i < len; i++){
 
-                if(z && parse_float(z)){
+                const prop = order[i];
+                const x = transform[prop + "X"] || 0;
+                const y = transform[prop + "Y"] || 0;
+                const z = transform[prop + "Z"] || 0;
 
+                if(x || y || z){
 
-                    return prop + "3d(" + x + "," + y + "," + z + ") ";
-                }
-                else{
+                    if(z && parse_float(z)){
 
-                    return prop + "(" + x + "," + y + ") ";
+                        str += prop + "3d(" + x + "," + y + "," + z + ") ";
+                    }
+                    else{
+
+                        str += prop + "(" + x + "," + y + ") ";
+                    }
                 }
             }
 
-            return "";
+            return str;
         }
 
         /**
@@ -1791,14 +1763,7 @@
 
                 if(bezier){
 
-                    easing[bezier] || (easing[bezier] = easing_bezier(
-
-                        values[0],
-                        values[1],
-                        values[2],
-                        values[3]
-                    ));
-
+                    easing[bezier] || (easing[bezier] = easing_bezier.apply(easing_bezier, values));
                     config_ease = bezier;
                 }
             }
@@ -1806,7 +1771,6 @@
             return config_ease;
         }
 
-        /*
         function get_transform_matrix(style_matrix, style){
 
             // var values = matrix.split('(')[1].split(')')[0].split(','),
@@ -1822,11 +1786,10 @@
             // rotateY = b;
             // rotateZ = c;
 
-            const values = ((style_matrix.split('(')[1]).split(')')[0]).split(',');
+            const values = substring_match(style_matrix, "(", ")").split(',');
 
-            return values[matrix2d_index[style]] || "";
+            return parseFloat(values[matrix2d_index[style]]) || "";
         }
-        */
 
         /**
          * @param {Array<(Node|null)>|Node|NodeList|string|null} obj
@@ -1872,7 +1835,6 @@
 
                 const config_callback = config["callback"] || (SUPPORT_SEQUENCES && sequences && function(){/* TODO: mark last style */});
                 const config_step = config["step"] || 0;
-
                 const config_force = config["force"] || 0;
                 const config_strict = config["strict"] || 0;
                 const config_init = this.resync || config["init"];
@@ -1891,7 +1853,7 @@
 
                 if(SUPPORT_TRANSFORM || SUPPORT_COLOR){
 
-                    for(let k = style_length; k-- > 0;){
+                    for(let k = style_length - 1; k >= 0; k--){
 
                         const key = style_keys[k];
 
@@ -2068,48 +2030,93 @@
                             }
                         }
 
-                        if(SUPPORT_TRANSFORM || SUPPORT_COLOR){
+                        /**
+                         * @type Job
+                         */
 
-                            this.handle(
+                        const cur_job = current_obj[job_id];
 
-                                current_obj,
-                                key,
-                                job_id,
-                                from,
-                                value,
-                                unit,
-                                config_force,
-                                config_duration,
-                                config_ease,
-                                last && config_callback,
-                                last && config_step,
-                                style_id,
-                                config_delay,
-                                config_loop,
-                                has_transform,
-                                has_color || has_color_background || has_color_border,
-                                color_group
-                            );
+                        if(cur_job && !style_id){
+
+                            if(SUPPORT_TRANSFORM || SUPPORT_COLOR){
+
+                                cur_job.update_job(
+
+                                    from,
+                                    value,
+                                    unit,
+                                    config_force,
+                                    config_duration,
+                                    config_ease,
+                                    last && config_callback,
+                                    last && config_step,
+                                    config_delay,
+                                    has_transform,
+                                    has_color || has_color_background || has_color_border,
+                                    color_group
+                                );
+                            }
+                            else{
+
+                                cur_job.update_job(
+
+                                    from,
+                                    value,
+                                    unit,
+                                    config_force,
+                                    config_duration,
+                                    config_ease,
+                                    last && config_callback,
+                                    last && config_step,
+                                    config_delay
+                                );
+                            }
                         }
                         else{
 
-                            this.handle(
+                            if(SUPPORT_TRANSFORM || SUPPORT_COLOR){
 
-                                current_obj,
-                                key,
-                                job_id,
-                                from,
-                                value,
-                                unit,
-                                config_force,
-                                config_duration,
-                                config_ease,
-                                last && config_callback,
-                                last && config_step,
-                                style_id,
-                                config_delay,
-                                config_loop
-                            );
+                                this.create_job(
+
+                                    current_obj,
+                                    key,
+                                    job_id,
+                                    from,
+                                    value,
+                                    unit,
+                                    config_force,
+                                    config_duration,
+                                    config_ease,
+                                    last && config_callback,
+                                    last && config_step,
+                                    style_id,
+                                    config_delay,
+                                    config_loop,
+                                    has_transform,
+                                    has_color || has_color_background || has_color_border,
+                                    color_group
+                                );
+                            }
+                            else{
+
+                                this.create_job(
+
+                                    current_obj,
+                                    key,
+                                    job_id,
+                                    from,
+                                    value,
+                                    unit,
+                                    config_force,
+                                    config_duration,
+                                    config_ease,
+                                    last && config_callback,
+                                    last && config_step,
+                                    style_id,
+                                    config_delay,
+                                    config_loop
+                                );
+                            }
                         }
                     }
                 }
@@ -2138,8 +2145,6 @@
 
             if(obj && styles){
 
-                /* Create Empty Config Fallback */
-
                 config || (config = {});
 
                 obj = get_nodes(obj);
@@ -2166,8 +2171,6 @@
                 }
 
                 const event = prefix_transition ? prefix_transition + "End" : "transitionend";
-
-                /* Create Jobs */
 
                 for(let i = 0, len = obj.length; i < len; i++){
 
@@ -2232,11 +2235,7 @@
 
             if(obj && styles){
 
-                /* Create Empty Config Fallback */
-
                 config || (config = {});
-
-                /* Handle Delay */
 
                 const style_keys = Object.keys(styles);
 
@@ -2250,8 +2249,6 @@
                 const config_cancel = config["cancel"];
                 const config_delay = (config["delay"] || 0);
                 const style_length = style_keys.length;
-
-                /* Create Jobs */
 
                 for(let i = 0, len = obj.length; i < len; i++){
 
