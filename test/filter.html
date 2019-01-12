@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<title>Test: Filter</title>
+	<style>
+		body{
+			margin:0;
+			padding:0;
+		}
+		.square{
+			position: relative;
+			display: inline-block;
+			left:0;
+			width: auto;
+			height: auto;
+			vertical-align: text-bottom;
+			color: #fff;
+			background-color: #f00;
+			padding: 20px;
+		}
+	</style>
+</head>
+<body>
+<div id="square_1" class="square">1</div><br>
+<div id="square_2" class="square">2</div><br>
+<div id="square_3" class="square">3</div><br>
+<script type="text/javascript" src="../fat.js"></script>
+<script>
+
+	Fat.filter("#square_1", {
+
+		"brightness": 0.5,
+		"contrast": 0.5,
+		"hue": "180deg"
+	},{
+		duration: 2000
+	});
+
+	Fat.animate("#square_2", {
+
+		filter: "brightness(0.5) contrast(0.5) hue-rotate(180deg)"
+	},{
+		duration: 2000
+	});
+
+	Fat.filter("#square_3", {
+
+		"brightness": {from: 100, to: 50, unit: "%"},
+		"contrast": {from: 100, to: 50, unit: "%"},
+		"hue": {from: 0, to: 180, unit: "deg"}
+	},{
+		duration: 2000
+	});
+
+</script>
+</body>
+</html>

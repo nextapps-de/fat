@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<title>Test: Transform</title>
+	<style>
+		body{
+			margin:0;
+			padding:0;
+		}
+		.square{
+			position: relative;
+			display: inline-block;
+			left:0;
+			width: auto;
+			height: auto;
+			vertical-align: text-bottom;
+			color: #fff;
+			background-color: #000;
+			padding: 20px;
+			margin-bottom: 5%;
+		}
+		#square_3{
+
+			transform: translateX(500px) scaleX(2) rotateZ(45deg) skewX(50deg);
+		}
+	</style>
+</head>
+<body>
+<br><br><br><br>
+<div id="square_1" class="square">1</div><br>
+<div id="square_2" class="square">2</div><br>
+<div id="square_3" class="square">3</div><br>
+<script type="text/javascript" src="../fat.js"></script>
+<script>
+
+	Fat.transform("#square_1", {
+
+		translateX: "+=500px",
+		scaleX: 2,
+		rotateZ: "45deg",
+		skewX: "50deg"
+	},{
+		duration: 2000
+	});
+
+	Fat.animate("#square_2", {
+
+		transform: "translateX(+=500px) scaleX(*=2) rotateZ(45deg) skewX(50deg)"
+	},{
+		duration: 2000
+	});
+
+</script>
+</body>
+</html>
