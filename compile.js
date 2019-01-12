@@ -70,7 +70,7 @@ var parameter = (function(opt){
     //formatting: "PRETTY_PRINT"
 });
 
-exec("java -jar node_modules/google-closure-compiler-java/compiler.jar" + parameter + " --define='SUPPORT_DEBUG=" + (options['SUPPORT_DEBUG'] || 'false') + "' --define='SUPPORT_EASING=" + (options['SUPPORT_EASING'] || 'false') + "' --define='SUPPORT_COLOR=" + (options['SUPPORT_COLOR'] || 'false') + "'" + flag_str + " --js='fat.js' --js_output_file='fat." + (options['RELEASE'] || 'custom') + ".js' && exit 0", function(){
+exec("java -jar node_modules/google-closure-compiler-java/compiler.jar" + parameter + " --define='DEBUG=" + (options['DEBUG'] || 'false') + "' --define='SUPPORT_EASING=" + (options['SUPPORT_EASING'] || 'false') + "' --define='SUPPORT_COLOR=" + (options['SUPPORT_COLOR'] || 'false') + "'" + flag_str + " --js='fat.js' --js_output_file='fat." + (options['RELEASE'] || 'custom') + ".js' && exit 0", function(){
 
     console.log("Build Complete: fat." + (options['RELEASE'] || 'custom') + ".js");
 });

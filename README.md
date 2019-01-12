@@ -1,3 +1,4 @@
+<br>
 <img src="https://cdn.jsdelivr.net/gh/nextapps-de/fat@master/docs/fat_logo_dark.svg">
 <h1></h1>
 <a target="_blank" href="https://github.com/nextapps-de/fat/issues"><img src="https://img.shields.io/github/issues/nextapps-de/fat.svg"></a>
@@ -88,6 +89,14 @@ All Features:
     <tr></tr>
     <tr>
         <td>
+            <a href="#filter">Filter</a><br>
+        </td>
+        <td>x</td>
+        <td>-</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>
             <a href="#colors">Colors</a><br>
         </td>
         <td>x</td>
@@ -144,7 +153,7 @@ All Features:
     <tr style="color:#900">
         <td>1</td>
         <td>FAT</td>
-        <td>0.4.1</td>
+        <td>0.5.0</td>
         <td>2.1 kb</td>
         <td>0.85 Mb</td>
         <td>0.15 Mb</td>
@@ -380,6 +389,7 @@ var Fat = require("./fat.min.js");
 Global methods / Scene methods:
 - <a href="#fat.animate">Fat.__animate__(selector[] | elements[], styles[]{}, options{})</a>
 - <a href="#transform">Fat.__transform__(selector[] | elements[], styles[]{}, options{})</a>
+- <a href="#filter">Fat.__filter__(selector[] | elements[], styles[]{}, options{})</a>
 - <a href="#fat.transition">Fat.__transition__(selector[] | elements[], styles[]{}, options{})</a>
 - <a href="#fat.native">Fat.__native__(selector[] | elements[], styles[]{}, options{})</a>
 - <a href="#fat.update">Fat.__update__(selector[] | elements[], styles[]{}, options{})</a>
@@ -532,7 +542,7 @@ Fat.animate("#mydiv", {
 ```js
 Fat.animate("#mydiv", { 
     translateX: "100px",
-    translateY: "100%"
+    translateY: "100px"
 });
 ```
 
@@ -540,6 +550,14 @@ same as:
 
 ```js
 Fat.transform("#mydiv", ...
+```
+
+same as (has lower performance):
+
+```js
+Fat.animate("#mydiv", { 
+    "transform": "translate(100px, 100px)"
+});
 ```
 
 <a name="colors"></a>
@@ -553,13 +571,53 @@ Fat.animate("#mydiv", {
 });
 ```
 
+Animate color channels directly (also improves performance):
+
+```js
+Fat.animate("#mydiv", { 
+    colorR: 0,
+    colorG: 0,
+    colorB: 0,
+    colorA: 0,
+    backgroundColorA: "100%",
+    borderColorB: 255
+});
+```
+
+<a name="filter"></a>
+## Filter
+
+```js
+Fat.animate("#mydiv", { 
+    brightness: 0.5,
+    contrast: 0.5,
+    hue: "180deg"
+});
+```
+
+> You can use the shorthand `hue` as `hue-rotate`
+
+same as:
+
+```js
+Fat.filter("#mydiv", ...
+```
+
+same as (has lower performance):
+
+```js
+Fat.animate("#mydiv", { 
+    "filter": "brightness(0.5) contrast(0.5) hue(180deg)"
+});
+```
+
 <a name="easing"></a>
 ## Easing
 
 Built-in easing:
 
 - linear
-- easeIn, easeOut, easeInOut (same as: quadIn, quadOut, quadInOut)
+- easeIn, easeOut, easeInOut (refers to: quadIn, quadOut, quadInOut)
 - cubicIn, cubicOut, cubicInOut
 - quartIn, quartOut, quartInOut
 - quintIn, quintOut, quintInOut
@@ -861,11 +919,12 @@ npm run build-custom SUPPORT_EASE_IN_CUBIC=true SUPPORT_CONTROL=true
 
 Supported flags (boolean):
 
-- SUPPORT_DEBUG
+- DEBUG
 - SUPPORT_COLOR
 - SUPPORT_CONTROL
 - SUPPORT_SEQUENCES
 - SUPPORT_TRANSFORM
+- SUPPORT_FILTER
 - SUPPORT_ANIMATE
 - SUPPORT_TRANSITION
 - SUPPORT_NATIVE

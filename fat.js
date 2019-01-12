@@ -1,16 +1,17 @@
 ;/**!
- * @preserve FAT v0.4.1
+ * @preserve FAT v0.5.0
  * Copyright 2019 Nextapps GmbH
  * Author: Thomas Wilkerling
  * Released under the Apache 2.0 Licence
  * https://github.com/nextapps-de/fat
  */
 
-/** @define {boolean} */ const SUPPORT_DEBUG = true;
+/** @define {boolean} */ const DEBUG = true;
 /** @define {boolean} */ const SUPPORT_COLOR = true;
 /** @define {boolean} */ const SUPPORT_CONTROL = true;
 /** @define {boolean} */ const SUPPORT_SEQUENCES = true;
 /** @define {boolean} */ const SUPPORT_TRANSFORM = true;
+/** @define {boolean} */ const SUPPORT_FILTER = true;
 /** @define {string} */  const SUPPORT_ENGINE = "";
 /** @define {boolean} */ const SUPPORT_ANIMATE = SUPPORT_ENGINE ? SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "js" : true;
 /** @define {boolean} */ const SUPPORT_TRANSITION = SUPPORT_ENGINE ? SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "css" : true;
@@ -32,7 +33,7 @@
 
         let paint;
 
-        const vendor = (SUPPORT_TRANSFORM || SUPPORT_TRANSITION) && (function(){
+        const vendor = (SUPPORT_TRANSFORM || SUPPORT_TRANSITION || SUPPORT_FILTER) && (function(){
 
             const styles = getComputedStyle(document.body);
 
@@ -59,6 +60,8 @@
         const prefix_transform_js = vendor && ("-" + prefix_transform.replace("T", "-t"));
         const prefix_transition = vendor && (vendor + "Transition");
         const prefix_transition_js = vendor && ("-" + prefix_transition.replace("T", "-t"));
+        const prefix_filter = vendor && (vendor + "Filter");
+        const prefix_filter_js = vendor && ("-" + prefix_transition.replace("F", "-f"));
 
         const parse_float = parseFloat;
 
@@ -266,6 +269,7 @@
          * @param {string} style_id
          * @param {number} delay
          * @param {number=} loop
+         * @param {string=} filter
          * @param {string=} transform
          * @param {number=} color
          * @param {string=} color_group
@@ -289,6 +293,7 @@
             delay,
             loop,
             transform,
+            filter,
             color,
             color_group
         ){
@@ -335,6 +340,14 @@
                     this.transform = transform;
                 }
             }
+
+            if(SUPPORT_FILTER){
+
+                if(filter){
+
+                    this.filter = filter;
+                }
+            }
         }
 
         const JobPrototype = Job.prototype;
@@ -366,6 +379,11 @@
                     if(complete){
 
                         current_value = (SUPPORT_CONTROL && !direction) ? this.from : this.to;
+
+                        if(DEBUG){
+
+                            console.log("Job finished", this);
+                        }
                     }
                     else{
 
@@ -428,6 +446,10 @@
 
                         obj["_" + this.color_group][style] = current_value;
                     }
+                    else if(SUPPORT_FILTER && this.filter){
+
+                        obj._filter[style] = current_value + this.unit;
+                    }
                     else{
 
                         this.animate_job(style, current_value);
@@ -436,16 +458,20 @@
 
                 if(SUPPORT_TRANSFORM && (style === this.transform)){
 
-                    current_value = this.transform_job();
+                    this.transform_job();
                 }
                 else if(SUPPORT_COLOR && (style === this.color)){
 
-                    current_value = this.color_job(this.color_group);
+                    this.color_job(this.color_group);
+                }
+                else if(SUPPORT_FILTER && (style === this.filter)){
+
+                    this.filter_job();
                 }
 
                 if(this.step){
 
-                    this.step.call(obj, current_value);
+                    this.step.call(obj, stamp / this.duration);
                 }
 
                 if(complete){
@@ -691,6 +717,24 @@
             "translateY": 5
         };
 
+        /**
+         * Note: value + 1
+         * @const
+         * @dict
+         */
+
+        const filter_default_values = {
+
+            "blur": 1,
+            "brightness": 2,
+            "contrast":  2,
+            "grayscale": 1,
+            "hue-rotate": 1,
+            "invert": 1,
+            "saturate": 2,
+            "sepia": 1
+        };
+
         let hex_to_int_table;
         let int_to_hex_table;
 
@@ -723,6 +767,19 @@
                 set_style(this.css, prefix_transform_js || "transform", merge_transform(transform, order), this.force);
 
                 return transform;
+            };
+        }
+
+        if(SUPPORT_FILTER){
+
+            JobPrototype.filter_job = function(){
+
+                const filter = this.obj._filter;
+                const order = this.obj._filter_order;
+
+                set_style(this.css, prefix_filter_js || "filter", merge_filter(filter, order), this.force);
+
+                return filter;
             };
         }
 
@@ -880,7 +937,6 @@
             if(max === min){
 
                 h = s = 0;
-
             }
             else{
 
@@ -919,7 +975,7 @@
 
             if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM){
 
-                this.id = ++id_counter;
+                this.id = ++id_counter; // start from 1
                 this.stack = [];
                 this.render = render_frames.bind(this);
                 this.exec = 0;
@@ -933,6 +989,11 @@
                     this.direction = true;
                     this.ratio = 1;
                 }
+            }
+
+            if(DEBUG){
+
+                console.log("Scene created", this);
             }
         }
 
@@ -955,6 +1016,12 @@
 
             /** @export */
             FatPrototype.transform = animate;
+        }
+
+        if(SUPPORT_FILTER){
+
+            /** @export */
+            FatPrototype.filter = animate;
         }
 
         if(SUPPORT_TRANSITION){
@@ -1032,7 +1099,7 @@
             };
         }
 
-        if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM || SUPPORT_TRANSITION || SUPPORT_NATIVE){
+        if(SUPPORT_ANIMATE /*TODO: || SUPPORT_TRANSITION || SUPPORT_NATIVE*/){
 
             /** @export */
             FatPrototype.create = function(){
@@ -1130,6 +1197,11 @@
 
                     reset_style_id = 0;
                 }
+
+                if(DEBUG){
+
+                    console.log("Scene destroyed", this);
+                }
             }
 
             return this;
@@ -1226,11 +1298,9 @@
 
                     if(current_job){
 
-                        if(current_job.render_job(this, time)){
+                        in_progress = true;
 
-                            in_progress = true;
-                        }
-                        else{
+                        if(!current_job.render_job(this, time)){
 
                             this.stack[i] = null;
                         }
@@ -1279,11 +1349,12 @@
              * @param {Function} step
              * @param {number} delay
              * @param {string=} transform
+             * @param {string=} filter
              * @param {string=} color
              * @param {string=} color_group
              */
 
-            JobPrototype.update_job = function(from, to, unit, force, duration, ease_str, callback, step, delay, transform, color, color_group){
+            JobPrototype.update_job = function(from, to, unit, force, duration, ease_str, callback, step, delay, transform, filter, color, color_group){
 
                 if(is_undefined(from)){
 
@@ -1343,6 +1414,19 @@
                         this.color_group = color_group;
                     }
                 }
+
+                if(SUPPORT_FILTER){
+
+                    if(filter){
+
+                        this.filter = filter;
+                    }
+                }
+
+                if(DEBUG){
+
+                    console.log("Job updated", this);
+                }
             };
         }
 
@@ -1362,11 +1446,12 @@
          * @param {number} delay
          * @param {number=} loop
          * @param {string=} transform
+         * @param {string=} filter
          * @param {number=} color
          * @param {string=} color_group
          */
 
-        function create_job(obj, style, job_id, from, to, unit, force, duration, ease_str, callback, step, style_id, delay, loop, transform, color, color_group){
+        function create_job(obj, style, job_id, from, to, unit, force, duration, ease_str, callback, step, style_id, delay, loop, transform, filter, color, color_group){
 
             let style_from = "" + (
 
@@ -1378,7 +1463,11 @@
 
                         get_color
                     :
-                        get_style
+                        SUPPORT_FILTER && filter ?
+
+                            get_filter
+                        :
+                            get_style
 
             )(obj, style, from, color_group);
 
@@ -1413,7 +1502,7 @@
                 unit = style_from.substring(("" + from).length) || "";
             }
 
-            const job = SUPPORT_TRANSFORM || SUPPORT_COLOR ? (new Job(
+            const job = SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER ? (new Job(
 
                 obj,
                 style,
@@ -1430,6 +1519,7 @@
                 delay,
                 loop,
                 transform,
+                filter,
                 color,
                 color_group
 
@@ -1456,6 +1546,11 @@
             if(!style_id){
 
                 obj[job_id] = job;
+            }
+
+            if(DEBUG){
+
+                console.log("Job created", job);
             }
         }
 
@@ -1522,78 +1617,192 @@
             return style_value;
         }
 
-        function get_transform(obj, style, from){
+        /**
+         * @param style
+         * @param style_value
+         * @param style_prop
+         * @param {Array<string>=} style_order
+         * @returns {Object}
+         */
 
-            let style_prop = obj._transform;
+        function parse_transform(style, style_value, style_prop, style_order){
 
-            if(!style_prop || !style_prop[style]){
+            if(style_value === "none"){
 
-                let style_value = from || get_style(obj, prefix_transform || "transform");
+                const transform_group = style.substring(0, style.length - 1);
 
-                if(style_value){
+                style_prop[style] = transform_group === "scale" ? 1 : 0;
 
-                    let style_order;
-                    let style_order_len = 0;
+                if(style_order){
 
-                    obj._transform = style_prop = {};
-                    obj._transform_order = style_order = [];
+                    style_order[style_order.length] = transform_group;
+                }
 
-                    if(style_value === "none"){
+                return style_prop;
+            }
+            else if(style_value.indexOf("matrix") !== -1){
 
-                        if(!style_prop[style]){
+                style_value = style + "(" + get_transform_matrix(style_value, style) + ")";
+            }
 
-                            style_order[style_order.length] = style.substring(0, style.length - 1);
-                            //style_prop[style] = 0;
+            const parts = style_value.replace(/, /g, ",").split(' ');
+            const has_prop = {};
+
+            let style_order_len = 0;
+
+            for(let i = 0; i < parts.length; i++){
+
+                const part = parts[i];
+                let prop = substring_match(part, "(");
+
+                if(prop){
+
+                    const values = substring_match(part, "(", ")").split(',');
+                    const len = values.length;
+
+                    if(len > 2){
+
+                        prop = prop.replace("3d", "");
+                        style_prop[prop + "Z"] = values[2];
+                    }
+
+                    if(len > 1){
+
+                        style_prop[prop + "X"] = values[0];
+                        style_prop[prop + "Y"] = values[1];
+                    }
+                    else{
+
+                        style_prop[prop] = values[0];
+                        prop = prop.substring(0, prop.length - 1);
+                    }
+
+                    if(!has_prop[prop]){
+
+                        if(style_order){
+
+                            style_order[style_order_len++] = prop;
                         }
 
-                        return 0;
-                    }
-                    else if(style_value.indexOf("matrix") !== -1){
-
-                        style_value = style + "(" + get_transform_matrix(style_value, style) + ")";
-                    }
-
-                    const parts = style_value.split(' ');
-                    const has_prop = {};
-
-                    for(let i = 0; i < parts.length; i++){
-
-                        const part = parts[i];
-                        let prop = substring_match(part, "(");
-
-                        if(prop){
-
-                            const values = substring_match(part, "(", ")").split(',');
-                            const len = values.length;
-
-                            if(len > 2){
-
-                                prop = prop.replace("3d", "");
-                                style_prop[prop + "Z"] = values[2];
-                            }
-
-                            if(len > 1){
-
-                                style_prop[prop + "X"] = values[0];
-                                style_prop[prop + "Y"] = values[1];
-                            }
-                            else{
-
-                                style_prop[prop] = values[0];
-                                prop = prop.substring(0, prop.length - 1);
-                            }
-
-                            if(!has_prop[prop]){
-
-                                style_order[style_order_len++] = prop;
-                                has_prop[prop] = 1;
-                            }
-                        }
+                        has_prop[prop] = 1;
                     }
                 }
             }
 
+            return style_prop;
+        }
+
+        /**
+         * @param style
+         * @param style_value
+         * @param style_prop
+         * @param {Array<string>=} style_order
+         * @returns {Object}
+         */
+
+        function parse_filter(style, style_value, style_prop, style_order){
+
+            if(style_value === "none"){
+
+                style_prop[style] = filter_default_values[style] - 1;
+
+                if(style_order){
+
+                    style_order[style_order.length] = style;
+                }
+
+                return style_prop;
+            }
+            else if(("" + style_value).length < 8){
+
+                style_prop[style] = style_value;
+
+                if(style_order){
+
+                    style_order[style_order.length] = style;
+                }
+
+                return style_prop;
+            }
+
+            const parts = style_value.split(' ');
+            const has_prop = {};
+
+            let style_order_len = 0;
+
+            for(let i = 0; i < parts.length; i++){
+
+                const part = parts[i];
+                let prop = substring_match(part, "(");
+
+                if(prop){
+
+                    style_prop[prop] = substring_match(part, "(", ")");
+                    prop = prop.substring(0, prop.length);
+
+                    if(!has_prop[prop]){
+
+                        if(style_order){
+
+                            style_order[style_order_len++] = prop;
+                        }
+
+                        has_prop[prop] = 1;
+                    }
+                }
+            }
+
+            return style_prop;
+        }
+
+        function get_transform(obj, style, from){
+
+            let style_prop = obj._transform;
+            let style_order;
+
+            if(!style_prop){
+
+                obj._transform = style_prop = {};
+                obj._transform_order = style_order = [];
+            }
+            else{
+
+                style_order = obj._transform_order;
+            }
+
+            if(!style_prop || is_undefined(style_prop[style])){
+
+                let style_value = from || get_style(obj, prefix_transform || "transform");
+
+                parse_transform(style, style_value, style_prop, style_order);
+            }
+
             return style_prop[style];
+        }
+
+        function get_filter(obj, style, from){
+
+            let style_prop = obj._filter;
+            let style_order;
+
+            if(!style_prop){
+
+                obj._filter = style_prop = {};
+                obj._filter_order = style_order = [];
+            }
+            else{
+
+                style_order = obj._filter_order;
+            }
+
+            if(!style_prop || is_undefined(style_prop[style])){
+
+                const style_value = from || get_style(obj, prefix_filter || "filter");
+
+                parse_filter(style, style_value, style_prop, style_order);
+            }
+
+            return style_prop[style] || (filter_default_values[style] - 1);
         }
 
         /**
@@ -1627,25 +1836,69 @@
 
         function merge_transform(transform, order){
 
+
             let str = "";
 
             for(let i = 0, len = order.length; i < len; i++){
 
                 const prop = order[i];
-                const x = transform[prop + "X"] || 0;
-                const y = transform[prop + "Y"] || 0;
-                const z = transform[prop + "Z"] || 0;
+                const default_value = prop === "scale" ? 1 : 0;
+
+                const x = transform[prop + "X"];
+                const y = transform[prop + "Y"];
+                const z = transform[prop + "Z"];
 
                 if(x || y || z){
 
-                    if(z && parse_float(z)){
+                    if(prop === "rotate"){
 
-                        str += prop + "3d(" + x + "," + y + "," + z + ") ";
+                        if(x) str += prop + "X(" + (x || default_value) + ") ";
+                        if(y) str += prop + "Y(" + (y || default_value) + ") ";
+                    }
+
+                    if(z && (parse_float(z) !== default_value)){
+
+                        if(prop === "rotate"){
+
+                            str += prop + "Z(" + (z || default_value) + ") ";
+                        }
+                        else{
+
+                            str += prop + "3d(" + (x || default_value) + "," + (y || default_value) + "," + z + ") ";
+                        }
                     }
                     else{
 
-                        str += prop + "(" + x + "," + y + ") ";
+                        if(prop !== "rotate"){
+
+                            str += prop + "(" + (x || default_value) + "," + (y || default_value) + ") ";
+                        }
                     }
+                }
+            }
+
+            return str;
+        }
+
+        /**
+         * @param {Object<string, string|number>} filter
+         * @param {Array<string>} order
+         * @returns {string}
+         */
+
+        function merge_filter(filter, order){
+
+            let str = "";
+
+            for(let i = 0, len = order.length; i < len; i++){
+
+                const prop = order[i];
+                const default_value = (filter_default_values[prop] || 1) - 1;
+                const value = filter[prop];
+
+                if(value && (value !== default_value)){
+
+                    str += prop + "(" + value + ") ";
                 }
             }
 
@@ -1847,21 +2100,102 @@
                 let style_length = style_keys.length;
 
                 let last_transform;
+                let last_filter;
                 let last_color;
                 let last_color_background;
                 let last_color_border;
 
-                if(SUPPORT_TRANSFORM || SUPPORT_COLOR){
+                if(SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER){
 
-                    for(let k = style_length - 1; k >= 0; k--){
+                    for(let k = style_length; k-- > 0;){
 
-                        const key = style_keys[k];
+                        let key = style_keys[k];
 
                         if(SUPPORT_TRANSFORM){
+
+                            if(key === "transform"){
+
+                                const props = parse_transform(key, styles[key], {});
+                                const prop_keys = Object.keys(/** @type {!Object} */ (props));
+
+                                for(let i = 0; i < prop_keys.length; i++){
+
+                                    let tmp = prop_keys[i];
+
+                                    style_keys.push(tmp);
+                                    styles[tmp] = props[tmp];
+
+                                    style_length++;
+                                }
+
+                                last_transform = prop_keys[prop_keys.length - 1];
+
+                                if(SUPPORT_COLOR || SUPPORT_FILTER){
+
+                                    continue;
+                                }
+                                else{
+
+                                    break;
+                                }
+                            }
 
                             if(!last_transform && transform_keys[key]){
 
                                 last_transform = key;
+
+                                if(SUPPORT_COLOR || SUPPORT_FILTER){
+
+                                    continue;
+                                }
+                                else{
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        if(SUPPORT_FILTER){
+
+                            if(key === "filter"){
+
+                                const props = parse_filter(key, styles[key], {});
+                                const prop_keys = Object.keys(/** @type {!Object} */ (props));
+
+                                for(let i = 0; i < prop_keys.length; i++){
+
+                                    let tmp = prop_keys[i];
+
+                                    if(tmp === "hue"){
+
+                                        tmp = "hue-rotate";
+                                    }
+
+                                    style_keys.push(tmp);
+                                    styles[tmp] = props[tmp];
+
+                                    last_filter = tmp;
+                                    style_length++;
+                                }
+
+                                if(SUPPORT_COLOR){
+
+                                    continue;
+                                }
+                                else{
+
+                                    break;
+                                }
+                            }
+
+                            if(key === "hue"){
+
+                                key = "hue-rotate";
+                            }
+
+                            if(!last_filter && filter_default_values[key]){
+
+                                last_filter = key;
 
                                 if(SUPPORT_COLOR){
 
@@ -1876,7 +2210,7 @@
 
                         if(SUPPORT_COLOR){
 
-                            const color_type = color_keys[key];
+                            let color_type = color_keys[key];
 
                             if(color_type){
 
@@ -1892,40 +2226,43 @@
                                     const color = parse_color(value, key);
                                     let tmp, val;
 
-                                    style_keys.unshift(tmp = key + "R");
+                                    style_keys.push(tmp = key + "R");
                                     styles[tmp] = color[tmp];
 
-                                    style_keys.unshift(tmp = key + "G");
+                                    style_keys.push(tmp = key + "G");
                                     styles[tmp] = color[tmp];
 
-                                    style_keys.unshift(tmp = key + "B");
+                                    style_keys.push(tmp = key + "B");
                                     styles[tmp] = color[tmp];
 
                                     const has_alpha = !is_undefined(val = color[tmp = key + "A"]);
 
                                     if(has_alpha){
 
-                                        style_keys.unshift(tmp);
+                                        style_keys.push(tmp);
                                         styles[tmp] = val;
+                                        key = tmp;
+                                    }
+                                    else{
+
+                                        key = key + "B";
                                     }
 
-                                    k += has_alpha ? 4 : 3;
                                     style_length += has_alpha ? 4 : 3;
+                                    color_type *= -1;
                                 }
-                                else{
 
-                                    if(!last_color && (color_type === 1)){
+                                if(!last_color && (color_type === 1)){
 
-                                        last_color = key;
-                                    }
-                                    else if(!last_color_background && (color_type === 2)){
+                                    last_color = key;
+                                }
+                                else if(!last_color_background && (color_type === 2)){
 
-                                        last_color_background = key;
-                                    }
-                                    else if(!last_color_border && (color_type === 3)){
+                                    last_color_background = key;
+                                }
+                                else if(!last_color_border && (color_type === 3)){
 
-                                        last_color_border = key;
-                                    }
+                                    last_color_border = key;
                                 }
                             }
                         }
@@ -1937,18 +2274,19 @@
                 for(let k = 0; k < style_length; k++){
 
                     let has_transform;
+                    let has_filter;
                     let has_color;
                     let has_color_background;
                     let has_color_border;
                     let color_group;
 
-                    const last = (k === style_length - 1);
-                    const key = style_keys[k];
-                    const job_id = "_fat_" + key + this.id;
-
+                    let key = style_keys[k];
                     let value = styles[key];
                     let from;
                     let unit;
+
+                    const last = (k === style_length - 1);
+                    const job_id = "_fat_" + key + this.id;
 
                     if(typeof value === "object"){
 
@@ -1956,13 +2294,34 @@
                         config_duration = value["duration"] || config_duration;
                         config_ease = value["ease"] || config_ease;
                         from = value["from"];
-                        value = value["to"];
                         unit = value["unit"];
+
+                        // replace value
+                        value = value["to"];
                     }
 
                     if(SUPPORT_TRANSFORM){
 
+                        if(key === "transform"){
+
+                            continue;
+                        }
+
                         has_transform = transform_keys[key] && last_transform;
+                    }
+
+                    if(SUPPORT_FILTER){
+
+                        if(key === "filter"){
+
+                            continue;
+                        }
+                        else if(key === "hue"){
+
+                            key = "hue-rotate";
+                        }
+
+                        has_filter = filter_default_values[key] && last_filter;
                     }
 
                     if(SUPPORT_COLOR){
@@ -2027,6 +2386,10 @@
 
                                     current_obj._borderColor = null;
                                 }
+                                else if(last_filter) {
+
+                                    current_obj._filter = null;
+                                }
                             }
                         }
 
@@ -2038,7 +2401,7 @@
 
                         if(cur_job && !style_id){
 
-                            if(SUPPORT_TRANSFORM || SUPPORT_COLOR){
+                            if(SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER){
 
                                 cur_job.update_job(
 
@@ -2052,6 +2415,7 @@
                                     last && config_step,
                                     config_delay,
                                     has_transform,
+                                    has_filter,
                                     has_color || has_color_background || has_color_border,
                                     color_group
                                 );
@@ -2074,7 +2438,7 @@
                         }
                         else{
 
-                            if(SUPPORT_TRANSFORM || SUPPORT_COLOR){
+                            if(SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER){
 
                                 this.create_job(
 
@@ -2093,6 +2457,7 @@
                                     config_delay,
                                     config_loop,
                                     has_transform,
+                                    has_filter,
                                     has_color || has_color_background || has_color_border,
                                     color_group
                                 );
