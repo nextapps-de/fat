@@ -4,9 +4,6 @@
 	"use strict";
 
 	var document = window.document;
-
-	// #############################################################################################################
-
 	var w = document.documentElement.clientWidth || window.innerWidth || 0;
 	var h = document.documentElement.clientHeight || window.innerHeight || 0;
 
@@ -15,15 +12,17 @@
 
 	var EXECUTE = false;
 
-	var container   = document.getElementById('container');
-	var domFPS 		= document.getElementById('fps');
-	var domMedian 	= document.getElementById('median');
-	var domMin 		= document.getElementById('min');
-	var domMax 		= document.getElementById('max');
-	var domStep		= document.getElementById('step');
-	var domCount	= document.getElementById('ballcount');
+	var container = document.getElementById('container');
+	var domFPS = document.getElementById('fps');
+	var domMedian = document.getElementById('median');
+	var domMin = document.getElementById('min');
+	var domMax = document.getElementById('max');
+	var domStep = document.getElementById('step');
+	var domCount = document.getElementById('ballcount');
 
 	var animateBall = {};
+	var transformBall = {};
+	var colorBall = {};
 	var fps_val = 0;
     var start_time = 0;
 
@@ -43,6 +42,19 @@
 		)
 	}
 
+	function getNextColor(){
+
+		var letters = "0123456789ABCDEF";
+		var color = "#";
+
+		for(var i = 0; i < 6; i++) {
+
+			color += letters[(Math.random() * 16) >> 0];
+		}
+
+		return color;
+	}
+
 	// #############################################################################################################
 
 	animateBall.FAT = function(){
@@ -56,8 +68,26 @@
 				left: coords[0],
 				top: coords[1]
 			},{
-				"duration": (Math.random() * 1000 + 1000) >> 0,
-				"callback": animateBall.FAT,
+				duration: (Math.random() * 1000 + 1000) >> 0,
+				callback: animateBall.FAT,
+				step: function(){
+
+					fps_val++;
+				}
+			});
+		}
+	};
+
+	colorBall.FAT = function(){
+
+		if(EXECUTE){
+
+			Fat.animate(this, {
+
+				backgroundColor: getNextColor()
+			},{
+				"duration": (Math.random() * 200 + 200) >> 0,
+				"callback": colorBall.FAT,
 				"step": function(){
 
 					fps_val++;
@@ -66,9 +96,7 @@
 		}
 	};
 
-	// #############################################################################################################
-
-	animateBall.FAT_TRANS = function(){
+	transformBall.FAT = function(){
 
 		if(EXECUTE){
 
@@ -80,7 +108,7 @@
 				translateY: coords[1]
 			},{
 				"duration": (Math.random() * 1000 + 1000) >> 0,
-				"callback": animateBall.FAT_TRANS,
+				"callback": transformBall.FAT,
 				"step": function(){
 
 					fps_val++;
@@ -112,9 +140,25 @@
 		}
 	};
 
-	// #############################################################################################################
+	colorBall.FAT_CSS3 = function(){
 
-	animateBall.FAT_CSS3_TRANS = function(){
+		if(EXECUTE){
+
+			Fat.transition(this, {
+
+				backgroundColor: getNextColor()
+			},{
+				"duration": (Math.random() * 200 + 200) >> 0,
+				"callback": colorBall.FAT_CSS3,
+				"step": function(){
+
+					fps_val++;
+				}
+			});
+		}
+	};
+
+	transformBall.FAT_CSS3 = function(){
 
 		if(EXECUTE){
 
@@ -122,10 +166,10 @@
 
 			Fat.transition(this, {
 
-				transform: "translateX(" + coords[0] + "px) translateY(" + coords[1] + "px)"
+				transform: "translate(" + coords[0] + "px," + coords[1] + "px)"
 			},{
 				"duration": (Math.random() * 1000 + 1000) >> 0,
-				"callback": animateBall.FAT_CSS3_TRANS,
+				"callback": transformBall.FAT_CSS3,
 				"step": function(){
 
 					fps_val++;
@@ -157,9 +201,7 @@
 		}
 	};
 
-	// #############################################################################################################
-
-	animateBall.FAT_NATIVE_TRANS = function(){
+	transformBall.FAT_NATIVE = function(){
 
 		if(EXECUTE){
 
@@ -167,10 +209,28 @@
 
 			Fat.native(this, {
 
-				transform: "translateX(" + coords[0] + "px) translateY(" + coords[1] + "px)"
+				transform: "translate(" + coords[0] + "px," + coords[1] + "px)"
 			},{
 				"duration": (Math.random() * 1000 + 1000) >> 0,
-				"callback": animateBall.FAT_NATIVE_TRANS,
+				"callback": transformBall.FAT_NATIVE,
+				"step": function(){
+
+					fps_val++;
+				}
+			});
+		}
+	};
+
+	colorBall.FAT_NATIVE = function(){
+
+		if(EXECUTE){
+
+			Fat.native(this, {
+
+				"backgroundColor": getNextColor()
+			},{
+				"duration": (Math.random() * 200 + 200) >> 0,
+				"callback": colorBall.FAT_NATIVE,
 				"step": function(){
 
 					fps_val++;
@@ -212,17 +272,89 @@
 		if(EXECUTE){
 
 			var coords = getNextCoords(this.direction = !this.direction);
+			var _this = this;
 
 			jQuery(this).animate({
 
-				left: [coords[0], 'linear'],
-				top:  [coords[1], 'linear']
-
-			}, {
-
+				left: coords[0],
+				top:  coords[1]
+			},{
 				duration: (Math.random() * 1000 + 1000) | 0,
 				step: function(){ fps_val++; },
-				complete: animateBall.JQUERY
+				easing: "linear",
+				complete: function(){
+
+					animateBall.JQUERY.call(_this);
+				}
+			});
+		}
+	};
+
+	transformBall.JQUERY = function(){
+
+		if(EXECUTE){
+
+			var coords = getNextCoords(this.direction = !this.direction);
+			var _this = this;
+
+			if(!this._jquery_transform){
+
+				this._jquery_transform = true;
+
+				jQuery(this).animate({
+
+					translateX: coords[0] + "px",
+					translateY: coords[1] + "px"
+				},{
+					duration: 0
+				});
+
+				requestAnimationFrame(function(){
+
+					transformBall.JQUERY.call(_this);
+				});
+
+				return;
+			}
+
+			jQuery(this).animate({
+
+				translateX: coords[0],
+				translateY: coords[1]
+			},{
+				duration: (Math.random() * 1000 + 1000) | 0,
+				easing: "linear",
+				step: function(now, tween){
+
+					$(this).css("transform", (tween.prop === "translateX" ? "translateX" : $(this).css("transform") + " translateY") + "(" + now + "px)");
+
+					fps_val++;
+				},
+				complete: function(){
+
+					transformBall.JQUERY.call(_this);
+				}
+			});
+		}
+	};
+
+	colorBall.JQUERY = function(){
+
+		if(EXECUTE){
+
+			var _this = this;
+
+			jQuery(this).animate({
+
+				backgroundColor: getNextColor()
+			},{
+				duration: (Math.random() * 200 + 200) | 0,
+				step: function(){ fps_val++; },
+				easing: "linear",
+				complete: function(){
+
+					colorBall.JQUERY.call(_this);
+				}
 			});
 		}
 	};
@@ -240,12 +372,48 @@
 
 				left: [coords[0], 'linear'],
 				top:  [coords[1], 'linear']
-
-			}, {
-
+			},{
 				duration: (Math.random() * 1000 + 1000) | 0,
 				progress: function(){ fps_val++; },
 				complete: function(){ animateBall.VELOCITY.call(_this) },
+				easing: 'linear'
+			});
+		}
+	};
+
+	transformBall.VELOCITY = function(){
+
+		if(EXECUTE){
+
+			var coords = getNextCoords(this.direction = !this.direction);
+			var _this = this;
+
+			jQuery(this).velocity({
+
+				translateX: [coords[0], 'linear'],
+				translateY: [coords[1], 'linear']
+			},{
+				duration: (Math.random() * 1000 + 1000) | 0,
+				progress: function(){ fps_val++; },
+				complete: function(){ transformBall.VELOCITY.call(_this) },
+				easing: 'linear'
+			});
+		}
+	};
+
+	colorBall.VELOCITY = function(){
+
+		if(EXECUTE){
+
+			var _this = this;
+
+			jQuery(this).velocity({
+
+				backgroundColor: [getNextColor(), 'linear']
+			},{
+				duration: (Math.random() * 200 + 200) | 0,
+				progress: function(){ fps_val++; },
+				complete: function(){ colorBall.VELOCITY.call(_this) },
 				easing: 'linear'
 			});
 		}
@@ -271,6 +439,40 @@
 		}
 	};
 
+	transformBall.GSAP = function(){
+
+		if(EXECUTE){
+
+			var coords = getNextCoords(this.direction = !this.direction);
+			var _this = this;
+
+			TweenLite.to(this, (Math.random() * 1000 + 1000) / 1000, {
+
+				x: coords[0],
+				y: coords[1],
+				onComplete: function(){ transformBall.GSAP.call(_this); },
+				onUpdate: function(){ fps_val++; },
+				ease: Linear.easeNone
+			});
+		}
+	};
+
+	colorBall.GSAP = function(){
+
+		if(EXECUTE){
+
+			var _this = this;
+
+			TweenLite.to(this, (Math.random() * 200 + 200) / 1000, {
+
+				backgroundColor: getNextColor(),
+				onComplete: function(){ colorBall.GSAP.call(_this); },
+				onUpdate: function(){ fps_val++; },
+				ease: Linear.easeNone
+			});
+		}
+	};
+
 	// #############################################################################################################
 
 	animateBall.ZEPTO = function(){
@@ -284,12 +486,54 @@
 
 				left: coords[0],
 				top:  coords[1]
-
-			}, {
-
+			},{
 				duration: (Math.random() * 1000 + 1000) | 0,
 				easing: "linear",
-				complete: function(){ animateBall.ZEPTO.call(_this); } //animateBall.ZEPTO
+				complete: function(){
+
+					animateBall.ZEPTO.call(_this);
+				}
+			});
+		}
+	};
+
+	colorBall.ZEPTO = function(){
+
+		if(EXECUTE){
+
+			var _this = this;
+
+			Zepto(this).animate({
+
+				backgroundColor: getNextColor()
+			},{
+				duration: (Math.random() * 200 + 200) | 0,
+				easing: "linear",
+				complete: function(){
+
+					colorBall.ZEPTO.call(_this);
+				}
+			});
+		}
+	};
+
+	transformBall.ZEPTO = function(){
+
+		if(EXECUTE){
+
+			var coords = getNextCoords(this.direction = !this.direction);
+			var _this = this;
+
+			Zepto(this).animate({
+
+				translate: coords[0] + "px," + coords[1] + "px"
+			},{
+				duration: (Math.random() * 1000 + 1000) | 0,
+				easing: "linear",
+				complete: function(){
+
+					transformBall.ZEPTO.call(_this);
+				}
 			});
 		}
 	};
@@ -316,6 +560,64 @@
 		}
 	};
 
+	transformBall.ANIMEJS = function(){
+
+		if(EXECUTE){
+
+			var coords = getNextCoords(this.direction = !this.direction);
+			var _this = this;
+
+			if(!this._animejs_transform){
+
+				this._animejs_transform = true;
+
+				anime({
+
+					targets: this,
+					translateX: coords[0] + "px",
+					translateY:  coords[1] + "px",
+					duration: 0
+				});
+
+				requestAnimationFrame(function(){
+
+					transformBall.ANIMEJS.call(_this);
+				});
+
+				return;
+			}
+
+			anime({
+
+				targets: this,
+				translateX: coords[0] + "px",
+				translateY:  coords[1] + "px",
+				duration: (Math.random() * 1000 + 1000) | 0,
+				easing: "linear",
+				complete: function(){ transformBall.ANIMEJS.call(_this); },
+				update: function(){ fps_val++; }
+			});
+		}
+	};
+
+	colorBall.ANIMEJS = function(){
+
+		if(EXECUTE){
+
+			var _this = this;
+
+			anime({
+
+				targets: this,
+				backgroundColor: getNextColor(),
+				duration: (Math.random() * 200 + 200) | 0,
+				easing: "linear",
+				complete: function(){ colorBall.ANIMEJS.call(_this); },
+				update: function(){ fps_val++; }
+			});
+		}
+	};
+
 	// #############################################################################################################
 
 	animateBall.ANIM = function(){
@@ -328,11 +630,28 @@
 			anim(this, {
 
 				left: coords[0],
-				top:  coords[1]
+				top: coords[1]
 
 			}, Math.random() + 1, "lin").anim(function(){
 
 				animateBall.ANIMEJS.call(_this);
+			});
+		}
+	};
+
+	colorBall.ANIM = function(){
+
+		if(EXECUTE){
+
+			var _this = this;
+
+			anim(this, {
+
+				backgroundColor: getNextColor()
+
+			}, (Math.random() + 1) / 5, "lin").anim(function(){
+
+				colorBall.ANIM.call(_this);
 			});
 		}
 	};
@@ -357,14 +676,75 @@
 				"duration": ((Math.random() * 1000 + 1000) | 0) + "ms",
 				"0%": {
 					left: this._x,
-					top:  this._y
+					top: this._y
 				},
 				"100%": {
 					left: this._x = coords[0] + "px",
-					top:  this._y = coords[1] + "px"
+					top: this._y = coords[1] + "px"
 				}
 
 			}, animateBall.BA);
+		}
+	};
+
+	transformBall.BA = function(){
+
+		if(EXECUTE){
+
+			var coords = getNextCoords(this.direction = !this.direction);
+			var _this = this;
+
+			if(!this._bajs_transform){
+
+				this._bajs_transform = true;
+				this._x = coords[0];
+				this._y = coords[1];
+
+				requestAnimationFrame(function(){
+
+					transformBall.BA.call(_this);
+				});
+
+				return;
+			}
+
+			bajs.a(this, {
+
+				"curve": "linear",
+				"duration": ((Math.random() * 1000 + 1000) | 0) + "ms",
+				"0%": {
+					transform: "translateX(" + this._x + "px) translateY(" + this._y + "px)"
+				},
+				"100%": {
+					transform: "translateX(" + (this._x = coords[0]) + "px) translateY(" + (this._y = coords[1]) + "px)"
+				}
+
+			}, transformBall.BA);
+		}
+	};
+
+	colorBall.BA = function(){
+
+		if(EXECUTE){
+
+			if(!this._bajs_color){
+
+				this._bajs_color = true;
+				this._color = getNextColor();
+			}
+
+			bajs.a(this, {
+
+				"curve": "linear",
+				"duration": ((Math.random() * 200 + 200) | 0) + "ms",
+				"0%": {
+					"background-color": this._color
+				},
+				"100%": {
+					"background-color": this._color = getNextColor()
+				}
+
+			}, colorBall.BA);
 		}
 	};
 
@@ -455,8 +835,56 @@
 		}
 	};
 
+	transformBall.MORPHEUS = function(){
+
+		if(EXECUTE){
+
+			var coords = getNextCoords(this.direction = !this.direction);
+			var _this = this;
+
+			morpheus(this, {
+
+				transform: "translate(" + (coords[0]) + "px," + (coords[1]) + "px)",
+				duration: ((Math.random() * 1000 + 1000) | 0),
+				easing: function(t){
+
+					fps_val++;
+					return t;
+				},
+				complete: function(){
+
+					transformBall.MORPHEUS.call(_this);
+				}
+			});
+		}
+	};
+
+	colorBall.MORPHEUS = function(){
+
+		if(EXECUTE){
+
+			var _this = this;
+
+			morpheus(this, {
+
+				backgroundColor: getNextColor(),
+				duration: ((Math.random() * 200 + 200) | 0),
+				easing: function(t){
+
+					fps_val++;
+					return t;
+				},
+				complete: function(){
+
+					colorBall.MORPHEUS.call(_this);
+				}
+			});
+		}
+	};
+
 	// #############################################################################################################
 
+	/*
 	animateBall.JANIS = function(){
 
 		if(EXECUTE){
@@ -478,6 +906,7 @@
 			}).execute();
 		}
 	};
+	*/
 
 	/*
 	var manager;
@@ -563,7 +992,6 @@
 		if(EXECUTE){
 
 			var _this = this;
-
 			var coords = getNextCoords(_this.direction = !_this.direction);
 
 			dojo.animateProperty({
@@ -571,11 +999,31 @@
 				node: _this,
 				properties: {
 					left: coords[0],
-					top:  coords[1]
+					top: coords[1]
 				},
 				duration: (Math.random() * 1000 + 1000) | 0,
 				easing: function(n){ fps_val++; return n; },
 				onEnd: function(){ animateBall.DOJO.call(_this); }
+
+			}).play();
+		}
+	};
+
+	colorBall.DOJO = function(){
+
+		if(EXECUTE){
+
+			var _this = this;
+
+			dojo.animateProperty({
+
+				node: _this,
+				properties: {
+					backgroundColor: getNextColor()
+				},
+				duration: (Math.random() * 200 + 200) | 0,
+				easing: function(n){ fps_val++; return n; },
+				onEnd: function(){ colorBall.DOJO.call(_this); }
 
 			}).play();
 		}
@@ -588,7 +1036,6 @@
 		if(EXECUTE){
 
 			var _this = this;
-
 			var coords = getNextCoords(_this.direction = !_this.direction);
 
 			var anim = new Y.Anim({
@@ -602,14 +1049,31 @@
 				},
 				duration: ((Math.random() * 1000 + 1000) | 0) / 1000,
 				easing: function(e,t,n,r){fps_val++; return n*e/r+t}
-
 			});
 
-
 			anim.on("end", function(){ animateBall.YUI.call(_this, Y); });
-
 			anim.run();
+		}
+	};
 
+	colorBall.YUI = function(Y){
+
+		if(EXECUTE){
+
+			var _this = this;
+
+			var anim = new Y.Anim({
+
+				node: _this,
+				to: {
+					backgroundColor: getNextColor()
+				},
+				duration: ((Math.random() * 200 + 200) | 0) / 1000,
+				easing: function(e,t,n,r){fps_val++; return n*e/r+t}
+			});
+
+			anim.on("end", function(){ colorBall.YUI.call(_this, Y); });
+			anim.run();
 		}
 	};
 
@@ -620,7 +1084,6 @@
 		if(EXECUTE){
 
 			var _this = this;
-
 			var coords = getNextCoords(_this.direction = !_this.direction);
 
 			var myFx = new Fx.Morph(_this, {
@@ -637,9 +1100,30 @@
 		}
 	};
 
+	colorBall.MOOTOOLS = function(){
+
+		if(EXECUTE){
+
+			var _this = this;
+
+			var myFx = new Fx.Morph(_this, {
+
+				duration: (Math.random() * 200 + 200) | 0,
+				transition: function(t){fps_val++; return t},
+				onComplete: function(){ colorBall.MOOTOOLS.call(_this); }
+			});
+
+			myFx.start({
+
+				backgroundColor: getNextColor()
+			});
+		}
+	};
+
 	// #############################################################################################################
 
 	createjs.CSSPlugin.install();
+	createjs.ColorPlugin.install();
 	createjs.Ticker.timingMode = createjs.Ticker.RAF;
 
 	animateBall.TWEENJS = function(){
@@ -659,6 +1143,36 @@
 		}
 	};
 
+	transformBall.TWEENJS = function(){
+
+		if(EXECUTE){
+
+			var _this = this;
+
+			var coords = getNextCoords(_this.direction = !_this.direction);
+
+			createjs.Tween.get(this, {onChange: (function(){fps_val++})}).to({
+
+				transform: "translate(" + (coords[0]) + "px," + (coords[1]) + "px)"
+
+			}, (Math.random() * 1000 + 1000) | 0, createjs.Ease.linear).call(function(){ transformBall.TWEENJS.call(_this); });
+		}
+	};
+
+	colorBall.TWEENJS = function(){
+
+		if(EXECUTE){
+
+			var _this = this;
+
+			createjs.Tween.get(this, {onChange: (function(){fps_val++})}).to({
+
+				backgroundColor: getNextColor()
+
+			}, (Math.random() * 200 + 200) | 0, createjs.Ease.linear).call(function(){ colorBall.TWEENJS.call(_this); });
+		}
+	};
+
 	// #############################################################################################################
 
 	animateBall.JUSTANIMATE = function(){
@@ -666,7 +1180,6 @@
 		if(EXECUTE){
 
 			var _this = this;
-
 			var coords = getNextCoords(_this.direction = !_this.direction);
 
 			just.animate({
@@ -691,6 +1204,61 @@
 		}
 	};
 
+	transformBall.JUSTANIMATE = function(){
+
+		if(EXECUTE){
+
+			var _this = this;
+			var coords = getNextCoords(_this.direction = !_this.direction);
+
+			just.animate({
+
+				targets: _this,
+				duration: (Math.random() * 1000 + 1000) | 0,
+				web: {
+					transform: 'translate(' + coords[0] + 'px,' + coords[1] + 'px)'
+				},
+				easing:"linear"
+
+			}).on("finish", function() {
+
+				transformBall.JUSTANIMATE.call(_this);
+
+			}).on("update", function() {
+
+				fps_val++;
+
+			}).play();
+		}
+	};
+
+	colorBall.JUSTANIMATE = function(){
+
+		if(EXECUTE){
+
+			var _this = this;
+
+			just.animate({
+
+				targets: _this,
+				duration: (Math.random() * 200 + 200) | 0,
+				web: {
+					backgroundColor: getNextColor()
+				},
+				easing:"linear"
+
+			}).on("finish", function() {
+
+				colorBall.JUSTANIMATE.call(_this);
+
+			}).on("update", function() {
+
+				fps_val++;
+
+			}).play();
+		}
+	};
+
 	// #############################################################################################################
 
 	animateBall.WEBANIMATION = function(){
@@ -698,29 +1266,100 @@
 		if(EXECUTE){
 
 			var _this = this;
-
 			var coords = getNextCoords(_this.direction = !_this.direction);
+
+			if(!this._x){
+
+				this._x = coords[0] + "px";
+				this._y = coords[1] + "px";
+
+				coords = getNextCoords(_this.direction = !_this.direction);
+			}
 
 			var anim = _this.animate({
 
-				'left': [_this.style.left, coords[0] + "px"],
-				'top': [_this.style.top, coords[1] + "px"]
+				"left": [this._x, this._x = coords[0] + "px"],
+				"top": [this._y, this._y = coords[1] + "px"]
 			},{
-
 				duration: (Math.random() * 1000 + 1000) | 0,
-				easing:"linear"
-
+				easing: "linear"
 			});
 
 			anim.onchange = function() {
 
 				fps_val++;
-
 			};
 
 			anim.onfinish = function() {
 
 				animateBall.WEBANIMATION.call(_this);
+			};
+		}
+	};
+
+	transformBall.WEBANIMATION = function(){
+
+		if(EXECUTE){
+
+			var _this = this;
+
+			var coords = getNextCoords(_this.direction = !_this.direction);
+
+			if(!this._x){
+
+				this._x = coords[0];
+				this._y = coords[1];
+
+				coords = getNextCoords(_this.direction = !_this.direction);
+			}
+
+			var anim = _this.animate({
+
+				transform: ['translate(' + (this._x) + 'px,' + (this._y) + 'px)', 'translate(' + (this._x = coords[0]) + 'px,' + (this._y = coords[1]) + 'px)']
+			},{
+				duration: (Math.random() * 1000 + 1000) | 0,
+				easing: "linear"
+			});
+
+			anim.onchange = function() {
+
+				fps_val++;
+			};
+
+			anim.onfinish = function() {
+
+				transformBall.WEBANIMATION.call(_this);
+			};
+		}
+	};
+
+	colorBall.WEBANIMATION = function(){
+
+		if(EXECUTE){
+
+			var _this = this;
+
+			if(!this._c){
+
+				this._c = getNextColor();
+			}
+
+			var anim = _this.animate({
+
+				"backgroundColor": [this._c, this._c = getNextColor()]
+			},{
+				duration: (Math.random() * 200 + 200) | 0,
+				easing: "linear"
+			});
+
+			anim.onchange = function() {
+
+				fps_val++;
+			};
+
+			anim.onfinish = function() {
+
+				colorBall.WEBANIMATION.call(_this);
 			};
 		}
 	};
@@ -731,67 +1370,68 @@
 
 	//console.log(qx.bom.element.AnimationJs);
 
-	animateBall.QOOXDOO = function(_left, _top){
-
-		if(EXECUTE){
-
-			var _this = this;
-
-			var coords = getNextCoords(_this.direction = !_this.direction);
-			/*
-			var test = q(_this).animate({
-				'duration': (Math.random() * 1000 + 1000) | 0,
-				'timing': 'linear',
-				//'keep': 100,
-				'keyFrames': {
-					100: { left: coords[0]+'px', top:  coords[1]+'px' }
-				},
-				'repeat': 1,
-				//'alternate': false,
-				'delay': 0,
-				'onEnd': function(){ animateBall.QOOXDOO.call(_this); }
-
-			});
-			*/
-			var animation = {
-
-				duration: (Math.random() * 1000 + 1000) | 0,
-				keyFrames : {
-					0: { left: _left || _this.style.left, top: _top || _this.style.top },
-					100: { left: coords[0]+'px', top:  coords[1]+'px' }
-				},
-				timing: 'linear'
-			};
-
-			//var anime = qx.bom.element.AnimationJs.animate(_this, animation);
-			var anime = qx.bom.element.Animation.animate(_this, animation);
-
-			anime.addListener('end', function() {
-
-				animateBall.QOOXDOO.call(_this, coords[0]+'px', coords[1]+'px');
-			});
-
-			/*
-			anime.addListener('iteration', function() {
-
-				fps_val++;
-			});
-
-			anime.on('update', function() {
-
-				fps_val++;
-			});
-
-			anime.iteration = function() {
-
-				fps_val++;
-			};
-			*/
-		}
-	};
+	// animateBall.QOOXDOO = function(_left, _top){
+	//
+	// 	if(EXECUTE){
+	//
+	// 		var _this = this;
+	//
+	// 		var coords = getNextCoords(_this.direction = !_this.direction);
+	// 		/*
+	// 		var test = q(_this).animate({
+	// 			'duration': (Math.random() * 1000 + 1000) | 0,
+	// 			'timing': 'linear',
+	// 			//'keep': 100,
+	// 			'keyFrames': {
+	// 				100: { left: coords[0]+'px', top:  coords[1]+'px' }
+	// 			},
+	// 			'repeat': 1,
+	// 			//'alternate': false,
+	// 			'delay': 0,
+	// 			'onEnd': function(){ animateBall.QOOXDOO.call(_this); }
+	//
+	// 		});
+	// 		*/
+	// 		var animation = {
+	//
+	// 			duration: (Math.random() * 1000 + 1000) | 0,
+	// 			keyFrames : {
+	// 				0: { left: _left || _this.style.left, top: _top || _this.style.top },
+	// 				100: { left: coords[0]+'px', top:  coords[1]+'px' }
+	// 			},
+	// 			timing: 'linear'
+	// 		};
+	//
+	// 		//var anime = qx.bom.element.AnimationJs.animate(_this, animation);
+	// 		var anime = qx.bom.element.Animation.animate(_this, animation);
+	//
+	// 		anime.addListener('end', function() {
+	//
+	// 			animateBall.QOOXDOO.call(_this, coords[0]+'px', coords[1]+'px');
+	// 		});
+	//
+	// 		/*
+	// 		anime.addListener('iteration', function() {
+	//
+	// 			fps_val++;
+	// 		});
+	//
+	// 		anime.on('update', function() {
+	//
+	// 			fps_val++;
+	// 		});
+	//
+	// 		anime.iteration = function() {
+	//
+	// 			fps_val++;
+	// 		};
+	// 		*/
+	// 	}
+	// };
 
 	// #############################################################################################################
 
+	/*
 	animateBall.ANIMATOR = function(){
 
 		if(EXECUTE){
@@ -804,7 +1444,6 @@
 				'left': coords[0],
 				'top': coords[1]
 			},{
-
 				duration: (Math.random() * 1000 + 1000) | 0,
 				interval: 0,
 				transition: function(x){ fps_val++; return x; },
@@ -812,6 +1451,7 @@
 			});
 		}
 	};
+	*/
 
 	// #############################################################################################################
 
@@ -824,6 +1464,7 @@
 	var lastUpdate;
 	var nextUpdate;
 	var curlib;
+	var curtest;
 	var checkmask;
 
 	var Y;
@@ -833,7 +1474,7 @@
 		Y = _Y;
 	});
 
-	function startTest(lib){
+	function startTest(lib, test){
 
 		if((EXECUTE = !EXECUTE)){
 
@@ -853,13 +1494,10 @@
 
 				domCount.disabled = 'disabled';
 
-				if(!balls || ball_max !== balls.length || curlib !== lib || checkmask !== curcheckmask) {
+				if(!balls || (ball_max !== balls.length) || (curlib !== lib) || (curtest !== test) || (checkmask !== curcheckmask)) {
 
-					     if(lib === 'FAT_CANVAS') createBallsCanvas(ball_max);
-					else if(lib === 'FAT_TRANS') createBalls(ball_max, "transform");
-					else if(lib === 'FAT_CSS3_TRANS') createBalls(ball_max, "transform");
-					else if(lib === 'FAT_NATIVE_TRANS') createBalls(ball_max, "transform");
-					else createBalls(ball_max);
+					if(lib === 'FAT_CANVAS') createBallsCanvas(ball_max, test);
+					else createBalls(ball_max, test);
 				}
 
 				frames      	= 0;
@@ -867,6 +1505,7 @@
 				lastUpdate		= 0;
 				nextUpdate  	= 0;
 				curlib			= lib;
+				curtest			= test;
 				fps_val			= 0;
 
 				domFPS.value    = '-';
@@ -890,7 +1529,17 @@
 
 					if(balls[i]) {
 
-						animateBall[lib].call(balls[i], lib_ref);
+						(test === "animate" ?
+
+							animateBall
+						:
+							test === "transform" ?
+
+								transformBall
+							:
+								colorBall
+
+						)[lib].call(balls[i], lib_ref);
 					}
 				}
 
@@ -916,7 +1565,7 @@
 		}
 	};
 
-	function createBalls(ball_max, mode){
+	function createBalls(ball_max, test){
 
 		balls = new Array(ball_max);
 
@@ -926,37 +1575,49 @@
 		for(var i = 0; i < ball_max; i++) {
 
 			var ball = document.createElement("span");
-			var color = (Math.random() * 255 | 0) + ", " + (Math.random() * 255 | 0) + ", " + (Math.random() * 255 | 0);
-			var direction = Math.random() > 0.5;
-			var coords = getNextCoords(direction);
+			var color = (Math.random() * 256 | 0) + ", " + (Math.random() * 256 | 0) + ", " + (Math.random() * 256 | 0);
 
 			ball.className = "ball";
 			ball.id = "ball_" + i;
 
-			if(mode === "transform"){
+			if(test === "color"){
 
-				ball.style.transform = "translateX(" + coords[0] + "px) translateY(" + coords[1] + "px)";
+				ball.style.left = (Math.random() * MAX_W) + "px";
+				ball.style.top = (Math.random() * MAX_H) + "px";
 			}
 			else{
 
-				ball.style.left = coords[0] + "px";
-				ball.style.top = coords[1] + "px";
+				var direction = Math.random() > 0.5;
+				var coords = getNextCoords(direction);
+
+				if(test === "transform"){
+
+					ball.style.transform = "translate(" + coords[0] + "px," + coords[1] + "px)";
+					ball.direction = direction;
+				}
+				else{
+
+					ball.style.left = coords[0] + "px";
+					ball.style.top = coords[1] + "px";
+					ball.direction = direction;
+				}
 			}
 
-			if(curcheckmask && i > 0) {
+			if(curcheckmask){
 
-				ball.style.backgroundColor = "rgba(" + color + ", 0.2)";
-			}
-			else if(curcheckmask){
+				if(i > 0) {
 
-				ball.style.backgroundColor = '#fff';
+					ball.style.backgroundColor = "rgba(" + color + ", 0.2)";
+				}
+				else {
+
+					ball.style.backgroundColor = '#fff';
+				}
 			}
-			else{
+			else {
 
 				ball.style.backgroundColor = "rgb(" + color + ")";
 			}
-
-			ball.direction = direction;
 
 			fragment.appendChild(balls[i] = ball);
 		}
@@ -984,11 +1645,11 @@
 
 			if(!curcheckmask) {
 
-				color = '#' + (Math.random() * 255 | 0).toString(16) + (Math.random() * 255 | 0).toString(16) + (Math.random() * 255 | 0).toString(16);
+				color = '#' + (Math.random() * 256 | 0).toString(16) + (Math.random() * 256 | 0).toString(16) + (Math.random() * 256 | 0).toString(16);
 			}
 			else if(i > 0){
 
-				color = 'rgba(' + (Math.random() * 255 | 0) + ',' + (Math.random() * 255 | 0) + ',' + (Math.random() * 255 | 0) + ', 0.2)';
+				color = 'rgba(' + (Math.random() * 256 | 0) + ',' + (Math.random() * 256 | 0) + ',' + (Math.random() * 256 | 0) + ', 0.2)';
 			}
 			else {
 
@@ -1060,15 +1721,16 @@
 
 			var median_val = median(arr_med);
 
-			domFPS.value    = val;
+			domFPS.value = val;
 			domMedian.value = median_val;
-			domMin.value    = arr_med[0];
-			domMax.value    = arr_med[arr_med.length-1];
-			domStep.value   = ((fps_val * (1000 / (time - start_time)) + 0.5)) >> 0;
+			domMin.value = arr_med[0];
+			domMax.value = arr_med[arr_med.length-1];
+			domStep.value = ((fps_val * (1000 / elapsed)) + 0.5) >> 0;
 
-			lastUpdate		= time;
-			nextUpdate 	    = frames;
-			frames			= 0;
+			lastUpdate = time;
+			nextUpdate = frames;
+			frames = 0;
+			fps_val = 0;
 		}
 	}
 
@@ -1087,9 +1749,14 @@
 		event.preventDefault();
 		event.stopImmediatePropagation();
 
-		var select = document.getElementById("anitools");
+		var anitools = document.getElementById("anitools");
+		var testcase = document.getElementById("testcase");
 
-		startTest(select.options[select.selectedIndex].value);
+		startTest(
+
+			anitools.options[anitools.selectedIndex].value,
+			testcase.options[testcase.selectedIndex].value
+		);
 	};
 
 	if(navigator.userAgent.test(/Android|webOS|iPhone|iPad|iPod|BlackBerry|Windows Phone/)){

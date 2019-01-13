@@ -1,5 +1,5 @@
 ;/**!
- * @preserve FAT v0.5.0
+ * @preserve FAT v0.5.1
  * Copyright 2019 Nextapps GmbH
  * Author: Thomas Wilkerling
  * Released under the Apache 2.0 Licence
@@ -12,6 +12,7 @@
 /** @define {boolean} */ const SUPPORT_SEQUENCES = true;
 /** @define {boolean} */ const SUPPORT_TRANSFORM = true;
 /** @define {boolean} */ const SUPPORT_FILTER = true;
+/** @define {boolean} */ const SUPPORT_SHADOW = true;
 /** @define {string} */  const SUPPORT_ENGINE = "";
 /** @define {boolean} */ const SUPPORT_ANIMATE = SUPPORT_ENGINE ? SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "js" : true;
 /** @define {boolean} */ const SUPPORT_TRANSITION = SUPPORT_ENGINE ? SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "css" : true;
@@ -270,6 +271,7 @@
          * @param {number} delay
          * @param {number=} loop
          * @param {string=} filter
+         * @param {string=} shadow
          * @param {string=} transform
          * @param {number=} color
          * @param {string=} color_group
@@ -294,6 +296,7 @@
             loop,
             transform,
             filter,
+            shadow,
             color,
             color_group
         ){
@@ -346,6 +349,14 @@
                 if(filter){
 
                     this.filter = filter;
+                }
+            }
+
+            if(SUPPORT_SHADOW){
+
+                if(shadow){
+
+                    this.shadow = shadow;
                 }
             }
         }
@@ -450,6 +461,10 @@
 
                         obj._filter[style] = current_value + this.unit;
                     }
+                    else if(SUPPORT_SHADOW && this.shadow){
+
+                        obj._shadow[style] = current_value + this.unit;
+                    }
                     else{
 
                         this.animate_job(style, current_value);
@@ -467,6 +482,10 @@
                 else if(SUPPORT_FILTER && (style === this.filter)){
 
                     this.filter_job();
+                }
+                else if(SUPPORT_SHADOW && (style === this.shadow)){
+
+                    this.shadow_job();
                 }
 
                 if(this.step){
@@ -783,6 +802,18 @@
             };
         }
 
+        if(SUPPORT_SHADOW){
+
+            JobPrototype.shadow_job = function(){
+
+                const shadow = this.obj._shadow;
+
+                set_style(this.css, this.style, merge_shadow(shadow, this.style), this.force);
+
+                return shadow;
+            };
+        }
+
         if(SUPPORT_COLOR){
 
             JobPrototype.color_job = function(color_group){
@@ -807,6 +838,8 @@
             let r, g, b, a = default_alpha || -1, tmp;
 
             if(hex_or_rgba[0] === "#"){
+
+                hex_or_rgba = hex_or_rgba.toLowerCase();
 
                 if(hex_or_rgba.length === 4){
 
@@ -1350,11 +1383,12 @@
              * @param {number} delay
              * @param {string=} transform
              * @param {string=} filter
+             * @param {string=} shadow
              * @param {string=} color
              * @param {string=} color_group
              */
 
-            JobPrototype.update_job = function(from, to, unit, force, duration, ease_str, callback, step, delay, transform, filter, color, color_group){
+            JobPrototype.update_job = function(from, to, unit, force, duration, ease_str, callback, step, delay, transform, filter, shadow, color, color_group){
 
                 if(is_undefined(from)){
 
@@ -1423,6 +1457,14 @@
                     }
                 }
 
+                if(SUPPORT_SHADOW){
+
+                    if(shadow){
+
+                        this.shadow = shadow;
+                    }
+                }
+
                 if(DEBUG){
 
                     console.log("Job updated", this);
@@ -1447,11 +1489,12 @@
          * @param {number=} loop
          * @param {string=} transform
          * @param {string=} filter
+         * @param {string=} shadow
          * @param {number=} color
          * @param {string=} color_group
          */
 
-        function create_job(obj, style, job_id, from, to, unit, force, duration, ease_str, callback, step, style_id, delay, loop, transform, filter, color, color_group){
+        function create_job(obj, style, job_id, from, to, unit, force, duration, ease_str, callback, step, style_id, delay, loop, transform, filter, shadow, color, color_group){
 
             let style_from = "" + (
 
@@ -1467,7 +1510,11 @@
 
                             get_filter
                         :
-                            get_style
+                            SUPPORT_SHADOW && shadow ?
+
+                                get_shadow
+                            :
+                                get_style
 
             )(obj, style, from, color_group);
 
@@ -1502,7 +1549,7 @@
                 unit = style_from.substring(("" + from).length) || "";
             }
 
-            const job = SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER ? (new Job(
+            const job = SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER || SUPPORT_SHADOW ? (new Job(
 
                 obj,
                 style,
@@ -1520,6 +1567,7 @@
                 loop,
                 transform,
                 filter,
+                shadow,
                 color,
                 color_group
 
@@ -1755,6 +1803,37 @@
             return style_prop;
         }
 
+        const shadow_props = [
+
+            "H", // h-offset
+            "V", // v-offset
+            "B", // blur
+            "S", // spread
+            "C"  // color
+        ];
+
+        /**
+         * @param style
+         * @param style_value
+         * @param style_prop
+         * @param {Array<string>=} style_order
+         * @returns {Object}
+         */
+
+        function parse_shadow(style, style_value, style_prop, style_order){
+
+            const parts = style_value.split(' ');
+
+            for(let i = 0; i < parts.length; i++){
+
+                let prop = style + shadow_props[i];
+
+                style_prop[prop] = parts[i];
+            }
+
+            return style_prop;
+        }
+
         function get_transform(obj, style, from){
 
             let style_prop = obj._transform;
@@ -1803,6 +1882,25 @@
             }
 
             return style_prop[style] || (filter_default_values[style] - 1);
+        }
+
+        function get_shadow(obj, style, from){
+
+            let style_prop = obj._shadow;
+
+            if(!style_prop){
+
+                obj._shadow = style_prop = {};
+            }
+
+            if(!style_prop || is_undefined(style_prop[style])){
+
+                const style_value = from || get_style(obj, style);
+
+                parse_shadow(style, style_value, style_prop);
+            }
+
+            return style_prop[style];
         }
 
         /**
@@ -1903,6 +2001,21 @@
             }
 
             return str;
+        }
+
+        /**
+         * @param {Object<string, string|number>} shadow
+         * @param {string} style
+         * @returns {string}
+         */
+
+        function merge_shadow(shadow, style){
+
+            return shadow[style + "H"] + " " +
+                   shadow[style + "V"] + " " +
+                   shadow[style + "B"] + " " +
+                   shadow[style + "S"] + " " +
+                   shadow[style + "C"];
         }
 
         /**
@@ -2101,11 +2214,12 @@
 
                 let last_transform;
                 let last_filter;
+                let last_shadow;
                 let last_color;
                 let last_color_background;
                 let last_color_border;
 
-                if(SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER){
+                if(SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER || SUPPORT_SHADOW){
 
                     for(let k = style_length; k-- > 0;){
 
@@ -2130,7 +2244,7 @@
 
                                 last_transform = prop_keys[prop_keys.length - 1];
 
-                                if(SUPPORT_COLOR || SUPPORT_FILTER){
+                                if(SUPPORT_COLOR || SUPPORT_FILTER || SUPPORT_SHADOW){
 
                                     continue;
                                 }
@@ -2144,7 +2258,7 @@
 
                                 last_transform = key;
 
-                                if(SUPPORT_COLOR || SUPPORT_FILTER){
+                                if(SUPPORT_COLOR || SUPPORT_FILTER || SUPPORT_SHADOW){
 
                                     continue;
                                 }
@@ -2170,6 +2284,54 @@
 
                                         tmp = "hue-rotate";
                                     }
+
+                                    style_keys.push(tmp);
+                                    styles[tmp] = props[tmp];
+
+                                    last_filter = tmp;
+                                    style_length++;
+                                }
+
+                                if(SUPPORT_COLOR || SUPPORT_SHADOW){
+
+                                    continue;
+                                }
+                                else{
+
+                                    break;
+                                }
+                            }
+
+                            if(key === "hue"){
+
+                                key = "hue-rotate";
+                            }
+
+                            if(!last_filter && filter_default_values[key]){
+
+                                last_filter = key;
+
+                                if(SUPPORT_COLOR || SUPPORT_SHADOW){
+
+                                    continue;
+                                }
+                                else{
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        if(SUPPORT_SHADOW){
+
+                            if((key === "textShadow") || (key === "boxShadow")){
+
+                                const props = parse_shadow(key, styles[key], {});
+                                const prop_keys = Object.keys(/** @type {!Object} */ (props));
+
+                                for(let i = 0; i < prop_keys.length; i++){
+
+                                    let tmp = prop_keys[i];
 
                                     style_keys.push(tmp);
                                     styles[tmp] = props[tmp];
@@ -2275,6 +2437,7 @@
 
                     let has_transform;
                     let has_filter;
+                    let has_shadow;
                     let has_color;
                     let has_color_background;
                     let has_color_border;
@@ -2322,6 +2485,16 @@
                         }
 
                         has_filter = filter_default_values[key] && last_filter;
+                    }
+
+                    if(SUPPORT_SHADOW){
+
+                        if((key === "textShadow") || (key === "boxShadow")){
+
+                            continue;
+                        }
+
+                        has_shadow = filter_default_values[key] && last_shadow;
                     }
 
                     if(SUPPORT_COLOR){
@@ -2390,6 +2563,10 @@
 
                                     current_obj._filter = null;
                                 }
+                                else if(last_shadow) {
+
+                                    current_obj._shadow = null;
+                                }
                             }
                         }
 
@@ -2416,6 +2593,7 @@
                                     config_delay,
                                     has_transform,
                                     has_filter,
+                                    has_shadow,
                                     has_color || has_color_background || has_color_border,
                                     color_group
                                 );
@@ -2458,6 +2636,7 @@
                                     config_loop,
                                     has_transform,
                                     has_filter,
+                                    has_shadow,
                                     has_color || has_color_background || has_color_border,
                                     color_group
                                 );
@@ -2524,14 +2703,21 @@
                 const config_delay = (config["delay"] || 0) + "ms";
                 const config_force = config["force"];
 
-                if(prefix_transform) {
+                for(let i = 0; i < style_length; i++){
 
-                    for(let i = 0; i < style_length; i++){
+                    const current_style = style_keys[i];
 
-                        if(style_keys[i] === "transform"){
+                    if(prefix_transform && (current_style === "transform")){
 
-                            style_keys[i] = prefix_transform;
-                        }
+                        styles[prefix_transform] = styles[current_style];
+                        style_keys[i] = prefix_transform;
+                    }
+                    else{
+
+                        const snake_val = camel_to_snake(current_style);
+
+                        styles[snake_val] = styles[current_style];
+                        style_keys[i] = snake_val;
                     }
                 }
 
@@ -2576,6 +2762,15 @@
             }
 
             return this;
+        }
+
+        function camel_to_snake(string) {
+
+            return string.replace(/[\w]([A-Z])/g, function(m) {
+
+                return m[0] + "-" + m[1];
+
+            }).toLowerCase();
         }
 
         /**

@@ -1,5 +1,5 @@
 /*
- FAT v0.5.0
+ FAT v0.5.1
  Copyright 2019 Nextapps GmbH
  Author: Thomas Wilkerling
  Released under the Apache 2.0 Licence

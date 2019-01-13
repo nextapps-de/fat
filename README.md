@@ -45,6 +45,7 @@ All Features:
     <tr>
         <td>Feature</td>
         <td>fat.js / fat.min.js</td>
+        <td>fat.compact.js</td>
         <td>fat.light.js</td>
     </tr>
     <tr>
@@ -53,12 +54,14 @@ All Features:
         </td>
         <td>x</td>
         <td>x</td>
+        <td>x</td>
     </tr>
     <tr></tr>
     <tr>
         <td>
             <a href="#easing">Easing Collection</a><br>
         </td>
+        <td>x</td>
         <td>x</td>
         <td>-</td>
     </tr>
@@ -69,6 +72,7 @@ All Features:
         </td>
         <td>x</td>
         <td>-</td>
+        <td>-</td>
     </tr>
     <tr></tr>
     <tr>
@@ -77,12 +81,14 @@ All Features:
         </td>
         <td>x</td>
         <td>-</td>
+        <td>-</td>
     </tr>
     <tr></tr>
     <tr>
         <td>
             <a href="#transform">Transforms (2D/3D)</a><br>
         </td>
+        <td>x</td>
         <td>x</td>
         <td>-</td>
     </tr>
@@ -93,12 +99,23 @@ All Features:
         </td>
         <td>x</td>
         <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>
+            <a href="#shadow">Shadow</a><br>
+        </td>
+        <td>x</td>
+        <td>-</td>
+        <td>-</td>
     </tr>
     <tr></tr>
     <tr>
         <td>
             <a href="#colors">Colors</a><br>
         </td>
+        <td>x</td>
         <td>x</td>
         <td>-</td>
     </tr>
@@ -109,12 +126,14 @@ All Features:
         </td>
         <td>-</td>
         <td>-</td>
+        <td>-</td>
     </tr>
     <tr></tr>
     <tr>
         <td>
             <a href="#svg">SVG</a><br>
         </td>
+        <td>-</td>
         <td>-</td>
         <td>-</td>
     </tr>
@@ -125,10 +144,12 @@ All Features:
         </td>
         <td>JS, CSS3, WAAPI</td>
         <td>JS</td>
+        <td>JS</td>
     </tr>
     <tr>
         <td>File Size (gzip)</td>
-        <td>5.3 kb</td>
+        <td>6.1 kb</td>
+        <td>3.4 kb</td>
         <td>2.1 kb</td>
     </tr>
 </table>
@@ -136,7 +157,11 @@ All Features:
 > It is also very simple to make a <a href="#builds">Custom Build</a>
 
 <a name="compare" id="compare"></a>
-#### Benchmark Ranking (2000 Bouncing Balls)
+#### Benchmark Ranking 
+
+Library Comparison: <a href="https://nextapps-de.github.io/fat/" target="_blank">Benchmark "Bouncing Balls"</a>
+
+__"Animate" (2000 Bouncing Balls)__
 
 <table>
     <tr></tr>
@@ -145,15 +170,15 @@ All Features:
         <td align="left">Library Name</td>
         <td align="left">Library Version</td>
         <td align="left">Library Size</td>
-        <td align="left">Memory Heap</td>
-        <td align="left">Memory Allocation</td>
+        <td align="left">Memory Heap <a href="#notes">*</a></td>
+        <td align="left">Memory Allocation <a href="#notes">**</a></td>
         <td align="left">Updates per second</td>
         <td align="left">Frames per second</td>
     </tr>
-    <tr style="color:#900">
+    <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.5.0</td>
+        <td>0.5.1</td>
         <td>2.1 kb</td>
         <td>0.85 Mb</td>
         <td>0.15 Mb</td>
@@ -338,12 +363,250 @@ All Features:
     </tr>
 </table>
 
-_Plattform: Windows 10, Browser: Chrome (Desktop), Runtime: 10 seconds, Resolution: 3440 x 1440_
+__"Transforms" (2000 Bouncing Balls)__
 
-Library Comparison:
-- <a href="https://nextapps-de.github.io/fat/" target="_blank">Benchmark "Bouncing Balls"</a>
-- Benchmark "Transform" (coming soon)
-- Benchmark "Coloring" (coming soon)
+<table>
+    <tr></tr>
+    <tr>
+        <td align="left">Rank</td>
+        <td align="left">Library Name</td>
+        <td align="left">Library Version</td>
+        <td align="left">Updates per second</td>
+        <td align="left">Frames per second</td>
+    </tr>
+    <tr>
+        <td>1</td>
+        <td>FAT</td>
+        <td>0.5.1</td>
+        <td><b>90091</b></td>
+        <td><b>46.1</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>2</td>
+        <td>TweenJS</td>
+        <td>1.0.2</td>
+        <td><b>67931</b></td>
+        <td><b>33</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>3</td>
+        <td>GSAP</td>
+        <td>2.0.2</td>
+        <td><b>50337</b></td>
+        <td><b>26</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>4</td>
+        <td>AnimeJS</td>
+        <td>2.2.0</td>
+        <td><b>41040</b></td>
+        <td><b>21.6</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>5</td>
+        <td>HTML5 (WAAPI)</td>
+        <td>-</td>
+        <td>-</td>
+        <td><b>16</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>6</td>
+        <td>CSS3 (Transition)</td>
+        <td>-</td>
+        <td>-</td>
+        <td><b>15.5</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>7</td>
+        <td>Zepto</td>
+        <td>1.2.0</td>
+        <td>-</td>
+        <td><b>12.4</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>8</td>
+        <td>Morpheus</td>
+        <td>0.7.2</td>
+        <td><b>6665</b></td>
+        <td><b>3.3</b></td>
+    </tr> 
+    <tr></tr>
+    <tr>
+        <td>9</td>
+        <td>bajs</td>
+        <td>1.0</td>
+        <td><b>-</b></td>
+        <td><b>1</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>10</td>
+        <td>JustAnimate</td>
+        <td>2.5.1</td>
+        <td><b>1218</b></td>
+        <td><b>0.3</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>11</td>
+        <td>jQuery</td>
+        <td>3.3.1</td>
+        <td><b>618</b></td>
+        <td><b>0.01</b></td>
+    </tr>
+</table>
+
+__"Colors" (2000 Flashing Balls)__
+
+<table>
+    <tr></tr>
+    <tr>
+        <td align="left">Rank</td>
+        <td align="left">Library Name</td>
+        <td align="left">Library Version</td>
+        <td align="left">Updates per second</td>
+        <td align="left">Frames per second</td>
+    </tr>
+    <tr>
+        <td>1</td>
+        <td>FAT</td>
+        <td>0.5.1</td>
+        <td><b>111951</b></td>
+        <td><b>56.5</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>2</td>
+        <td>GSAP</td>
+        <td>2.0.2</td>
+        <td><b>89665</b></td>
+        <td><b>42.65</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>3</td>
+        <td>TweenJS</td>
+        <td>1.0.2</td>
+        <td><b>89499</b></td>
+        <td><b>42</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>4</td>
+        <td>Velocity</td>
+        <td>2.0.5</td>
+        <td><b>59617</b></td>
+        <td><b>31.25</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>5</td>
+        <td>HTML5 (WAAPI)</td>
+        <td>-</td>
+        <td>-</td>
+        <td><b>26.5</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>6</td>
+        <td>Anim.js</td>
+        <td>-</td>
+        <td>-</td>
+        <td><b>23</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>7</td>
+        <td>CSS3 (Transition)</td>
+        <td>-</td>
+        <td>-</td>
+        <td><b>20.6</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>8</td>
+        <td>YUI</td>
+        <td>3.18.1</td>
+        <td><b>84287</b></td>
+        <td><b>14.7</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>9</td>
+        <td>MooTools</td>
+        <td>1.6.0</td>
+        <td><b>8123</b></td>
+        <td><b>13.3</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>10</td>
+        <td>Dojo</td>
+        <td>1.14.2</td>
+        <td><b>33004</b></td>
+        <td><b>11.1</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>11</td>
+        <td>AnimeJS</td>
+        <td>2.2.0</td>
+        <td><b>12483</b></td>
+        <td><b>6.3</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>12</td>
+        <td>jQuery</td>
+        <td>3.3.1</td>
+        <td><b>14005</b></td>
+        <td><b>4</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>13</td>
+        <td>Morpheus</td>
+        <td>0.7.2</td>
+        <td><b>3902</b></td>
+        <td><b>3.2</b></td>
+    </tr> 
+    <tr></tr>
+    <tr>
+        <td>14</td>
+        <td>Zepto</td>
+        <td>1.2.0</td>
+        <td>-</td>
+        <td><b>2</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>15</td>
+        <td>JustAnimate</td>
+        <td>2.5.1</td>
+        <td><b>4283</b></td>
+        <td><b>1</b></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>16</td>
+        <td>bajs</td>
+        <td>1.0</td>
+        <td><b>-</b></td>
+        <td><b>0.7</b></td>
+    </tr>
+</table>
+
+<a name="notes" id="notes"></a>
+_Browser: Chrome (Desktop), Test Duration: 30 sec (median value)_<br>
+_* Memory Heap: The size of memory the animations requires to execute_<br>
+_** Memory Allocation: The amount of memory which was allocated during animation runtime_
 
 <a name="installation"></a>
 ## Installation
