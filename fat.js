@@ -1,5 +1,5 @@
 ;/**!
- * @preserve FAT v0.6.0
+ * @preserve FAT v0.6.1
  * Copyright 2019 Nextapps GmbH
  * Author: Thomas Wilkerling
  * Released under the Apache 2.0 Licence
@@ -1508,10 +1508,13 @@
                 this.step = step;
                 this.delay = delay;
 
-                if(unit){
+                // TODO:
+                /*
+                if(!is_undefined(unit)){
 
                     this.unit = unit;
                 }
+                */
 
                 if(SUPPORT_TRANSFORM){
 
@@ -2191,11 +2194,12 @@
 
         /**
          * @param {Array<(Node|null)>|Node|NodeList|string|null} obj
-         * @param {Object<string, number|string>|Array<Object<string, number|string>>} styles
-         * @param {Object<string, number|string|boolean>} config
+         * @param {Object<string, number|string|Object>|Array<Object>|string|Array<string>} styles
+         * @param {Object<string, number|string|boolean>|Function=} config
+         * @param {Function=} callback
          */
 
-        function animate(obj, styles, config){
+        function animate(obj, styles, config, callback){
 
             if(obj && styles){
 
@@ -2251,10 +2255,8 @@
 
                     if(typeof config === "function"){
 
-                        config = {
-
-                            "callback": config
-                        };
+                        callback = config;
+                        config = {};
                     }
                     else{
 
@@ -2269,6 +2271,11 @@
 
                             return this.native(obj, styles, config);
                         }
+
+                        if(DEBUG){
+
+                            console.error("Engine not found: " + config_engine);
+                        }
                     }
                 }
                 else{
@@ -2278,18 +2285,64 @@
 
                 obj = get_nodes(obj);
 
-                const config_callback = config["callback"] || (SUPPORT_SEQUENCE && sequences && function(){/* TODO: mark last style */});
-                const config_step = config["step"] || 0;
-                const config_force = config["force"] || 0;
-                const config_strict = SUPPORT_CONCURRENCY && (config["strict"] || 0);
-                const config_init = /*this.resync ||*/ config["init"];
-                const config_loop = SUPPORT_SEQUENCE && config["loop"];
                 let config_delay = config["delay"] || 0;
                 let config_duration = config["duration"] || 400;
                 let config_ease = (SUPPORT_EASING ? parse_bezier(config["ease"]) : config["ease"]) || "";
 
                 let style_keys = Object.keys(styles);
                 let style_length = style_keys.length;
+
+                if(SUPPORT_SEQUENCE && style_length){
+
+                    let key = style_keys[0];
+
+                    if(key[key.length - 1] === "%"){
+
+                        sequences = new Array(style_length);
+
+                        for(let i = 0; i < style_length; i++){
+
+                            key = style_keys[i];
+
+                            const position = parseInt(key, 10);
+                            const position_last = i > 0 ? parseInt(style_keys[i - 1], 10) : 0;
+                            const interval = position - position_last;
+                            const style = styles[key];
+
+                            const inner_style_keys = Object.keys(style);
+                            const inner_style_length = inner_style_keys.length;
+
+                            for(let a = 0; a < inner_style_length; a++){
+
+                                const inner_key = inner_style_keys[a];
+                                let inner_style = style[inner_key];
+
+                                if(is_undefined(inner_style["to"])) {
+
+                                    style[inner_key] = inner_style = {
+
+                                        "to": inner_style
+                                    };
+                                }
+
+                                inner_style["duration"] = (config_duration / 100 * interval + 1) >> 0;
+                            }
+
+                            sequences[i] = style;
+                        }
+
+                        styles = sequences[0];
+                        style_keys = Object.keys(styles);
+                        style_length = style_keys.length;
+                    }
+                }
+
+                const config_callback = callback || config["callback"] || (SUPPORT_SEQUENCE && sequences && function(){/* TODO: mark last style */});
+                const config_step = config["step"] || 0;
+                const config_force = config["force"] || 0;
+                const config_strict = SUPPORT_CONCURRENCY && (config["strict"] || 0);
+                const config_init = /*this.resync ||*/ config["init"];
+                const config_loop = SUPPORT_SEQUENCE && config["loop"];
 
                 let last_transform;
                 let last_filter;

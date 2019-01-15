@@ -92,6 +92,15 @@ All Features:
     <tr></tr>
     <tr>
         <td>
+            <a href="#keyframes">Keyframes</a>
+        </td>
+        <td>x</td>
+        <td>-</td>
+        <td>-</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>
             <a href="#presets">Presets (Effects)</a>
         </td>
         <td>x</td>
@@ -174,7 +183,7 @@ All Features:
         <td>File Size (gzip)</td>
         <td>6.1 kb</td>
         <td>4.4 kb</td>
-        <td>1.6 kb</td>
+        <td>1.8 kb</td>
     </tr>
 </table>
 
@@ -202,8 +211,8 @@ __"Animate" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.0</td>
-        <td>1.6 kb</td>
+        <td>0.6.1</td>
+        <td>1.8 kb</td>
         <td>0.85 Mb</td>
         <td>0.15 Mb</td>
         <td><b>101075</b></td>
@@ -401,7 +410,7 @@ __"Transforms" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.0</td>
+        <td>0.6.1</td>
         <td><b>90091</b></td>
         <td><b>46.1</b></td>
     </tr>
@@ -501,7 +510,7 @@ __"Colors" (2000 Flashing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.0</td>
+        <td>0.6.1</td>
         <td><b>111951</b></td>
         <td><b>56.5</b></td>
     </tr>
@@ -713,9 +722,9 @@ Controller methods:
     <tr></tr>
     <tr>
         <td align="left"><b>ease</b></td>
-        <td align="left"><i>String</i></td>
+        <td align="left"><i>String | Function</i></td>
         <td align="left">"linear"</td>
-        <td align="left">Choose built-in easing.</td>
+        <td align="left">Choose a <a href="#easing">pre-defined easing</a> method or pass a <a href="#easing">custom easing function</a>.</td>
     </tr>
     <tr></tr>
     <tr>
@@ -740,31 +749,38 @@ Controller methods:
     </tr>
     <tr></tr>
     <tr>
+        <td align="left"><b>loop</b></td>
+        <td align="left"><i>Number</i></td>
+        <td align="left">0</td>
+        <td align="left">Loop count of <a href="#sequences">sequences</a> or <a href="#keyframes">keyframes</a>. Set to <i>-1</i> for inifinite loops.</td>
+    </tr>
+    <tr></tr>
+    <tr>
         <td align="left"><b>init</b></td>
         <td align="left"><i>Boolean</i></td>
         <td align="left">false</td>
-        <td align="left">Forces getting computed styles.</td>
+        <td align="left">Forces getting computed styles during next animation loop. Just important when styles changes within the animation callback right before starting a new animation on the same style property (animation loop).</td>
     </tr>
     <tr></tr>
     <tr>
         <td align="left"><b>force</b></td>
         <td align="left"><i>Boolean</i></td>
         <td align="left">false</td>
-        <td align="left">Forces style changes (like css "!important").</td>
+        <td align="left">Forces style changes (equal to css keyword "!important").</td>
     </tr>
     <tr></tr>
     <tr>
         <td align="left"><b>strict</b></td>
         <td align="left"><i>Boolean</i></td>
         <td align="left">false</td>
-        <td align="left">Do not override and keep different animations on same object's properties.</td>
+        <td align="left">Do not override and keep different animations acts on same object's style properties.</td>
     </tr>
     <tr></tr>
     <tr>
         <td align="left"><b>engine</b></td>
         <td align="left"><i>String</i></td>
         <td align="left">"js"</td>
-        <td align="left">Choose one of 3 render engines: "js", "css", "native".</td>
+        <td align="left">Choose one of 3 render engines: "<i>js</i>", "<i>css</i>", "<i>native</i>".</td>
     </tr>
 </table>
 
@@ -831,7 +847,23 @@ Fat.animate("#mydiv", {
 });
 ```
 
-Callback shorthand:
+Alternatively just pass the callback as the last parameter:
+
+```js
+Fat.animate("#mydiv", { 
+    
+    left: "100px", 
+    top: "100px" 
+},{ 
+    delay: 2000,
+    duration: 2000,
+    ease: "easeInOut"
+    
+}, function(){
+    
+    // callback
+});
+```
 
 ```js
 Fat.animate("#mydiv", { top: "100px" }, function(){
@@ -1088,39 +1120,114 @@ Fat.animate({}, { custom: 1 },{ ease: cubicInOut, step: function(progress, curre
 ```
 
 <a name="sequences"></a>
-## Sequences (Keyframes)
+## Sequences
 
 ```js
 Fat.animate("#mydiv", [
-    { left: "100%" },   // 1st animation
-    { top: "100%" },    // 2nd animation
-    { left: 0 },        // 3rd animation
-    { top: 0 }          // 4th animation
+    { left: "100%" },   // 1st animation, 2000ms
+    { top: "100%" },    // 2nd animation, 2000ms
+    { left: 0 },        // 3rd animation, 2000ms
+    { top: 0 }          // 4th animation, 2000ms
 ],{
-    callback: function(){ alert("Finished, call next loop") },
+    callback: function(){ alert("Next Loop") },
+    delay: 2000,
     loop: -1 // infinite
 });
 ```
 
-You can also use custom options per style property:
+Use custom options per style property:
 
 ```js
-Fat.animate("#mydiv", [
-    {   
-        left: { // 1st animation
-            from: 0,
-            to: 100,
-            unit: "%",
-            duration: 2000
-        }
-    },{   
-        top: { // 2nd animation
+Fat.animate("#mydiv", [{   
+    left: { // 1st animation
+        from: 0,
+        to: 100,
+        unit: "%",
+        duration: 2000
+    }
+},{   
+    top: { // 2nd animation
+        to: "100%",
+        duration: 2000,
+        ease: "easeInOut",
+        delay: 0
+    }
+},  
+...
+```
+
+<a name="keyframes"></a>
+## Keyframes
+
+```js
+Fat.animate("#mydiv", {
+    "25%":  { left: "100%" },   //  0 ->  25%, 500ms
+    "50%":  { top: "100%" },    // 25 ->  50%, 500ms
+    "75%":  { left: 0 },        // 50 ->  75%, 500ms
+    "100%": { top: 0 }          // 75 -> 100%, 500ms
+},{
+    callback: function(){ alert("Next Loop") },
+    delay: 2000,
+    loop: -1 // infinite
+});
+```
+
+Use custom options per style property:
+
+```js
+Fat.animate("#mydiv", {
+    
+    "0%": {   
+        left: {
             to: "100%",
-            duration: 2000,
-            ease: "easeInOut",
-            delay: 0
+            ease: "easeIn"
         }
-    },   
+    }, 
+    "100%": {   
+        top: {
+            to: "0%",
+            ease: "easeOut"
+        }
+    }
+},   
+...
+```
+
+You can also combine Sequences and Keyframes as well as custom options per style property:
+
+```js
+Fat.animate("#mydiv", [{
+    
+    "0%": {   
+        left: 0,
+        top: 0
+    }, 
+    "100%": {   
+        left: "100%",
+        top: "100%"
+    }
+},{
+    "0%": {   
+        left: { 
+            to: 0, 
+            ease: "easeIn"
+        },
+        top: { 
+            to: 0, 
+            ease: "easeIn"
+        }
+    }, 
+    "100%": {   
+        left: { 
+            to: "100%",
+            ease: "easeOut"
+        },
+        top: { 
+            to: "100%", 
+            ease: "easeOut"
+        }
+    }
+}],   
 ...
 ```
 
@@ -1373,6 +1480,11 @@ npm run build
 Light Build:
 ```bash
 npm run build-light
+```
+
+Compact Build:
+```bash
+npm run build-compact
 ```
 
 Custom Build:
