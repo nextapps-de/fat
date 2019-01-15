@@ -280,7 +280,7 @@
 				top:  coords[1]
 			},{
 				duration: (Math.random() * 1000 + 1000) | 0,
-				step: function(){ fps_val++; },
+				progress: function(){ fps_val++; },
 				easing: "linear",
 				complete: function(){
 
@@ -327,9 +327,8 @@
 				step: function(now, tween){
 
 					$(this).css("transform", (tween.prop === "translateX" ? "translateX" : $(this).css("transform") + " translateY") + "(" + now + "px)");
-
-					fps_val++;
 				},
+				progress: function(){ fps_val++; },
 				complete: function(){
 
 					transformBall.JQUERY.call(_this);
@@ -349,7 +348,7 @@
 				backgroundColor: getNextColor()
 			},{
 				duration: (Math.random() * 200 + 200) | 0,
-				step: function(){ fps_val++; },
+				progress: function(){ fps_val++; },
 				easing: "linear",
 				complete: function(){
 

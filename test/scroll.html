@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<title>Test: Scroll</title>
+	<style>
+		.square{
+			position: absolute;
+			display: inline-block;
+			left:0;
+			width: auto;
+			height: auto;
+			vertical-align: text-bottom;
+			background-color: #000;
+			color: #fff;
+			padding: 20px;
+		}
+		#square_1{
+			width: 200%;
+			height: 200%;
+		}
+	</style>
+</head>
+<body>
+<div id="square_1" class="square"></div>
+<script type="text/javascript" src="../fat.js"></script>
+<script>
+
+	document.documentElement.scrollTop = 0;
+	document.documentElement.scrollLeft = 0;
+
+	Fat.animate(document.documentElement, {
+
+		scrollTop: "100%",
+		scrollLeft: "100%"
+	},{
+		duration: 2000,
+		ease: "cubicInOut"
+	});
+
+</script>
+</body>
+</html>

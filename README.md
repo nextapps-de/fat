@@ -32,6 +32,12 @@ Get Latest (Stable Release):
     </tr>
     <tr></tr>
     <tr>
+        <td>fat.compact.js</td>
+        <td><a href="https://github.com/nextapps-de/fat/raw/master/fat.compact.js" target="_blank">Download</a></td>
+        <td><a href="https://cdn.jsdelivr.net/gh/nextapps-de/fat@master/fat.compact.js" target="_blank">https://cdn.jsdelivr.net/gh/nextapps-de/fat@master/fat.compact.js</a></td>
+    </tr>
+    <tr></tr>
+    <tr>
         <td>fat.custom.js</td>
         <td><a href="#builds">Custom Build</a></td>
         <td></td>
@@ -50,7 +56,7 @@ All Features:
     </tr>
     <tr>
         <td>
-            <a href="#scenes">Scenes (Groups)</a><br>
+            <a href="#scenes">Scenes (Groups)</a>
         </td>
         <td>x</td>
         <td>x</td>
@@ -59,7 +65,7 @@ All Features:
     <tr></tr>
     <tr>
         <td>
-            <a href="#easing">Easing Collection</a><br>
+            <a href="#easing">Easing Collection (Custom Bezier)</a>
         </td>
         <td>x</td>
         <td>x</td>
@@ -68,7 +74,7 @@ All Features:
     <tr></tr>
     <tr>
         <td>
-            <a href="#controls">Controlling</a><br>
+            <a href="#controls">Controlling</a>
         </td>
         <td>x</td>
         <td>-</td>
@@ -77,7 +83,7 @@ All Features:
     <tr></tr>
     <tr>
         <td>
-            <a href="#sequences">Sequences</a><br>
+            <a href="#sequences">Sequences</a>
         </td>
         <td>x</td>
         <td>-</td>
@@ -86,16 +92,7 @@ All Features:
     <tr></tr>
     <tr>
         <td>
-            <a href="#transform">Transforms (2D/3D)</a><br>
-        </td>
-        <td>x</td>
-        <td>x</td>
-        <td>-</td>
-    </tr>
-    <tr></tr>
-    <tr>
-        <td>
-            <a href="#filter">Filter</a><br>
+            <a href="#presets">Presets (Effects)</a>
         </td>
         <td>x</td>
         <td>-</td>
@@ -104,16 +101,7 @@ All Features:
     <tr></tr>
     <tr>
         <td>
-            <a href="#shadow">Shadow</a><br>
-        </td>
-        <td>x</td>
-        <td>-</td>
-        <td>-</td>
-    </tr>
-    <tr></tr>
-    <tr>
-        <td>
-            <a href="#colors">Colors</a><br>
+            <a href="#transform">Transforms (2D/3D)</a>
         </td>
         <td>x</td>
         <td>x</td>
@@ -122,18 +110,54 @@ All Features:
     <tr></tr>
     <tr>
         <td>
-            <a href="#canvas">Canvas (2D)</a><br>
+            <a href="#filter">Filter</a>
         </td>
-        <td>-</td>
+        <td>x</td>
         <td>-</td>
         <td>-</td>
     </tr>
     <tr></tr>
     <tr>
         <td>
-            <a href="#svg">SVG</a><br>
+            <a href="#colors">Colors</a>
         </td>
+        <td>x</td>
+        <td>x</td>
         <td>-</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>
+            <a href="#custom">Custom Properties/Renderer</a>
+        </td>
+        <td>x</td>
+        <td>x</td>
+        <td>x</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>
+            <a href="#relative">Relative Values</a>
+        </td>
+        <td>x</td>
+        <td>x</td>
+        <td>-</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>
+            <a href="#scroll">Scroll</a>
+        </td>
+        <td>x</td>
+        <td>x</td>
+        <td>-</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>
+            <a href="#scroll">Concurrency (Strict Mode)</a>
+        </td>
+        <td>x</td>
         <td>-</td>
         <td>-</td>
     </tr>
@@ -149,15 +173,15 @@ All Features:
     <tr>
         <td>File Size (gzip)</td>
         <td>6.1 kb</td>
-        <td>3.4 kb</td>
-        <td>2.1 kb</td>
+        <td>4.4 kb</td>
+        <td>1.6 kb</td>
     </tr>
 </table>
 
 > It is also very simple to make a <a href="#builds">Custom Build</a>
 
 <a name="compare" id="compare"></a>
-#### Benchmark Ranking 
+## Benchmark Ranking 
 
 Library Comparison: <a href="https://nextapps-de.github.io/fat/" target="_blank">Benchmark "Bouncing Balls"</a>
 
@@ -178,8 +202,8 @@ __"Animate" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.5.1</td>
-        <td>2.1 kb</td>
+        <td>0.6.0</td>
+        <td>1.6 kb</td>
         <td>0.85 Mb</td>
         <td>0.15 Mb</td>
         <td><b>101075</b></td>
@@ -377,7 +401,7 @@ __"Transforms" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.5.1</td>
+        <td>0.6.0</td>
         <td><b>90091</b></td>
         <td><b>46.1</b></td>
     </tr>
@@ -477,7 +501,7 @@ __"Colors" (2000 Flashing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.5.1</td>
+        <td>0.6.0</td>
         <td><b>111951</b></td>
         <td><b>56.5</b></td>
     </tr>
@@ -710,9 +734,9 @@ Controller methods:
     <tr></tr>
     <tr>
         <td align="left"><b>step</b></td>
-        <td align="left"><i>Function(current)</i></td>
+        <td align="left"><i>Function(progress, value)</i></td>
         <td align="left">null</td>
-        <td align="left">Step function to be called on each tick.</td>
+        <td align="left">Step function to be called on each tick (progress: the current state of progress between 0 and 1, value: the current value including the unit, just important when using <a href="#custom">custom properties</a>).</td>
     </tr>
     <tr></tr>
     <tr>
@@ -762,14 +786,14 @@ Fat.animate("#mydiv", {
     ease: "easeInOut",
     callback: function(){ 
         // done
-        console.log(this.style.left);
+        console.log(this.style.left); // "this" refers to #mydiv
     }
 });
 ```
 
 > See all available <a href="#options">options</a> above
 
-Pass in custom options for each property:
+Pass in custom options for each style property:
 
 ```js
 Fat.animate("#mydiv", { 
@@ -790,12 +814,29 @@ Fat.animate("#mydiv", {
 });
 ```
 
+<a name="relative"></a>
 Use relative values:
 
 ```js
 Fat.animate("#mydiv", { 
     left: "+=100px",
     top: "*=2"
+});
+```
+
+```js
+Fat.animate("#mydiv", { 
+    left: "-=100px",
+    top: "/=2"
+});
+```
+
+Callback shorthand:
+
+```js
+Fat.animate("#mydiv", { top: "100px" }, function(){
+    
+    // callback
 });
 ```
 
@@ -876,7 +917,7 @@ Fat.animate("#mydiv", {
 
 <a name="easing"></a>
 ## Easing
-
+<a name="easing-builtin"></a>
 Built-in easing:
 
 - linear
@@ -929,7 +970,7 @@ Use cubic bezier:
 Fat.animate("#mydiv", { left: "100px" },{ ease: "cubic(0, 1, 0, 1)" });
 ```
 
-Array notation for a bezier is recommended:
+Shorthand array notation for a bezier is recommended:
 ```js
 ... ,{ ease: [0, 1, 0, 1] });
 ```
@@ -952,20 +993,179 @@ Fat.animate("#mydiv", { left: "100px" },{ ease: function(t, b, c, d){
 }});
 ```
 
+<a name="custom"></a>
+## Custom Property / Renderer
+> Fat.__animate__(custom_object[]{}, custom_property[]{}, options{})
+
+> __Note:__ You can't use more than one custom property per animation. Do not mix the custom property with existing ones within same animation.
+
+Just add a property with the name "custom":
+```js
+Fat.animate("#mydiv", { custom: "50%" },{ ease: "cubicInOut", step: function(progress, current){
+
+    this.style.left = current;
+}});
+```
+
+Handle unit separately:
+```js
+Fat.animate("#mydiv", { custom: 50 },{ ease: "cubicInOut", step: function(progress, current){
+
+    this.style.left = current + "%";
+}});
+```
+
+Pass in custom object/function as first parameter instead of an element:
+```js
+Fat.animate({
+    css: document.getElementById("mydiv").style
+},{
+    custom: 50
+},{
+    ease: "cubicInOut",
+    step: function(progress, current){
+        this.css.left = current + "%"; // "this" refers to the custom object
+    }
+});
+```
+
+You can also use <a href="#sequences">sequences</a>:
+```js
+... [custom: 50, custom: 0, custom: 100, custom: 0]
+```
+
+This way it is possible to pass custom data, logic and renderer through each animation job, e.g.:
+```js
+var handler = {
+    unit: "%",
+    css: document.getElementById("mydiv").style,
+    set: function(style, value){ 
+        this.css[style] = value + this.unit;
+    }
+};
+
+Fat.animate(handler, { custom: 50 },{
+    ease: "cubicInOut",
+    step: function(progress, current){
+        this.set("left", current); // "this" refers to the handler
+    }
+});
+```
+
+You can also use array of objects/handlers:
+```js
+Fat.animate([handler1, handler2, handler3], ...
+```
+
+If you don't need the from/to transition values at all, another scenario could be:
+```js
+function cubicInOut(x) {
+    return ((x *= 2) <= 1 ? x*x*x : (x -= 2) *x*x + 2) / 2;
+}
+
+Fat.animate({ ease: cubicInOut }, { custom: true },{ step: function(progress){
+    
+    var current = this.ease(progress); // "this" refers to the custom object
+    // console.log(current);
+}});
+```
+
+alternatively:
+```js
+Fat.animate({}, { custom: true },{ step: function(progress){
+    
+    var current = cubicInOut(progress);
+    // console.log(current);
+}});
+```
+
+or:
+```js
+Fat.animate({}, { custom: 1 },{ ease: cubicInOut, step: function(progress, current){
+
+    // console.log(current);
+}});
+```
+
 <a name="sequences"></a>
 ## Sequences (Keyframes)
 
 ```js
 Fat.animate("#mydiv", [
-    { left: "100%" },   // start
+    { left: "100%" },   // 1st animation
     { top: "100%" },    // 2nd animation
     { left: 0 },        // 3rd animation
-    { top: 0 }          // end
+    { top: 0 }          // 4th animation
 ],{
-    callback: function(){ alert("finished, call next loop") },
+    callback: function(){ alert("Finished, call next loop") },
     loop: -1 // infinite
 });
 ```
+
+You can also use custom options per style property:
+
+```js
+Fat.animate("#mydiv", [
+    {   
+        left: { // 1st animation
+            from: 0,
+            to: 100,
+            unit: "%",
+            duration: 2000
+        }
+    },{   
+        top: { // 2nd animation
+            to: "100%",
+            duration: 2000,
+            ease: "easeInOut",
+            delay: 0
+        }
+    },   
+...
+```
+
+<a name="presets"></a>
+## Presets (Effects)
+
+```js
+Fat.animate("#mydiv", "fadeOut");
+```
+
+Combine multiple presets (ordered):
+
+```js
+Fat.animate("#mydiv", "fadeOut zoomOut rollOut");
+```
+
+Also usable with <a href="#sequences">sequences</a>:
+
+```js
+Fat.animate("#mydiv", ["slideUp", "zoomIn"]);
+```
+
+Define custom preset:
+```js
+Fat.preset["fade-out-down"] = { 
+    opacity: 0, 
+    translateY: "100%"
+};
+```
+
+Use custom preset:
+```js
+Fat.animate("#mydiv", "fade-out-down");
+```
+
+__Builtin Presets:__
+- fadeIn, fadeOut, fadeToggle
+- slideUp, slideDown, slideToggle
+- slideInLeft, slideOutLeft, slideToggleLeft
+- slideInRight, slideOutRight, slideToggleRight
+- slideInTop, slideOutTop, slideToggleTop
+- slideInBottom, slideOutBottom, slideToggleBottom
+- zoomIn, zoomOut, zoomToggle
+- rollIn, rollOut, rollToggle
+- blurIn, blurOut, blurToggle
 
 <a name="scenes"></a>
 ## Scenes (Groups)
@@ -1180,24 +1380,91 @@ Custom Build:
 npm run build-custom SUPPORT_EASE_IN_CUBIC=true SUPPORT_CONTROL=true
 ```
 
-Supported flags (boolean):
+> On custom builds each build flag will be set to _false_ by default.
 
-- DEBUG
-- SUPPORT_COLOR
-- SUPPORT_CONTROL
-- SUPPORT_SEQUENCES
-- SUPPORT_TRANSFORM
-- SUPPORT_FILTER
-- SUPPORT_ANIMATE
-- SUPPORT_TRANSITION
-- SUPPORT_NATIVE
-- SUPPORT_ENGINE (_string:_ "all", "js", "css", "native")
-- SUPPORT_EASING (includes all easing built-ins)
-
-Alternatively you can also use this style:
+Alternatively (Custom Build):
 ```bash
 node compile SUPPORT_CONTROL=true
 ```
+
+__Supported Build Flags__
+
+<table>
+    <tr></tr>
+    <tr>
+        <td align="left">Flag</td>
+        <td align="left">Values</td>
+    </tr>
+    <tr>
+        <td><a href="#colors">SUPPORT_COLOR</a></td>
+        <td>true, false</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td><a href="#controls">SUPPORT_CONTROL</a></td>
+        <td>true, false</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td><a href="#sequences">SUPPORT_SEQUENCE</a></td>
+        <td>true, false</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td><a href="#transform">SUPPORT_TRANSFORM</a></td>
+        <td>true, false</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td><a href="#filter">SUPPORT_FILTER</a></td>
+        <td>true, false</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td><a href="#scroll">SUPPORT_SCROLL</a></td>
+        <td>true, false</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td><a href="#relative">SUPPORT_RELATIVE</a></td>
+        <td>true, false</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td><a href="#concurrency">SUPPORT_CONCURRENCY</a></td>
+        <td>true, false</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td><a href="#easing">SUPPORT_EASING</a></td>
+        <td>true, false</td>
+    </tr>
+        <tr></tr>
+        <tr>
+        <td><a href="#easing">SUPPORT_PRESET</a></td>
+        <td>true, false</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td><a href="#engine">SUPPORT_ENGINE</a></td>
+        <td><i>string:</i> "all", "js", "css", "native" / "waapi"</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td><a href="#animate">SUPPORT_ANIMATE</a></td>
+        <td>true, false (overrides SUPPORT_ENGINE)</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td><a href="#transition">SUPPORT_TRANSITION</a></td>
+        <td>true, false (overrides SUPPORT_ENGINE)</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td><a href="#native">SUPPORT_NATIVE</a></td>
+        <td>true, false (overrides SUPPORT_ENGINE)</td>
+    </tr>
+</table>
 
 The custom build will be saved to fat.custom.js
 

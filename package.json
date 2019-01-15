@@ -1,6 +1,6 @@
 {
   "name": "fast-animation-tool",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "The fast animation tool with zero dependencies.",
   "homepage": "https://github.com/nextapps-de/fat/",
   "author": "Thomas Wilkerling",
@@ -30,10 +30,10 @@
     "url": "git+https://github.com/nextapps-de/fat.git"
   },
   "scripts": {
-    "build": "node compile RELEASE=min DEBUG=false SUPPORT_COLOR=true SUPPORT_CONTROL=true SUPPORT_SEQUENCES=true SUPPORT_ENGINE='all' SUPPORT_TRANSFORM=true SUPPORT_FILTER=true SUPPORT_SHADOW=true SUPPORT_EASING=true",
-    "build-light": "node compile RELEASE=light DEBUG=false SUPPORT_COLOR=false SUPPORT_CONTROL=false SUPPORT_SEQUENCES=false SUPPORT_ENGINE='js' SUPPORT_TRANSFORM=false SUPPORT_FILTER=false SUPPORT_SHADOW=false SUPPORT_EASING=false",
-    "build-compact": "node compile RELEASE=compact DEBUG=false SUPPORT_COLOR=true SUPPORT_CONTROL=false SUPPORT_SEQUENCES=false SUPPORT_ENGINE='js' SUPPORT_TRANSFORM=true SUPPORT_FILTER=false SUPPORT_SHADOW=false SUPPORT_EASING=true",
-    "build-custom": "node compile RELEASE=custom DEBUG=false SUPPORT_COLOR=false SUPPORT_CONTROL=false SUPPORT_SEQUENCES=false SUPPORT_ENGINE='none' SUPPORT_TRANSFORM=false SUPPORT_FILTER=false SUPPORT_SHADOW=false SUPPORT_EASING=false",
+    "build": "node compile RELEASE=min DEBUG=false SUPPORT_COLOR=true SUPPORT_CONTROL=true SUPPORT_SEQUENCE=true SUPPORT_ENGINE='all' SUPPORT_TRANSFORM=true SUPPORT_FILTER=true SUPPORT_SCROLL=true SUPPORT_RELATIVE=true SUPPORT_CONCURRENCY=true SUPPORT_EASING=true SUPPORT_PRESET=true",
+    "build-light": "node compile RELEASE=light DEBUG=false SUPPORT_COLOR=false SUPPORT_CONTROL=false SUPPORT_SEQUENCE=false SUPPORT_ENGINE='js' SUPPORT_TRANSFORM=false SUPPORT_FILTER=false SUPPORT_SCROLL=false SUPPORT_RELATIVE=false SUPPORT_CONCURRENCY=false SUPPORT_EASING=false SUPPORT_PRESET=false",
+    "build-compact": "node compile RELEASE=compact DEBUG=false SUPPORT_COLOR=true SUPPORT_CONTROL=false SUPPORT_SEQUENCE=false SUPPORT_ENGINE='js' SUPPORT_TRANSFORM=true SUPPORT_FILTER=false SUPPORT_SCROLL=true SUPPORT_RELATIVE=true SUPPORT_CONCURRENCY=false SUPPORT_EASING=true SUPPORT_PRESET=false",
+    "build-custom": "node compile RELEASE=custom DEBUG=false SUPPORT_COLOR=false SUPPORT_CONTROL=false SUPPORT_SEQUENCE=false SUPPORT_ENGINE='none' SUPPORT_TRANSFORM=false SUPPORT_FILTER=false SUPPORT_SCROLL=false SUPPORT_RELATIVE=false SUPPORT_CONCURRENCY=false SUPPORT_EASING=false SUPPORT_PRESET=false",
     "build-all": "npm run build && npm run build-light && npm run build-compact",
     "test-web": "mocha-phantomjs test/index.html",
     "update": "updtr --to latest",

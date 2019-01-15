@@ -1,5 +1,5 @@
 ;/**!
- * @preserve FAT v0.5.1
+ * @preserve FAT v0.6.0
  * Copyright 2019 Nextapps GmbH
  * Author: Thomas Wilkerling
  * Released under the Apache 2.0 Licence
@@ -9,15 +9,18 @@
 /** @define {boolean} */ const DEBUG = false;
 /** @define {boolean} */ const SUPPORT_COLOR = true;
 /** @define {boolean} */ const SUPPORT_CONTROL = true;
-/** @define {boolean} */ const SUPPORT_SEQUENCES = true;
+/** @define {boolean} */ const SUPPORT_SEQUENCE = true;
 /** @define {boolean} */ const SUPPORT_TRANSFORM = true;
 /** @define {boolean} */ const SUPPORT_FILTER = true;
-/** @define {boolean} */ const SUPPORT_SHADOW = true;
+/** @define {boolean} */ const SUPPORT_SCROLL = true;
+/** @define {boolean} */ const SUPPORT_RELATIVE = true;
+/** @define {boolean} */ const SUPPORT_CONCURRENCY = true;
+/** @define {boolean} */ const SUPPORT_EASING = true;
+/** @define {boolean} */ const SUPPORT_PRESET = true;
 /** @define {string} */  const SUPPORT_ENGINE = "";
 /** @define {boolean} */ const SUPPORT_ANIMATE = SUPPORT_ENGINE ? SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "js" : true;
 /** @define {boolean} */ const SUPPORT_TRANSITION = SUPPORT_ENGINE ? SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "css" : true;
 /** @define {boolean} */ const SUPPORT_NATIVE = SUPPORT_ENGINE ? SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "native" || SUPPORT_ENGINE === "waapi" : true;
-/** @define {boolean} */ const SUPPORT_EASING = true;
 
 // noinspection ThisExpressionReferencesGlobalObjectJS
 (function(){
@@ -28,7 +31,6 @@
 
         const res = Math.max(screen.width, screen.height);
         const prefetch_resolution = 10000;
-        const float_resolution = res;
         const prefetch = {};
         const easing = {};
 
@@ -40,7 +42,7 @@
 
             if(is_undefined(styles["transform"])){
 
-                const vendors = ["ms", "moz", "webkit", "o"];
+                const vendors = ["webkit", "moz", "ms", "o"];
 
                 for(let i = 0, tmp; i < vendors.length; i++) {
 
@@ -58,11 +60,11 @@
         })();
 
         const prefix_transform = vendor && (vendor + "Transform");
-        const prefix_transform_js = vendor && ("-" + prefix_transform.replace("T", "-t"));
+        const prefix_transform_js = vendor && ("-" + camel_to_snake(prefix_transform));
         const prefix_transition = vendor && (vendor + "Transition");
-        const prefix_transition_js = vendor && ("-" + prefix_transition.replace("T", "-t"));
+        const prefix_transition_js = vendor && ("-" + camel_to_snake(prefix_transition));
         const prefix_filter = vendor && (vendor + "Filter");
-        const prefix_filter_js = vendor && ("-" + prefix_transition.replace("F", "-f"));
+        const prefix_filter_js = vendor && ("-" + camel_to_snake(prefix_filter));
 
         const parse_float = parseFloat;
 
@@ -244,7 +246,7 @@
                 );
             };
 
-            if(SUPPORT_EASING){
+            if(SUPPORT_EASING && SUPPORT_ANIMATE){
 
                 return function(mX1, mY1, mX2, mY2){
 
@@ -254,6 +256,69 @@
                 };
             }
         })();
+
+        /**
+         * @dict
+         * @const
+         * @final
+         */
+
+        const effects = {
+
+            "fadeIn": {
+                "opacity": 1
+            },
+            "fadeOut": {
+                "opacity": 0
+            },
+            "fadeToggle": {
+                "opacity": "!=1"
+            },
+
+            "slideUp": SUPPORT_TRANSFORM ? { "translateY": 0 } : { "top": 0 },
+            "slideDown": SUPPORT_TRANSFORM ? { "translateY": "100%" } : { "top": "100%" },
+            "slideToggle": SUPPORT_TRANSFORM ? { "translateY": "!=100%" } : { "top": "!=100%" },
+
+            "slideInLeft": SUPPORT_TRANSFORM ? { "translateX": 0 } : { "left": 0 },
+            "slideOutLeft": SUPPORT_TRANSFORM ? { "translateX": "-100%" } : { "left": "-100%" },
+            "slideToggleLeft": SUPPORT_TRANSFORM ? { "translateX": "!=-100%" } : { "left": "!=-100%" },
+
+            "slideInRight": SUPPORT_TRANSFORM ? { "translateX": 0 } : { "left": 0 },
+            "slideOutRight": SUPPORT_TRANSFORM ? { "translateX": "100%" } : { "left": "100%" },
+            "slideToggleRight": SUPPORT_TRANSFORM ? { "translateX": "!=100%" } : { "left": "!=100%" },
+
+            "slideInTop": SUPPORT_TRANSFORM ? { "translateY": 0 } : { "top": 0 },
+            "slideOutTop": SUPPORT_TRANSFORM ? { "translateY": "-100%" } : { "top": "-100%" },
+            "slideToggleTop": SUPPORT_TRANSFORM ? { "translateY": "!=-100%" } : { "top": "!=-100%" },
+
+            "slideInBottom": SUPPORT_TRANSFORM ? { "translateY": 0 } : { "top": 0 },
+            "slideOutBottom": SUPPORT_TRANSFORM ? { "translateY": "100%" } : { "top": "100%" },
+            "slideToggleBottom": SUPPORT_TRANSFORM ? { "translateY": "!=100%" } : { "top": "!=100%" },
+
+            "zoomIn": SUPPORT_TRANSFORM ? { "scaleX": 1, "scaleY": 1 } : { "width": "100%", "height": "100%" },
+            "zoomOut": SUPPORT_TRANSFORM ? { "scaleX": 0, "scaleY": 0 } : { "width": 0, "height": 0 },
+            "zoomToggle": SUPPORT_TRANSFORM ? { "scaleX": "!=1", "scaleY": "!=1" } : { "width": "!=100%", "height": "!=100%" },
+
+            "rollIn": {
+                "rotateZ": "0deg"
+            },
+            "rollOut": {
+                "rotateZ": "720deg"
+            },
+            "rollToggle": {
+                "rotateZ": "!=720deg"
+            },
+
+            "blurIn": {
+                "blur": "0em"
+            },
+            "blurOut": {
+                "blur": "5em"
+            },
+            "blurToggle": {
+                "blur": "!=5em"
+            }
+        };
 
         /**
          * @param obj
@@ -267,15 +332,15 @@
          * @param ease_str
          * @param callback
          * @param step
-         * @param {string} style_id
          * @param {number} delay
          * @param {number=} loop
+         * @param {string=} style_id
          * @param {string=} filter
-         * @param {string=} shadow
          * @param {string=} transform
          * @param {number=} color
-         * @param {string=} color_group
+         * @param {string=} style_group
          * @constructor
+         * @final
          */
 
         function Job(
@@ -291,18 +356,18 @@
             ease_str,
             callback,
             step,
-            style_id,
             delay,
             loop,
+            style_id,
             transform,
             filter,
-            shadow,
             color,
-            color_group
+            style_group
         ){
             this.obj = obj;
             this.css = obj._style;
             this.style = style;
+            this.style_js = camel_to_snake(style);
             this.from = from;
             this.to = to;
             this.current = from;
@@ -315,7 +380,6 @@
             this.callback = callback;
             this.step = step;
             this.job_id = job_id;
-            this.style_id = style_id;
             this.delay = delay;
             this.loop = loop;
             this.float = (
@@ -327,12 +391,17 @@
                     (unit !== "px")
             );
 
+            if(SUPPORT_CONCURRENCY){
+
+                this.style_id = style_id;
+            }
+
             if(SUPPORT_COLOR){
 
                 if(color){
 
                     this.color = color;
-                    this.color_group = color_group;
+                    this.style_group = style_group;
                 }
             }
 
@@ -351,19 +420,11 @@
                     this.filter = filter;
                 }
             }
-
-            if(SUPPORT_SHADOW){
-
-                if(shadow){
-
-                    this.shadow = shadow;
-                }
-            }
         }
 
         const JobPrototype = Job.prototype;
 
-        if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM){
+        if(SUPPORT_ANIMATE){
 
             // TODO: do not access dom attributes
 
@@ -375,7 +436,7 @@
 
             JobPrototype.animate = function(time, ratio, direction){
 
-                const style_id = this.style_id;
+                const style_id = SUPPORT_CONCURRENCY && this.style_id;
                 const bypass = (this.from === this.to) || (style_id && paint[style_id]);
                 const obj = this.obj;
                 const stamp = Math.max((time - (this.start || (this.start = (time /*+ this.delay*/)))) * (SUPPORT_CONTROL ? ratio : 1), 0);
@@ -406,6 +467,7 @@
                             }
                             else{
 
+                                // linear (default)
                                 current_value = (this.to - this.from) * stamp / this.duration;
                             }
                         }
@@ -436,7 +498,7 @@
 
                             this.float ? // --> 0.0 - 1.0, %, deg, em
 
-                                ((current_value * float_resolution + 0.5) >> 0) / float_resolution
+                                ((current_value * res + 0.5) >> 0) / res
                             :
                                 (current_value + 0.5) >> 0
                         );
@@ -453,44 +515,41 @@
 
                         obj._transform[style] = current_value + this.unit;
                     }
-                    else if(SUPPORT_COLOR && this.color){
-
-                        obj["_" + this.color_group][style] = current_value;
-                    }
                     else if(SUPPORT_FILTER && this.filter){
 
                         obj._filter[style] = current_value + this.unit;
                     }
-                    else if(SUPPORT_SHADOW && this.shadow){
+                    else if(SUPPORT_COLOR && this.color){
 
-                        obj._shadow[style] = current_value + this.unit;
+                        obj["_" + this.style_group][style] = current_value;
                     }
                     else{
 
-                        this.animate_job(style, current_value);
+                        current_value += this.unit;
+
+                        if(style !== "custom"){
+
+                            this.animate_job(style, current_value);
+                        }
                     }
                 }
 
                 if(SUPPORT_TRANSFORM && (style === this.transform)){
 
-                    this.transform_job();
-                }
-                else if(SUPPORT_COLOR && (style === this.color)){
-
-                    this.color_job(this.color_group);
+                    current_value = this.transform_job();
                 }
                 else if(SUPPORT_FILTER && (style === this.filter)){
 
-                    this.filter_job();
+                    current_value = this.filter_job();
                 }
-                else if(SUPPORT_SHADOW && (style === this.shadow)){
+                else if(SUPPORT_COLOR && (style === this.color)){
 
-                    this.shadow_job();
+                    current_value = this.color_job(this.style_group);
                 }
 
                 if(this.step){
 
-                    this.step.call(obj, stamp / this.duration);
+                    this.step.call(obj, complete ? 1 : stamp / this.duration, current_value);
                 }
 
                 if(complete){
@@ -501,7 +560,7 @@
 
                     if(this.callback){
 
-                        if(SUPPORT_SEQUENCES){
+                        if(SUPPORT_SEQUENCE){
 
                             const sequences = obj._sequences;
 
@@ -536,7 +595,7 @@
 
                 if(this.start === -1){
 
-                    if(SUPPORT_SEQUENCES && this.callback){
+                    if(SUPPORT_SEQUENCE && this.callback){
 
                         const current_obj = this.obj;
                         const sequences = current_obj._sequences;
@@ -560,7 +619,7 @@
                         }
                     }
 
-                    if(!this.style_id){
+                    if(!SUPPORT_CONCURRENCY || !this.style_id){
 
                         this.obj[this.job_id] = null;
                     }
@@ -607,13 +666,13 @@
 
             JobPrototype.animate_job = function(style, value){
 
-                if(style === "scrollTop"){
+                if(SUPPORT_SCROLL && (style === "scrollTop" || style === "scrollLeft")){
 
-                    this.obj.scrollTop = value;
+                    this.obj[style] = value;
                 }
                 else{
 
-                    set_style(this.css, style, value + this.unit, this.force);
+                    set_style(this.css, this.style_js, value, this.force);
                 }
             };
         }
@@ -670,6 +729,7 @@
         /**
          * @const
          * @dict
+         * @final
          */
 
         const color_keys = SUPPORT_COLOR ? (function(obj){
@@ -691,6 +751,8 @@
             // construct("borderTopColor", 3);
             // construct("borderRightColor", 3);
             // construct("borderBottomColor", 3);
+            // construct("textShadowColor", 4);
+            // construct("boxShadowColor", 5);
 
             return obj;
 
@@ -699,6 +761,7 @@
         /**
          * @const
          * @dict
+         * @final
          */
 
         const transform_keys = SUPPORT_TRANSFORM ? (function(obj){
@@ -724,6 +787,7 @@
         /**
          * @const
          * @dict
+         * @final
          */
 
         const matrix2d_index = {
@@ -740,6 +804,7 @@
          * Note: value + 1
          * @const
          * @dict
+         * @final
          */
 
         const filter_default_values = {
@@ -753,6 +818,26 @@
             "saturate": 2,
             "sepia": 1
         };
+
+        /*
+            aqua: "#00ffff",
+            black: "#000000",
+            blue: "#0000ff",
+            fuchsia: "#ff00ff",
+            gray: "#808080",
+            green: "#008000",
+            lime: "#00ff00",
+            maroon: "#800000",
+            navy: "#000080",
+            olive: "#808000",
+            purple: "#800080",
+            red: "#ff0000",
+            silver: "#c0c0c0",
+            teal: "#008080",
+            white: "#ffffff",
+            yellow: "#ffff00",
+            transparent: [ null, null, null, 0 ],
+        */
 
         let hex_to_int_table;
         let int_to_hex_table;
@@ -802,25 +887,13 @@
             };
         }
 
-        if(SUPPORT_SHADOW){
-
-            JobPrototype.shadow_job = function(){
-
-                const shadow = this.obj._shadow;
-
-                set_style(this.css, this.style, merge_shadow(shadow, this.style), this.force);
-
-                return shadow;
-            };
-        }
-
         if(SUPPORT_COLOR){
 
-            JobPrototype.color_job = function(color_group){
+            JobPrototype.color_job = function(style_group){
 
-                const color = this.obj["_" + color_group];
+                const color = this.obj["_" + style_group];
 
-                set_style(this.css, color_group.replace("C", "-c"), merge_color(color, color_group, this.unit), this.force);
+                set_style(this.css, style_group.replace("C", "-c"), merge_color(color, style_group, this.unit), this.force);
 
                 return color;
             };
@@ -1002,17 +1075,18 @@
         /**
          * @param {Object<string, number|boolean>=} config
          * @constructor
+         * @final
          */
 
         function Fat(config){
 
-            if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM){
+            if(SUPPORT_ANIMATE){
 
                 this.id = ++id_counter; // start from 1
                 this.stack = [];
                 this.render = render_frames.bind(this);
                 this.exec = 0;
-                this.resync = false;
+                //this.resync = false;
 
                 if(SUPPORT_CONTROL){
 
@@ -1032,7 +1106,7 @@
 
         const FatPrototype = Fat.prototype;
 
-        if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM){
+        if(SUPPORT_ANIMATE){
 
             FatPrototype.create_job = create_job;
             /** @export */
@@ -1040,21 +1114,99 @@
             /** @export */
             FatPrototype.destroy = destroy;
             /** @export */
-            FatPrototype.init = init;
+            //FatPrototype.init = init;
             /** @export */
-            FatPrototype.ease = easing;
-        }
+            FatPrototype.create = function(){
 
-        if(SUPPORT_TRANSFORM){
+                return new Fat();
+            };
 
-            /** @export */
-            FatPrototype.transform = animate;
-        }
+            if(SUPPORT_EASING){
 
-        if(SUPPORT_FILTER){
+                /** @export */
+                FatPrototype.ease = easing;
+            }
 
-            /** @export */
-            FatPrototype.filter = animate;
+            if(SUPPORT_PRESET){
+
+                /** @export */
+                FatPrototype.preset = effects;
+            }
+
+            if(SUPPORT_TRANSFORM){
+
+                /** @export */
+                FatPrototype.transform = animate;
+            }
+
+            if(SUPPORT_FILTER){
+
+                /** @export */
+                FatPrototype.filter = animate;
+            }
+
+            if(SUPPORT_CONTROL){
+
+                /** @export */
+                FatPrototype.update = update;
+
+                /** @export */
+                FatPrototype.seek = seek;
+
+                /** @export */
+                FatPrototype.pause = function(){
+
+                    this.plays = false;
+                    return this;
+                };
+
+                /** @export */
+                FatPrototype.start = function(){
+
+                    this.plays = true;
+                    return this;
+                };
+
+                /** @export */
+                FatPrototype.stop = function(){
+
+                    return this.reset().pause();
+                };
+
+                /** @export */
+                FatPrototype.speed = function(ratio){
+
+                    this.ratio = ratio;
+                    return this;
+                };
+
+                /** @export */
+                FatPrototype.reset = function(){
+
+                    return this.seek(0);
+                };
+
+                /** @export */
+                FatPrototype.finish = function(){
+
+                    return this.seek(1);
+                };
+
+                /** @export */
+                FatPrototype.reverse = function(_reverse){
+
+                    if(is_undefined(_reverse)){
+
+                        this.direction = !this.direction;
+                    }
+                    else{
+
+                        this.direction = !_reverse;
+                    }
+
+                    return this;
+                };
+            }
         }
 
         if(SUPPORT_TRANSITION){
@@ -1067,78 +1219,6 @@
 
             /** @export */
             FatPrototype.native = native;
-        }
-
-        if(SUPPORT_CONTROL){
-
-            /** @export */
-            FatPrototype.update = update;
-
-            /** @export */
-            FatPrototype.seek = seek;
-
-            /** @export */
-            FatPrototype.pause = function(){
-
-                this.plays = false;
-                return this;
-            };
-
-            /** @export */
-            FatPrototype.start = function(){
-
-                this.plays = true;
-                return this;
-            };
-
-            /** @export */
-            FatPrototype.stop = function(){
-
-                return this.reset().pause();
-            };
-
-            /** @export */
-            FatPrototype.speed = function(ratio){
-
-                this.ratio = ratio;
-                return this;
-            };
-
-            /** @export */
-            FatPrototype.reset = function(){
-
-                return this.seek(0);
-            };
-
-            /** @export */
-            FatPrototype.finish = function(){
-
-                return this.seek(1);
-            };
-
-            /** @export */
-            FatPrototype.reverse = function(_reverse){
-
-                if(is_undefined(_reverse)){
-
-                    this.direction = !this.direction;
-                }
-                else{
-
-                    this.direction = !_reverse;
-                }
-
-                return this;
-            };
-        }
-
-        if(SUPPORT_ANIMATE /*TODO: || SUPPORT_TRANSITION || SUPPORT_NATIVE*/){
-
-            /** @export */
-            FatPrototype.create = function(){
-
-                return new Fat();
-            };
         }
 
         function seek(progress){
@@ -1226,7 +1306,7 @@
                 this.exec = 0;
                 this.stack = [];
 
-                if(obj_counter && (reset_style_id === this.id)){
+                if(SUPPORT_CONCURRENCY && obj_counter && (reset_style_id === this.id)){
 
                     reset_style_id = 0;
                 }
@@ -1240,12 +1320,14 @@
             return this;
         }
 
+        /*
         function init(){
 
             this.resync = true;
 
             return this;
         }
+        */
 
         /**
          * @const
@@ -1259,7 +1341,7 @@
 
                 is_string(ease) ? (
 
-                    ease ? prefetch[ease] || (
+                    SUPPORT_EASING && ease ? prefetch[ease] || (
 
                         prefetch[ease] = prefetch_ease(ease)
 
@@ -1310,7 +1392,7 @@
 
                 this.exec = requestAnimationFrame(this.render);
 
-                if(obj_counter){
+                if(SUPPORT_CONCURRENCY && obj_counter){
 
                     if(!reset_style_id){
 
@@ -1369,7 +1451,7 @@
             return typeof val === "undefined";
         }
 
-        if(SUPPORT_ANIMATE || SUPPORT_TRANSFORM){
+        if(SUPPORT_ANIMATE){
 
             /**
              * @param {string|number} from
@@ -1383,12 +1465,11 @@
              * @param {number} delay
              * @param {string=} transform
              * @param {string=} filter
-             * @param {string=} shadow
              * @param {string=} color
-             * @param {string=} color_group
+             * @param {string=} style_group
              */
 
-            JobPrototype.update_job = function(from, to, unit, force, duration, ease_str, callback, step, delay, transform, filter, shadow, color, color_group){
+            JobPrototype.update_job = function(from, to, unit, force, duration, ease_str, callback, step, delay, transform, filter, color, style_group){
 
                 if(is_undefined(from)){
 
@@ -1401,7 +1482,7 @@
 
                 if(is_string(to)){
 
-                    if(to[1] === "="){
+                    if(SUPPORT_RELATIVE && (to[1] === "=")){
 
                         to = parse_relative_value(from, to.substring(2), to[0]);
                     }
@@ -1445,7 +1526,7 @@
                     if(color){
 
                         this.color = color;
-                        this.color_group = color_group;
+                        this.style_group = style_group;
                     }
                 }
 
@@ -1454,14 +1535,6 @@
                     if(filter){
 
                         this.filter = filter;
-                    }
-                }
-
-                if(SUPPORT_SHADOW){
-
-                    if(shadow){
-
-                        this.shadow = shadow;
                     }
                 }
 
@@ -1484,17 +1557,16 @@
          * @param {string} ease_str
          * @param {Function} callback
          * @param {Function} step
-         * @param {string} style_id
          * @param {number} delay
          * @param {number=} loop
+         * @param {string=} style_id
          * @param {string=} transform
          * @param {string=} filter
-         * @param {string=} shadow
          * @param {number=} color
-         * @param {string=} color_group
+         * @param {string=} style_group
          */
 
-        function create_job(obj, style, job_id, from, to, unit, force, duration, ease_str, callback, step, style_id, delay, loop, transform, filter, shadow, color, color_group){
+        function create_job(obj, style, job_id, from, to, unit, force, duration, ease_str, callback, step, delay, loop, style_id, transform, filter, color, style_group){
 
             let style_from = "" + (
 
@@ -1502,21 +1574,17 @@
 
                     get_transform
                 :
-                    SUPPORT_COLOR && color ?
+                    SUPPORT_FILTER && filter ?
 
-                        get_color
+                        get_filter
                     :
-                        SUPPORT_FILTER && filter ?
+                        SUPPORT_COLOR && color ?
 
-                            get_filter
+                            get_color
                         :
-                            SUPPORT_SHADOW && shadow ?
+                            get_style
 
-                                get_shadow
-                            :
-                                get_style
-
-            )(obj, style, from, color_group);
+            )(obj, style, from, style_group);
 
             if(style_from === "auto"){
 
@@ -1529,7 +1597,7 @@
 
                 let style_to = to;
 
-                if(to[1] === "="){
+                if(SUPPORT_RELATIVE && (to[1] === "=")){
 
                     to = parse_relative_value(from, style_to = to.substring(2), to[0]);
                 }
@@ -1542,6 +1610,21 @@
 
                     unit = style_to.substring(("" + to).length);
                 }
+
+                if(SUPPORT_SCROLL && (unit === "%")){
+
+                    if(style === "scrollTop"){
+
+                        to *= (obj.scrollHeight - obj.clientHeight) / 100;
+                        unit = "";
+
+                    }
+                    else if(style === "scrollLeft"){
+
+                        to *= (obj.scrollWidth - obj.clientWidth) / 100;
+                        unit = "";
+                    }
+                }
             }
 
             if(!unit){
@@ -1549,7 +1632,7 @@
                 unit = style_from.substring(("" + from).length) || "";
             }
 
-            const job = SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER || SUPPORT_SHADOW ? (new Job(
+            const job = SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER ? (new Job(
 
                 obj,
                 style,
@@ -1562,14 +1645,13 @@
                 ease_str,
                 callback,
                 step,
-                style_id,
                 delay,
                 loop,
+                style_id,
                 transform,
                 filter,
-                shadow,
                 color,
-                color_group
+                style_group
 
             )) : (new Job(
 
@@ -1584,9 +1666,9 @@
                 ease_str,
                 callback,
                 step,
-                style_id,
                 delay,
-                loop
+                loop,
+                style_id
             ));
 
             this.stack[this.stack.length] = job;
@@ -1629,6 +1711,10 @@
 
                 to = from / to;
             }
+            else if(operator === "!"){
+
+                to = from === to ? 0 : to;
+            }
 
             return to;
         }
@@ -1637,14 +1723,18 @@
          * @param obj
          * @param style
          * @param {string|number=} from
-         * @returns {string}
+         * @returns {string|number}
          */
 
         function get_style(obj, style, from){
 
-            if(style === "scrollTop"){
+            if(SUPPORT_SCROLL && (style === "scrollTop" || style === "scrollLeft")){
 
-                return is_undefined(from) ? obj.scrollTop : from;
+                return is_undefined(from) ? obj[style] : from;
+            }
+            else if(style === "custom"){
+
+                return from || 0;
             }
 
             const css = obj._style || (obj._style = obj.style);
@@ -1803,37 +1893,6 @@
             return style_prop;
         }
 
-        const shadow_props = [
-
-            "H", // h-offset
-            "V", // v-offset
-            "B", // blur
-            "S", // spread
-            "C"  // color
-        ];
-
-        /**
-         * @param style
-         * @param style_value
-         * @param style_prop
-         * @param {Array<string>=} style_order
-         * @returns {Object}
-         */
-
-        function parse_shadow(style, style_value, style_prop, style_order){
-
-            const parts = style_value.split(' ');
-
-            for(let i = 0; i < parts.length; i++){
-
-                let prop = style + shadow_props[i];
-
-                style_prop[prop] = parts[i];
-            }
-
-            return style_prop;
-        }
-
         function get_transform(obj, style, from){
 
             let style_prop = obj._transform;
@@ -1884,43 +1943,24 @@
             return style_prop[style] || (filter_default_values[style] - 1);
         }
 
-        function get_shadow(obj, style, from){
-
-            let style_prop = obj._shadow;
-
-            if(!style_prop){
-
-                obj._shadow = style_prop = {};
-            }
-
-            if(!style_prop || is_undefined(style_prop[style])){
-
-                const style_value = from || get_style(obj, style);
-
-                parse_shadow(style, style_value, style_prop);
-            }
-
-            return style_prop[style];
-        }
-
         /**
          * @param {Element} obj
          * @param {string} style
          *  @param {string} from
-         * @param {string} color_group
+         * @param {string=} style_group
          * @returns {Object<string, number>}
          */
 
-        function get_color(obj, style, from, color_group){
+        function get_color(obj, style, from, style_group){
 
-            const key = "_" + color_group;
+            const key = "_" + style_group;
             let style_prop = obj[key];
 
             if(!style_prop){
 
-                const style_value = from || get_style(obj, color_group);
+                const style_value = from || get_style(obj, style_group);
 
-                obj[key] = style_prop = parse_color(style_value, color_group, /* default_alpha: */ 1);
+                obj[key] = style_prop = parse_color(style_value, style_group, /* default_alpha: */ 1);
             }
 
             return style_prop[style];
@@ -2004,21 +2044,6 @@
         }
 
         /**
-         * @param {Object<string, string|number>} shadow
-         * @param {string} style
-         * @returns {string}
-         */
-
-        function merge_shadow(shadow, style){
-
-            return shadow[style + "H"] + " " +
-                   shadow[style + "V"] + " " +
-                   shadow[style + "B"] + " " +
-                   shadow[style + "S"] + " " +
-                   shadow[style + "C"];
-        }
-
-        /**
          * @param {Object<string, number>} color
          * @param {string} prop
          * @param {string} unit
@@ -2078,6 +2103,13 @@
             }
 
             return result;
+        }
+
+        function is_visible(obj) {
+
+            const bounds = obj.getBoundingClientRect();
+
+            return (bounds.top >= 0) && (bounds.bottom <= window.innerHeight);
         }
 
         /**
@@ -2167,18 +2199,76 @@
 
             if(obj && styles){
 
+                let sequences;
+
+                if(SUPPORT_SEQUENCE){
+
+                    if(styles.constructor === Array){
+
+                        sequences = styles;
+                        styles = styles[0];
+                    }
+                }
+
+                if(SUPPORT_PRESET && is_string(styles)){
+
+                    if(styles.indexOf(" ") === -1){
+
+                        if(DEBUG && !effects[styles]){
+
+                            console.error("Effect not found: " + styles);
+                        }
+
+                        styles = effects[styles];
+                    }
+                    else{
+
+                        styles = styles.split(" ");
+
+                        const merged = {};
+
+                        for(let i = 0, len = styles.length; i < len; i++){
+
+                            if(DEBUG && !effects[styles[i]]){
+
+                                console.error("Effect not found: " + styles[i]);
+                            }
+
+                            const effect = effects[styles[i]];
+                            const keys = Object.keys(effect);
+
+                            for(let a = 0; a < keys.length; a++){
+
+                                merged[keys[a]] = effect[keys[a]];
+                            }
+                        }
+
+                        styles = merged;
+                    }
+                }
+
                 if(config){
 
-                    const config_engine = config["engine"];
+                    if(typeof config === "function"){
 
-                    if(SUPPORT_TRANSITION && (config_engine === "css")){
+                        config = {
 
-                        return this.transition(obj, styles, config);
+                            "callback": config
+                        };
                     }
+                    else{
 
-                    if(SUPPORT_NATIVE && (config_engine === "native")){
+                        const config_engine = config["engine"];
 
-                        return this.native(obj, styles, config);
+                        if(SUPPORT_TRANSITION && (config_engine === "css")){
+
+                            return this.transition(obj, styles, config);
+                        }
+
+                        if(SUPPORT_NATIVE && (config_engine === "native")){
+
+                            return this.native(obj, styles, config);
+                        }
                     }
                 }
                 else{
@@ -2188,23 +2278,12 @@
 
                 obj = get_nodes(obj);
 
-                let sequences;
-
-                if(SUPPORT_SEQUENCES){
-
-                    if(styles.constructor === Array){
-
-                        sequences = styles;
-                        styles = styles[0];
-                    }
-                }
-
-                const config_callback = config["callback"] || (SUPPORT_SEQUENCES && sequences && function(){/* TODO: mark last style */});
+                const config_callback = config["callback"] || (SUPPORT_SEQUENCE && sequences && function(){/* TODO: mark last style */});
                 const config_step = config["step"] || 0;
                 const config_force = config["force"] || 0;
-                const config_strict = config["strict"] || 0;
-                const config_init = this.resync || config["init"];
-                const config_loop = SUPPORT_SEQUENCES && config["loop"];
+                const config_strict = SUPPORT_CONCURRENCY && (config["strict"] || 0);
+                const config_init = /*this.resync ||*/ config["init"];
+                const config_loop = SUPPORT_SEQUENCE && config["loop"];
                 let config_delay = config["delay"] || 0;
                 let config_duration = config["duration"] || 400;
                 let config_ease = (SUPPORT_EASING ? parse_bezier(config["ease"]) : config["ease"]) || "";
@@ -2214,12 +2293,11 @@
 
                 let last_transform;
                 let last_filter;
-                let last_shadow;
                 let last_color;
                 let last_color_background;
                 let last_color_border;
 
-                if(SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER || SUPPORT_SHADOW){
+                if(SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER){
 
                     for(let k = style_length; k-- > 0;){
 
@@ -2244,7 +2322,7 @@
 
                                 last_transform = prop_keys[prop_keys.length - 1];
 
-                                if(SUPPORT_COLOR || SUPPORT_FILTER || SUPPORT_SHADOW){
+                                if(SUPPORT_COLOR || SUPPORT_FILTER){
 
                                     continue;
                                 }
@@ -2258,7 +2336,7 @@
 
                                 last_transform = key;
 
-                                if(SUPPORT_COLOR || SUPPORT_FILTER || SUPPORT_SHADOW){
+                                if(SUPPORT_COLOR || SUPPORT_FILTER){
 
                                     continue;
                                 }
@@ -2284,54 +2362,6 @@
 
                                         tmp = "hue-rotate";
                                     }
-
-                                    style_keys.push(tmp);
-                                    styles[tmp] = props[tmp];
-
-                                    last_filter = tmp;
-                                    style_length++;
-                                }
-
-                                if(SUPPORT_COLOR || SUPPORT_SHADOW){
-
-                                    continue;
-                                }
-                                else{
-
-                                    break;
-                                }
-                            }
-
-                            if(key === "hue"){
-
-                                key = "hue-rotate";
-                            }
-
-                            if(!last_filter && filter_default_values[key]){
-
-                                last_filter = key;
-
-                                if(SUPPORT_COLOR || SUPPORT_SHADOW){
-
-                                    continue;
-                                }
-                                else{
-
-                                    break;
-                                }
-                            }
-                        }
-
-                        if(SUPPORT_SHADOW){
-
-                            if((key === "textShadow") || (key === "boxShadow")){
-
-                                const props = parse_shadow(key, styles[key], {});
-                                const prop_keys = Object.keys(/** @type {!Object} */ (props));
-
-                                for(let i = 0; i < prop_keys.length; i++){
-
-                                    let tmp = prop_keys[i];
 
                                     style_keys.push(tmp);
                                     styles[tmp] = props[tmp];
@@ -2437,11 +2467,10 @@
 
                     let has_transform;
                     let has_filter;
-                    let has_shadow;
                     let has_color;
                     let has_color_background;
                     let has_color_border;
-                    let color_group;
+                    let style_group;
 
                     let key = style_keys[k];
                     let value = styles[key];
@@ -2458,8 +2487,6 @@
                         config_ease = value["ease"] || config_ease;
                         from = value["from"];
                         unit = value["unit"];
-
-                        // replace value
                         value = value["to"];
                     }
 
@@ -2479,22 +2506,13 @@
 
                             continue;
                         }
-                        else if(key === "hue"){
+
+                        if(key === "hue"){
 
                             key = "hue-rotate";
                         }
 
                         has_filter = filter_default_values[key] && last_filter;
-                    }
-
-                    if(SUPPORT_SHADOW){
-
-                        if((key === "textShadow") || (key === "boxShadow")){
-
-                            continue;
-                        }
-
-                        has_shadow = filter_default_values[key] && last_shadow;
                     }
 
                     if(SUPPORT_COLOR){
@@ -2511,17 +2529,17 @@
                             if(color_type === 1){
 
                                 has_color = last_color;
-                                color_group = "color";
+                                style_group = "color";
                             }
                             else if(color_type === 2){
 
                                 has_color_background = last_color_background;
-                                color_group = "backgroundColor";
+                                style_group = "backgroundColor";
                             }
                             else if(color_type === 3){
 
                                 has_color_border = last_color_border;
-                                color_group = "borderColor";
+                                style_group = "borderColor";
                             }
                         }
                     }
@@ -2563,10 +2581,6 @@
 
                                     current_obj._filter = null;
                                 }
-                                else if(last_shadow) {
-
-                                    current_obj._shadow = null;
-                                }
                             }
                         }
 
@@ -2574,9 +2588,9 @@
                          * @type Job
                          */
 
-                        const cur_job = current_obj[job_id];
+                        const cur_job = !config_init && (!SUPPORT_CONCURRENCY || !style_id) && current_obj[job_id];
 
-                        if(cur_job && !style_id){
+                        if(cur_job){
 
                             if(SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER){
 
@@ -2593,9 +2607,8 @@
                                     config_delay,
                                     has_transform,
                                     has_filter,
-                                    has_shadow,
                                     has_color || has_color_background || has_color_border,
-                                    color_group
+                                    style_group
                                 );
                             }
                             else{
@@ -2631,14 +2644,13 @@
                                     config_ease,
                                     last && config_callback,
                                     last && config_step,
-                                    style_id,
                                     config_delay,
                                     config_loop,
+                                    style_id,
                                     has_transform,
                                     has_filter,
-                                    has_shadow,
                                     has_color || has_color_background || has_color_border,
-                                    color_group
+                                    style_group
                                 );
                             }
                             else{
@@ -2656,19 +2668,21 @@
                                     config_ease,
                                     last && config_callback,
                                     last && config_step,
-                                    style_id,
                                     config_delay,
-                                    config_loop
+                                    config_loop,
+                                    style_id
                                 );
                             }
                         }
                     }
                 }
 
+                /*
                 if(config_init){
 
                     this.resync = false;
                 }
+                */
 
                 if(!this.exec){
 
@@ -2764,13 +2778,14 @@
             return this;
         }
 
+        /**
+         * @param {string} string
+         * @returns {string}
+         */
+
         function camel_to_snake(string) {
 
-            return string.replace(/[\w]([A-Z])/g, function(m) {
-
-                return m[0] + "-" + m[1];
-
-            }).toLowerCase();
+            return string.replace(/([A-Z])/g, "-$1").toLowerCase();
         }
 
         /**

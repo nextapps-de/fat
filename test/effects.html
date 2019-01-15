@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<title>Test: Effects</title>
+	<style>
+		.square{
+			position: relative;
+			display: inline-block;
+			left: 0 !important;
+			width: auto;
+			height: auto;
+			vertical-align: text-bottom;
+			color: #fff;
+			background-color: #000;
+			padding: 20px;
+		}
+	</style>
+</head>
+<body>
+<div id="square_1" class="square">1</div><br>
+<div id="square_2" class="square">2</div><br>
+<div id="square_3" class="square">3</div><br>
+<div id="square_4" class="square">4</div><br>
+<div id="square_5" class="square">5</div><br>
+<div id="square_6" class="square">6</div><br>
+<div id="square_7" class="square">7</div><br>
+<div id="square_8" class="square">8</div><br>
+<div id="square_9" class="square">9</div><br>
+<div id="square_10" class="square">10</div><br>
+<div id="square_11" class="square">11</div><br>
+<div id="square_12" class="square">12</div><br>
+<div id="square_13" class="square">13</div><br>
+<script type="text/javascript" src="../fat.js"></script>
+<script>
+
+	Fat.animate("#square_1", "fadeOut", function(){
+		Fat.animate(this, "fadeIn");
+	});
+
+	Fat.animate("#square_2", ["fadeOut", "fadeIn"]);
+	Fat.animate("#square_3", ["fadeToggle", "fadeToggle"]);
+
+	Fat.animate("#square_4", ["slideDown", "slideUp"]);
+	Fat.animate("#square_5", ["slideToggle", "slideToggle"]);
+
+	Fat.animate("#square_6", ["zoomOut", "zoomIn"]);
+	Fat.animate("#square_7", ["zoomToggle", "zoomToggle"]);
+
+	Fat.animate("#square_8", ["rollOut", "rollIn"]);
+	Fat.animate("#square_9", ["rollToggle", "rollToggle"]);
+
+	Fat.animate("#square_10", ["blurOut", "blurIn"]);
+	Fat.animate("#square_11", ["blurToggle", "blurToggle"]);
+
+	Fat.animate("#square_12", ["fadeOut slideDown zoomOut rollOut", "fadeIn slideUp zoomIn rollIn"]);
+	Fat.animate("#square_13", ["fadeToggle slideToggle zoomToggle rollToggle", "fadeToggle slideToggle zoomToggle rollToggle"]);
+
+</script>
+</body>
+</html>

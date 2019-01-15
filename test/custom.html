@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<title>Test: Custom</title>
+	<style>
+		.square{
+			position: relative;
+			display: inline-block;
+			left:0;
+			width: auto;
+			height: auto;
+			vertical-align: text-bottom;
+			background-color: #000;
+			color: #fff;
+			padding: 20px;
+		}
+	</style>
+</head>
+<body>
+<div id="square_1" class="square">1</div><br>
+<div id="square_2" class="square">2</div><br>
+<div id="square_3" class="square">3</div><br>
+<div id="square_4" class="square">4</div><br>
+<div id="square_5" class="square">5</div><br>
+<div id="square_6" class="square">6</div><br>
+<script type="text/javascript" src="../fat.js"></script>
+<script>
+
+	// Reference (not custom)
+
+	Fat.animate("#square_1", {
+
+		left: "50%"
+	},{
+		duration: 2000,
+		ease: "cubicInOut"
+	});
+
+	// Custom Property
+
+	Fat.animate("#square_2", {
+
+		custom: "50%"
+	},{
+		duration: 2000,
+		ease: "cubicInOut",
+		step: function(progress, value){
+
+			this.style.left = value;
+		}
+	});
+
+	// Custom Property & Unit
+
+	Fat.animate("#square_3", {
+
+		custom: 50
+	},{
+		duration: 2000,
+		ease: "cubicInOut",
+		step: function(progress, value){
+
+			this.style.left = value + "%";
+		}
+	});
+
+	// Custom Property & Easing
+
+	function cubicInOut(x) {
+
+		return ((x *= 2) <= 1 ? x * x * x : (x -= 2) * x * x + 2) / 2;
+	}
+
+	Fat.animate("#square_4", {
+
+		custom: true
+	},{
+		duration: 2000,
+		step: function(progress){
+
+			this.style.left = (cubicInOut(progress) * 50) + "%";
+		}
+	});
+
+	// Custom First Parameter
+
+	Fat.animate({
+
+		css: document.getElementById("square_5").style
+	},{
+		custom: 50
+	},{
+		duration: 2000,
+		ease: "cubicInOut",
+		step: function(progress, value){
+			// "this" refers to the custom object/function
+			this.css.left = value + "%";
+		}
+	});
+
+	// Custom Logic
+
+	var handler = {
+
+		unit: "%",
+		css: document.getElementById("square_6").style,
+		set: function(style, value){
+			this.css[style] = value + this.unit;
+		}
+	};
+
+	Fat.animate(handler, { custom: 50 },{
+
+		duration: 2000,
+		ease: "cubicInOut",
+		step: function(progress, value){
+			// "this" refers to the handler
+			this.set("left", value);
+		}
+	});
+
+</script>
+</body>
+</html>
