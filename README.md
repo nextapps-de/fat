@@ -56,6 +56,15 @@ All Features:
     </tr>
     <tr>
         <td>
+            <a href="#fat.animate">Animation</a>
+        </td>
+        <td>x</td>
+        <td>x</td>
+        <td>x</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>
             <a href="#scenes">Scenes (Groups)</a>
         </td>
         <td>x</td>
@@ -158,7 +167,7 @@ All Features:
             <a href="#scroll">Scroll</a>
         </td>
         <td>x</td>
-        <td></td>
+        <td>-</td>
         <td>-</td>
     </tr>
     <tr></tr>
@@ -190,8 +199,8 @@ All Features:
     </tr>
     <tr>
         <td>File Size (gzip)</td>
-        <td>6.1 kb</td>
-        <td>4.4 kb</td>
+        <td>6.7 kb</td>
+        <td>4.5 kb</td>
         <td>1.9 kb</td>
     </tr>
 </table>
@@ -220,12 +229,12 @@ __"Animate" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.2</td>
+        <td>0.6.3</td>
         <td>1.9 kb</td>
         <td>0.85 Mb</td>
         <td>0.15 Mb</td>
-        <td><b>101075</b></td>
-        <td><b>51.2</b></td>
+        <td><b>103954</b></td>
+        <td><b>51.5</b></td>
     </tr>
     <tr></tr>
     <tr>
@@ -419,8 +428,8 @@ __"Transforms" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.2</td>
-        <td><b>90091</b></td>
+        <td>0.6.3</td>
+        <td><b>91960</b></td>
         <td><b>46.1</b></td>
     </tr>
     <tr></tr>
@@ -519,9 +528,9 @@ __"Colors" (2000 Flashing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.2</td>
-        <td><b>111951</b></td>
-        <td><b>56.5</b></td>
+        <td>0.6.3</td>
+        <td><b>113950</b></td>
+        <td><b>57</b></td>
     </tr>
     <tr></tr>
     <tr>
@@ -702,15 +711,15 @@ Global methods / Scene methods:
 <!-- - <a href="#fat.init">Fat.__init__()</a> -->
 
 Controller methods:
-- <a href="#scene.pause">Scene.__pause__(boolean)</a>
-- <a href="#scene.reverse">Scene.__reverse__(boolean)</a>
-- <a href="#scene.start">Scene.__start__(boolean)</a>
-- <a href="#scene.finish">Scene.__finish__(boolean)</a>
-- <a href="#scene.reset">Scene.__reset__(boolean)</a>
-- <a href="#scene.loop">Scene.__loop__(int)</a>
-- <a href="#scene.seek">Scene.__shift__(int)</a>
-- <a href="#scene.seek">Scene.__seek__(float)</a>
-- <a href="#scene.speed">Scene.__speed__(float)</a>
+- <a href="#scene.pause">Scene.__pause__(boolean: toggle)</a>
+- <a href="#scene.reverse">Scene.__reverse__(boolean: toggle)</a>
+- <a href="#scene.start">Scene.__start__(boolean: toggle)</a>
+- <a href="#scene.finish">Scene.__finish__()</a>
+- <a href="#scene.reset">Scene.__reset__()</a>
+- <a href="#scene.loop">Scene.__loop__(int: count)</a>
+- <a href="#scene.seek">Scene.__shift__(int: ms)</a>
+- <a href="#scene.seek">Scene.__seek__(float: position)</a>
+- <a href="#scene.speed">Scene.__speed__(float: ratio)</a>
 
 <a name="options"></a>
 ## Scene Options
@@ -724,17 +733,17 @@ Controller methods:
         <td align="left">Description</td>
     </tr>
     <tr>
-        <td align="left"><b>autoplay</b></td>
+        <td align="left"><b>play</b></td>
         <td align="left"><i>Boolean</i></td>
         <td align="left">true</td>
-        <td align="left"></td>
+        <td align="left">Enable/Disable autoplay when an animation call was performed</td>
     </tr>
     <tr></tr>
     <tr>
         <td align="left"><b>fps</b></td>
         <td align="left"><i>Number</i></td>
         <td align="left">60</td>
-        <td align="left"></td>
+        <td align="left">Frames per second</td>
     </tr>
 </table>
 
@@ -1272,6 +1281,7 @@ Fat.animate("#mydiv", {
 ...
 ```
 
+<!--
 You can also combine Sequences and Keyframes as well as custom options per style property:
 
 ```js
@@ -1308,6 +1318,7 @@ Fat.animate("#mydiv", [{
 }],   
 ...
 ```
+-->
 
 <a name="presets"></a>
 ## Presets (Effects)
@@ -1464,16 +1475,13 @@ scene.seek(1);   // end
 <a name="scroll"></a>
 ## Scroll
 
+<!--
 > Use `document` to scroll the body of the page or pass a custom element or a selector.
+-->
 
 Scroll document/element to a specific position (vertically):
 ```js
-Fat.animate(document, { scrollTop: 500 });
-```
-
-Same as:
-```js
-Fat.animate(document, { scroll: 500 });
+Fat.animate(element, { scrollTop: 500 });
 ```
 
 Scroll horizontally:
@@ -1488,7 +1496,7 @@ Fat.animate(element, { scroll: [500, 500] });
 
 Use relative values:
 ```js
-Fat.animate(document, { scroll: "+=50" });
+Fat.animate(element, { scroll: "+=50" });
 ```
 
 <!--
@@ -1553,12 +1561,6 @@ Fat.paint(function(time){
         <td>Javascript (Default)</td>
         <td>CSS Transition</td>
         <td>Web Animation API</td>
-    </tr>
-    <tr>
-        <td>File Size (gzip)</td>
-        <td>7.2 kb</td>
-        <td>0.8 kb</td>
-        <td>0.5 kb</td>
     </tr>
 </table>
 

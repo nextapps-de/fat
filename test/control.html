@@ -5,78 +5,135 @@
 	<title>Test: Control</title>
 	<style>
 		.square{
-			position: absolute;
+			position: relative;
 			display: inline-block;
 			left:0;
 			width: auto;
 			height: auto;
 			vertical-align: text-bottom;
+			color: #fff;
 			background-color: #000;
 			padding: 20px;
-			margin-bottom: 5%;
 		}
 	</style>
 </head>
 <body>
-<div id="square_1" class="square"></div><br>
+<div id="square_3" class="square">1</div><br>
+<div id="square_1" class="square">1</div><br>
+<br><br>
+Speed: <input type="range" min="-10" max="10" step="0.01" value="0" oninput="scene.speed(this.value);">
+FPS: <input type="range" min="1" max="60" step="1" value="60" oninput="scene.fps = this.value;">
+<br><br>
+<input type="button" value="Start" onclick="scene.start();">
+<input type="button" value="Pause" onclick="scene.pause();">
+<input type="button" value="Reset" onclick="scene.reset();">
+<input type="button" value="Reverse" onclick="scene.reverse();">
+<input type="button" value="Finish" onclick="scene.finish(true);">
+<br><br>
+<div id="square_2" class="square">2</div><br>
+Seek: <input id="seek" type="range" min="0" max="1" step="0.001" value="0" oninput="scene2.seek(this.value);">
+<br><br>
 <script type="text/javascript" src="../fat.js"></script>
 <script>
 
-	const scene = Fat.animate("#square_1", {
+	window.scene = Fat.animate("#square_1", [{
 
-		left: "50%"
+		left: {from: "0%", to: "50%"}
 	},{
+		left: {from: "50%", to: "0%"}
+	}],{
+		loop: -1,
 		duration: 20000,
 		callback: function(){
 			console.log("finished");
 		}
 	});
 
+
+	// -----------------------------------------------------------
+
+	window.scene2 = Fat.create({play: true}).animate("#square_2", [{
+
+		left: "50%"
+	},{
+		left: 0
+	}],{
+		loop: -1,
+		duration: 20000,
+		step: function(progress){
+			document.getElementById("seek").value = progress;
+		},
+		callback: function(){
+			console.log("finished");
+		}
+	});
+
+	// -----------------------------------------------------------
+
+	var scene3 = Fat.create({play: false}).animate("#square_3", [{
+
+		left: "50%"
+	},{
+		left: 0
+	}],{
+		loop: -1,
+		duration: 20000,
+		callback: function(){
+			console.log("finished");
+		}
+	}).start();
+
 	setTimeout(function(){
-		scene.seek(0.5);
+		scene3.seek(0.5);
 	}, 1000);
 
 	setTimeout(function(){
-		scene.seek(0);
+		scene3.seek(0);
 	}, 2000);
 
 	setTimeout(function(){
-		scene.pause();
+		scene3.shift(15000);
 	}, 3000);
 
 	setTimeout(function(){
-		scene.start();
+		scene3.shift(5000);
 	}, 4000);
 
 	setTimeout(function(){
-		scene.reverse();
+		scene3.pause();
 	}, 5000);
 
 	setTimeout(function(){
-		scene.reverse();
+		scene3.start();
 	}, 6000);
 
 	setTimeout(function(){
-		scene.speed(2);
+		scene3.reverse();
 	}, 7000);
 
 	setTimeout(function(){
-		scene.speed(0.5);
+		scene3.reverse();
 	}, 8000);
 
 	setTimeout(function(){
-		scene.reset();
+		scene3.speed(2);
 	}, 9000);
 
-	/*
 	setTimeout(function(){
-		scene.stop();
+		scene3.speed(0.5);
 	}, 10000);
-	*/
 
 	setTimeout(function(){
-		scene.finish();
-	}, 10000);
+		scene3.reset();
+	}, 11000);
+
+	// setTimeout(function(){
+	// 	scene.stop();
+	// }, 10000);
+
+	setTimeout(function(){
+		scene3.finish();
+	}, 12000);
 
 </script>
 </body>

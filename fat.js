@@ -1,5 +1,5 @@
 ;/**!
- * @preserve FAT v0.6.2
+ * @preserve FAT v0.6.3
  * Copyright 2019 Nextapps GmbH
  * Author: Thomas Wilkerling
  * Released under the Apache 2.0 Licence
@@ -72,7 +72,6 @@
         let reset_style_id;
         let id_counter = 0;
         let obj_counter = 0;
-        let last_update = 0;
 
         /*
          * Penner equations
@@ -376,7 +375,7 @@
             this.duration = duration;
             this.ease_str = ease_str;
             this.ease = init_easing(ease_str);
-            this.start = 0;
+            this.time = 0;
             this.callback = callback;
             this.step = step;
             this.job_id = job_id;
@@ -429,19 +428,28 @@
             // TODO: do not access dom attributes
 
             /**
-             * @param {number} time
+             * @param {number} now
+             * @param {number=} last_update
              * @param {number=} ratio
              * @param {boolean=} direction
              */
 
-            JobPrototype.animate = function(time, ratio, direction){
+            JobPrototype.animate = function(now, last_update, ratio, direction){
 
                 const style_id = SUPPORT_CONCURRENCY && this.style_id;
                 const bypass = (this.from === this.to) || (style_id && unique[style_id]);
                 const obj = this.obj;
-                const stamp = Math.max((time - (this.start || (this.start = (time /*+ this.delay*/)))) * (SUPPORT_CONTROL ? ratio : 1), 0);
-                const complete = stamp >= this.duration;
 
+                const delta = SUPPORT_CONTROL ? (ratio * (direction ? 1 : -1)) : 1;
+                const reverse = delta < 0;
+
+                if(reverse && (this.time === 0)){
+
+                    this.time = this.duration;
+                }
+
+                let stamp = this.time += (now - (last_update || now)) * delta;
+                const complete = reverse ? (stamp <= 0) : (stamp >= this.duration);
                 let current_value;
 
                 if(!bypass){
@@ -450,7 +458,7 @@
 
                     if(complete){
 
-                        current_value = (SUPPORT_CONTROL && !direction) ? this.from : this.to;
+                        current_value = reverse ? this.from : this.to;
 
                         if(DEBUG){
 
@@ -485,14 +493,7 @@
                             }
                         }
 
-                        if(SUPPORT_CONTROL && !direction){
-
-                            current_value = this.to - current_value;
-                        }
-                        else{
-
-                            current_value = this.from + current_value;
-                        }
+                        current_value = this.from + current_value;
 
                         current_value = (
 
@@ -549,14 +550,14 @@
 
                 if(this.step){
 
-                    this.step.call(obj, complete ? 1 : stamp / this.duration, current_value);
+                    this.step.call(obj, complete ? (reverse ? 0 : 1) : stamp / this.duration, current_value);
                 }
 
                 if(complete){
 
                     /* CHECK AGAINST SELF LOOPING */
 
-                    this.start = -1;
+                    this.time = -1;
 
                     if(this.callback){
 
@@ -566,18 +567,33 @@
 
                             if(sequences){
 
-                                let current = ++obj._sequence_current;
+                                if(this.loop--){
 
-                                if(this.loop && (current >= sequences.length)){
+                                    let current = (
 
-                                    this.loop--;
+                                        reverse ?
 
-                                    obj._sequence_current = current = 0;
-                                }
+                                            --obj._sequence_current
+                                        :
+                                            ++obj._sequence_current
+                                    );
 
-                                if(current < sequences.length){
+                                    if((current < 0) || (current >= sequences.length)){
 
-                                    return;
+                                        obj._sequence_current = current = (
+
+                                            reverse ?
+
+                                                sequences.length - 1
+                                            :
+                                                0
+                                        );
+
+                                        if(current < sequences.length){
+
+                                            return;
+                                        }
+                                    }
                                 }
                                 else{
 
@@ -591,9 +607,9 @@
                 }
             };
 
-            JobPrototype.render_job = function(fat, time){
+            JobPrototype.render_job = function(fat, now){
 
-                if(this.start === -1){
+                if(this.time === -1){
 
                     if(SUPPORT_SEQUENCE && this.callback){
 
@@ -612,7 +628,7 @@
                                 "loop": this.loop
                             });
 
-                            if(this.start === 0){
+                            if(this.time === 0){
 
                                 return true;
                             }
@@ -628,11 +644,11 @@
                 }
                 else{
 
-                    const delay = time - last_update;
+                    const delay = now - fat.last_update;
 
                     if(this.delay) {
 
-                        if(SUPPORT_SCROLL && (this.delay === "view")){
+                        if(this.delay === "view"){
 
                             if(is_visible(this.obj)){
 
@@ -657,15 +673,15 @@
 
                         if(!fat.plays){
 
-                            this.start += delay;
+                            fat.last_update += delay;
                             return true;
                         }
 
-                        this.animate(time, fat.ratio, fat.direction);
+                        this.animate(now, fat.last_update, fat.ratio, fat.direction);
                     }
                     else{
 
-                        this.animate(time);
+                        this.animate(now, fat.last_update);
                     }
                 }
 
@@ -690,14 +706,7 @@
 
         if(SUPPORT_CONTROL){
 
-            JobPrototype.seek = function(progress, ratio){
-
-                const duration = this.duration / ratio;
-
-                this.start += ((this.current - this.from) / (this.to - this.from) * duration) - (progress * duration);
-            };
-
-            JobPrototype.update = function(value/*, force*/){
+            JobPrototype.update = function(value, force){
 
                 // TODO:
                 //if(SUPPORT_TRANSFORM){}
@@ -718,14 +727,13 @@
                         value = this.from;
                     }
 
-                    if(this.start !== -1){
+                    if(this.time !== -1){
 
                         this.from = value;
                     }
 
                     this.current = value;
-
-                    //force || (force = this.force);
+                    this.force = force;
 
                     if(this.unit){
 
@@ -1092,6 +1100,7 @@
                 this.id = ++id_counter; // start from 1
                 this.stack = [];
                 this.render = render_frames.bind(this);
+                this.last_update = 0;
                 this.exec = 0;
 
                 if(SUPPORT_PAINT){
@@ -1101,9 +1110,8 @@
 
                 if(SUPPORT_CONTROL){
 
-                    //TODO:
                     this.fps = config && config["fps"];
-                    this.plays = !config || (config["autostart"] !== false);
+                    this.plays = !config || (config["play"] !== false);
                     this.direction = true;
                     this.ratio = 1;
                 }
@@ -1126,9 +1134,9 @@
             FatPrototype.destroy = destroy;
             //FatPrototype.init = init;
             /** @export */
-            FatPrototype.create = function(){
+            FatPrototype.create = function(config){
 
-                return new Fat();
+                return new Fat(config);
             };
 
             if(SUPPORT_PAINT){
@@ -1186,30 +1194,33 @@
             if(SUPPORT_CONTROL){
 
                 /** @export */
-                FatPrototype.update = update;
+                FatPrototype.set = set;
 
                 /** @export */
                 FatPrototype.seek = seek;
 
                 /** @export */
-                FatPrototype.pause = function(){
+                FatPrototype.shift = function(ms){
 
-                    this.plays = false;
+                    return this.seek(0, ms);
+                };
+
+                /** @export */
+                FatPrototype.pause = function(toggle){
+
+                    this.plays = is_undefined(toggle) ? false : toggle;
                     return this;
                 };
 
                 /** @export */
-                FatPrototype.start = function(){
+                FatPrototype.start = function(toggle){
 
-                    this.plays = true;
+                    this.plays = is_undefined(toggle) ? true : toggle;
                     return this;
                 };
 
                 /** @export */
-                FatPrototype.stop = function(){
-
-                    return this.reset().pause();
-                };
+                FatPrototype.play = FatPrototype.start;
 
                 /** @export */
                 FatPrototype.speed = function(ratio){
@@ -1221,6 +1232,8 @@
                 /** @export */
                 FatPrototype.reset = function(){
 
+                    this.ratio = 1;
+                    this.direction = true;
                     return this.seek(0);
                 };
 
@@ -1231,17 +1244,9 @@
                 };
 
                 /** @export */
-                FatPrototype.reverse = function(_reverse){
+                FatPrototype.reverse = function(toggle){
 
-                    if(is_undefined(_reverse)){
-
-                        this.direction = !this.direction;
-                    }
-                    else{
-
-                        this.direction = !_reverse;
-                    }
-
+                    this.direction = is_undefined(toggle) ? !this.direction : !toggle;
                     return this;
                 };
             }
@@ -1259,12 +1264,30 @@
             FatPrototype.native = native;
         }
 
-        function seek(progress){
+        /**
+         * @param progress
+         * @param {number=} shift
+         */
+
+        function seek(progress, shift){
 
             const stack = this.stack;
-            const ratio = this.ratio;
+            const no_shift = is_undefined(shift);
+            const direction = this.direction;
 
-            for(let i = 0, len = stack.length; i < len; stack[i++].seek(progress, ratio)){}
+            for(let i = 0, len = stack.length; i < len; i++){
+
+                const job = stack[i];
+
+                job.time = (
+
+                    no_shift ?
+
+                        (direction ? progress : 1 - progress) * job.duration
+                    :
+                        (direction ? shift : job.duration - shift)
+                );
+            }
 
             return this;
         }
@@ -1290,7 +1313,7 @@
          * @param {boolean=} force
          */
 
-        function update(obj, style, value, force){
+        function set(obj, style, value, force){
 
             obj = get_nodes(obj);
 
@@ -1328,7 +1351,7 @@
 
                     const key = keys[i];
 
-                    this.update(obj, key, style[key], /* force: */ value);
+                    this.set(obj, key, style[key], /* force: */ value);
                 }
             }
 
@@ -1343,6 +1366,7 @@
 
                 this.exec = 0;
                 this.stack = [];
+                this.last_update = 0;
 
                 if(SUPPORT_PAINT){
 
@@ -1427,6 +1451,14 @@
 
                 this.exec = requestAnimationFrame(this.render);
 
+                if(SUPPORT_CONTROL && this.fps){
+
+                    if((time - this.last_update + 1) < (1000 / this.fps)){
+
+                        return;
+                    }
+                }
+
                 let in_progress = false;
 
                 if(len){
@@ -1478,7 +1510,7 @@
                     }
                 }
 
-                last_update = time;
+                this.last_update = time;
 
                 if(!in_progress){
 
@@ -1551,7 +1583,7 @@
                 this.from = from;
                 this.to = to;
                 this.duration = duration;
-                this.start = 0;
+                this.time = 0;
                 this.force = force;
 
                 if(this.ease_str !== ease_str){
@@ -2651,23 +2683,23 @@
                         }
                     }
 
-                    if(value.constructor === Array){
+                    if(SUPPORT_SCROLL){
 
-                        if(SUPPORT_SCROLL){
+                        if(key === "scroll"){
 
-                            if(key === "scroll"){
+                            let tmp;
 
-                                let tmp;
+                            style_keys[style_length++] = (tmp = "scrollLeft");
+                            styles[tmp] = value[0];
 
-                                style_keys[style_length++] = (tmp = "scrollLeft");
-                                styles[tmp] = value[0];
+                            style_keys[style_length++] = (tmp = "scrollTop");
+                            styles[tmp] = value[1];
 
-                                style_keys[style_length++] = (tmp = "scrollTop");
-                                styles[tmp] = value[1];
-
-                                continue;
-                            }
+                            continue;
                         }
+                    }
+
+                    if(value.constructor === Array){
 
                         from = value[0];
                         unit = value[2];
