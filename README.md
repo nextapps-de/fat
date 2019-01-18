@@ -6,7 +6,7 @@
 
 ### Web's fastest and most lightweight animation tool.
 
-When it comes to raw animation speed <a href="#compare">FAT outperforms every single web animation library out there</a> and also provides flexible animation capabilities like scenes, sequences, controlling and easing. 
+When it comes to raw animation speed <a href="#compare">FAT outperforms every single web animation library out there</a> and also provides flexible animation capabilities like scenes, sequences, transforms, coloring, controlling and easing. 
 
 <a href="#installation">Installation Guide</a> &ensp;&bull;&ensp; <a href="#api">API Reference</a> &ensp;&bull;&ensp; <a href="#builds">Custom Builds</a> &ensp;&bull;&ensp; <a href="#compare">Benchmark Ranking</a>
 
@@ -158,13 +158,22 @@ All Features:
             <a href="#scroll">Scroll</a>
         </td>
         <td>x</td>
+        <td></td>
+        <td>-</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>
+            <a href="#paint">Paint</a>
+        </td>
+        <td>x</td>
         <td>x</td>
         <td>-</td>
     </tr>
     <tr></tr>
     <tr>
         <td>
-            <a href="#scroll">Concurrency (Strict Mode)</a>
+            <a href="#concurrency">Concurrency (Strict Mode)</a>
         </td>
         <td>x</td>
         <td>-</td>
@@ -183,7 +192,7 @@ All Features:
         <td>File Size (gzip)</td>
         <td>6.1 kb</td>
         <td>4.4 kb</td>
-        <td>1.8 kb</td>
+        <td>1.9 kb</td>
     </tr>
 </table>
 
@@ -211,8 +220,8 @@ __"Animate" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.1</td>
-        <td>1.8 kb</td>
+        <td>0.6.2</td>
+        <td>1.9 kb</td>
         <td>0.85 Mb</td>
         <td>0.15 Mb</td>
         <td><b>101075</b></td>
@@ -410,7 +419,7 @@ __"Transforms" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.1</td>
+        <td>0.6.2</td>
         <td><b>90091</b></td>
         <td><b>46.1</b></td>
     </tr>
@@ -510,7 +519,7 @@ __"Colors" (2000 Flashing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.1</td>
+        <td>0.6.2</td>
         <td><b>111951</b></td>
         <td><b>56.5</b></td>
     </tr>
@@ -683,27 +692,54 @@ var Fat = require("./fat.min.js");
 ## API Overview
 
 Global methods / Scene methods:
-- <a href="#fat.animate">Fat.__animate__(selector[] | elements[], styles[]{}, options{})</a>
-- <a href="#transform">Fat.__transform__(selector[] | elements[], styles[]{}, options{})</a>
-- <a href="#filter">Fat.__filter__(selector[] | elements[], styles[]{}, options{})</a>
-- <a href="#fat.transition">Fat.__transition__(selector[] | elements[], styles[]{}, options{})</a>
-- <a href="#fat.native">Fat.__native__(selector[] | elements[], styles[]{}, options{})</a>
-- <a href="#fat.update">Fat.__update__(selector[] | elements[], styles[]{}, options{})</a>
-- <a href="#fat.init">Fat.__init__()</a>
+- <a href="#fat.animate">Fat.__animate__(selector[] | elements[], styles[]{}, options{}, callback)</a>
+- <a href="#transform">Fat.__transform__(selector[] | elements[], styles[]{}, options{}, callback)</a>
+- <a href="#filter">Fat.__filter__(selector[] | elements[], styles[]{}, options{}, callback)</a>
+- <a href="#fat.transition">Fat.__transition__(selector[] | elements[], styles[]{}, options{}, callback)</a>
+- <a href="#fat.native">Fat.__native__(selector[] | elements[], styles[]{}, options{}, callback)</a>
+- <a href="#fat.update">Fat.__update__(selector[] | elements[], styles[]{}, options{}, callback)</a>
 - <a href="#fat.destroy">Fat.__destroy__()</a>
+<!-- - <a href="#fat.init">Fat.__init__()</a> -->
 
 Controller methods:
-- <a href="#scene.pause">Scene.__pause__(toggle)</a>
-- <a href="#scene.reverse">Scene.__reverse__(toggle)</a>
+- <a href="#scene.pause">Scene.__pause__(boolean)</a>
+- <a href="#scene.reverse">Scene.__reverse__(boolean)</a>
+- <a href="#scene.start">Scene.__start__(boolean)</a>
+- <a href="#scene.finish">Scene.__finish__(boolean)</a>
+- <a href="#scene.reset">Scene.__reset__(boolean)</a>
 - <a href="#scene.loop">Scene.__loop__(int)</a>
+- <a href="#scene.seek">Scene.__shift__(int)</a>
 - <a href="#scene.seek">Scene.__seek__(float)</a>
 - <a href="#scene.speed">Scene.__speed__(float)</a>
-- <a href="#scene.start">Scene.__start__(toggle)</a>
-- <a href="#scene.reset">Scene.__reset__()</a>
-- <a href="#scene.finish">Scene.__finish__(boolean)</a>
 
 <a name="options"></a>
-## Options
+## Scene Options
+
+<table>
+    <tr></tr>
+    <tr>
+        <td align="left">Option</td>
+        <td align="left">Type</td>
+        <td align="left">Default</td>
+        <td align="left">Description</td>
+    </tr>
+    <tr>
+        <td align="left"><b>autoplay</b></td>
+        <td align="left"><i>Boolean</i></td>
+        <td align="left">true</td>
+        <td align="left"></td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td align="left"><b>fps</b></td>
+        <td align="left"><i>Number</i></td>
+        <td align="left">60</td>
+        <td align="left"></td>
+    </tr>
+</table>
+
+<a name="options"></a>
+## Animation Options
 
 <table>
     <tr></tr>
@@ -738,14 +774,14 @@ Controller methods:
         <td align="left"><b>callback</b></td>
         <td align="left"><i>Function</i></td>
         <td align="left">null</td>
-        <td align="left">Callback function to be called when the animation is finished.</td>
+        <td align="left">Function to be called when the animation is finished.</td>
     </tr>
     <tr></tr>
     <tr>
         <td align="left"><b>step</b></td>
         <td align="left"><i>Function(progress, value)</i></td>
         <td align="left">null</td>
-        <td align="left">Step function to be called on each tick (progress: the current state of progress between 0 and 1, value: the current value including the unit, just important when using <a href="#custom">custom properties</a>).</td>
+        <td align="left">Function to be called on each tick (progress: the current state of progress between 0 and 1, value: the current value including the unit, helpful when using <a href="#custom">custom properties</a>).</td>
     </tr>
     <tr></tr>
     <tr>
@@ -786,28 +822,30 @@ Controller methods:
 
 ## Basic Usage
 <a name="fat.animate"></a>
-> Fat.__animate__(selector[] | elements[], styles[]{}, options{})
+> Fat.__animate__(selector[] | elements[], styles[]{}, options{}, callback)
 
 ```js
 Fat.animate("#mydiv", { left: "100px" },{ /* options */ });
 ```
 
+> Pass in an element, an array of elements or a dom query selector.
+
 ```js
 Fat.animate("#mydiv", { 
-    left: "100px",
+    left: "100px", 
     top: "100px"
 },{ 
     delay: 1000,
     duration: 2000,
     ease: "easeInOut",
     callback: function(){ 
-        // done
-        console.log(this.style.left); // "this" refers to #mydiv
+        // "this" refers to #mydiv
+        console.log(this.style.left);
     }
 });
 ```
 
-> See all available <a href="#options">options</a> above
+> See all available <a href="#options">options</a> above.
 
 Pass in custom options for each style property:
 
@@ -830,51 +868,81 @@ Fat.animate("#mydiv", {
 });
 ```
 
-<a name="relative"></a>
-Use relative values:
+> Passing a unit parameter is slightly faster.
 
+"From-To-Unit" Shortcut `property: [from, to, unit]`:
 ```js
-Fat.animate("#mydiv", { 
-    left: "+=100px",
-    top: "*=2"
+Fat.animate("#mydiv", {
+    left: [0, 100, "%"], // from 0%  to 100%
+    top: [0, "100%"],
 });
 ```
 
+Alternatively pass the callback function as the last parameter:
 ```js
 Fat.animate("#mydiv", { 
-    left: "-=100px",
-    top: "/=2"
-});
-```
-
-Alternatively just pass the callback as the last parameter:
-
-```js
-Fat.animate("#mydiv", { 
-    
     left: "100px", 
     top: "100px" 
 },{ 
     delay: 2000,
     duration: 2000,
     ease: "easeInOut"
-    
+
 }, function(){
     
-    // callback
+    // done
 });
 ```
 
 ```js
 Fat.animate("#mydiv", { top: "100px" }, function(){
-    
-    // callback
+    // done
 });
+```
+
+```js
+Fat.animate("#mydiv", "slideIn", function(){
+    // done
+});
+```
+
+Delay an animation until the target element comes into view (e.g. by scrolling):
+
+```js
+Fat.animate("#mydiv", { top: "100px" }, { delay: "view" });
+```
+
+<a name="relative"></a>
+## Relative Values:
+
+Calculate values depending on the current state:
+```js
+// current left + 100px
+Fat.animate("#mydiv", { left: "+=100px" });
+```
+```js
+// double of current top
+Fat.animate("#mydiv", { top: "*=2" });
+```
+```js
+// current left - 100px
+Fat.animate("#mydiv", { left: "-=100px", });
+```
+```js
+// half of current top
+Fat.animate("#mydiv", { top: "/=2" });
+```
+
+Toggle values depending on the current state:
+```js
+// toggle current left (100% or 0%)
+Fat.animate("#mydiv", { left: "!=100%" });
 ```
 
 <a name="transform"></a>
 ## Transform
 
+Separate notation provides the best performance:
 ```js
 Fat.animate("#mydiv", { 
     translateX: "100px",
@@ -883,17 +951,20 @@ Fat.animate("#mydiv", {
 ```
 
 same as:
-
 ```js
-Fat.transform("#mydiv", ...
+Fat.transform("#mydiv", { ... });
 ```
 
-same as (has lower performance):
-
+alternatively:
 ```js
 Fat.animate("#mydiv", { 
     "transform": "translate(100px, 100px)"
 });
+```
+
+same as:
+```js
+Fat.transform("#mydiv", "translate(100px, 100px)");
 ```
 
 <a name="colors"></a>
@@ -907,8 +978,7 @@ Fat.animate("#mydiv", {
 });
 ```
 
-Animate color channels directly (also improves performance):
-
+Separate notation provides the best performance:
 ```js
 Fat.animate("#mydiv", { 
     colorR: 0,
@@ -923,6 +993,7 @@ Fat.animate("#mydiv", {
 <a name="filter"></a>
 ## Filter
 
+Separate notation provides the best performance:
 ```js
 Fat.animate("#mydiv", { 
     brightness: 0.5,
@@ -936,16 +1007,22 @@ Fat.animate("#mydiv", {
 same as:
 
 ```js
-Fat.filter("#mydiv", ...
+Fat.filter("#mydiv", { ... });
 ```
 
-same as (has lower performance):
+alternatively:
 
 ```js
 Fat.animate("#mydiv", { 
     "filter": "brightness(0.5) contrast(0.5) hue(180deg)"
 });
 ```
+
+same as:
+```js
+Fat.filter("#mydiv", "brightness(0.5) contrast(0.5) hue(180deg)");
+```
+
 
 <a name="easing"></a>
 ## Easing
@@ -973,7 +1050,6 @@ Define custom static easing function (1-parameter style):
 
 ```js
 Fat.ease["linear"] = function(x){
-    
     return x;
 };
 ```
@@ -984,7 +1060,6 @@ Define custom static easing function (4-parameter style):
 
 ```js
 Fat.ease["linear"] = function(t, b, c, d){
-    
     return b + (c - b) * (t / d);
 };
 ```
@@ -1010,7 +1085,6 @@ Shorthand array notation for a bezier is recommended:
 Define custom __dynamic easing__ function (1-parameter style):
 ```js
 Fat.animate("#mydiv", { left: "100px" },{ ease: function(x){
-    
     // doing some crazy calculations depends on runtime
     return x;
 }});
@@ -1019,7 +1093,6 @@ Fat.animate("#mydiv", { left: "100px" },{ ease: function(x){
 Define custom __dynamic easing__ function (4-parameter style):
 ```js
 Fat.animate("#mydiv", { left: "100px" },{ ease: function(t, b, c, d){
-    
     // doing some crazy calculations depends on runtime
     return x;
 }});
@@ -1033,30 +1106,39 @@ Fat.animate("#mydiv", { left: "100px" },{ ease: function(t, b, c, d){
 
 Just add a property with the name "custom":
 ```js
-Fat.animate("#mydiv", { custom: "50%" },{ ease: "cubicInOut", step: function(progress, current){
-
-    this.style.left = current;
-}});
+Fat.animate("#mydiv", { 
+    custom: "50%" 
+},{  
+    ease: "cubicInOut", 
+    step: function(progress, current){
+        this.style.left = current;
+    }
+});
 ```
 
 Handle unit separately:
 ```js
-Fat.animate("#mydiv", { custom: 50 },{ ease: "cubicInOut", step: function(progress, current){
-
-    this.style.left = current + "%";
-}});
+Fat.animate("#mydiv", { 
+    custom: 50 
+},{ 
+    ease: "cubicInOut", 
+    step: function(progress, current){
+        this.style.left = current + "%";
+    }
+});
 ```
 
 Pass in custom object/function as first parameter instead of an element:
 ```js
-Fat.animate({
-    css: document.getElementById("mydiv").style
-},{
+Fat.animate({ 
+    style: document.getElementById("mydiv").style 
+},{ 
     custom: 50
-},{
+ },{
     ease: "cubicInOut",
     step: function(progress, current){
-        this.css.left = current + "%"; // "this" refers to the custom object
+        // "this" refers to the custom object
+        this.style.left = current + "%";
     }
 });
 ```
@@ -1079,7 +1161,8 @@ var handler = {
 Fat.animate(handler, { custom: 50 },{
     ease: "cubicInOut",
     step: function(progress, current){
-        this.set("left", current); // "this" refers to the handler
+        // "this" refers to handler
+        this.set("left", current);
     }
 });
 ```
@@ -1095,8 +1178,7 @@ function cubicInOut(x) {
     return ((x *= 2) <= 1 ? x*x*x : (x -= 2) *x*x + 2) / 2;
 }
 
-Fat.animate({ ease: cubicInOut }, { custom: true },{ step: function(progress){
-    
+Fat.animate({ ease: cubicInOut },{ custom: true },{ step: function(progress){
     var current = this.ease(progress); // "this" refers to the custom object
     // console.log(current);
 }});
@@ -1104,8 +1186,7 @@ Fat.animate({ ease: cubicInOut }, { custom: true },{ step: function(progress){
 
 alternatively:
 ```js
-Fat.animate({}, { custom: true },{ step: function(progress){
-    
+Fat.animate({},{ custom: true },{ step: function(progress){
     var current = cubicInOut(progress);
     // console.log(current);
 }});
@@ -1113,14 +1194,13 @@ Fat.animate({}, { custom: true },{ step: function(progress){
 
 or:
 ```js
-Fat.animate({}, { custom: 1 },{ ease: cubicInOut, step: function(progress, current){
-
+Fat.animate({},{ custom: 1 },{ ease: cubicInOut, step: function(progress, current){
     // console.log(current);
 }});
 ```
 
 <a name="sequences"></a>
-## Sequences
+## Sequences &nbsp;<small style="float:right">_`SUPPORT_SEQUENCE=true`_</small>
 
 ```js
 Fat.animate("#mydiv", [
@@ -1157,7 +1237,7 @@ Fat.animate("#mydiv", [{
 ```
 
 <a name="keyframes"></a>
-## Keyframes
+## Keyframes &nbsp;<small style="float:right">_`SUPPORT_SEQUENCE=true`_</small>
 
 ```js
 Fat.animate("#mydiv", {
@@ -1176,7 +1256,6 @@ Use custom options per style property:
 
 ```js
 Fat.animate("#mydiv", {
-    
     "0%": {   
         left: {
             to: "100%",
@@ -1197,7 +1276,6 @@ You can also combine Sequences and Keyframes as well as custom options per style
 
 ```js
 Fat.animate("#mydiv", [{
-    
     "0%": {   
         left: 0,
         top: 0
@@ -1265,7 +1343,7 @@ Fat.animate("#mydiv", "fade-out-down");
 
 __Builtin Presets:__
 - fadeIn, fadeOut, fadeToggle
-- slideUp, slideDown, slideToggle
+- slideUp, slideDown, slideIn
 - slideInLeft, slideOutLeft, slideToggleLeft
 - slideInRight, slideOutRight, slideToggleRight
 - slideInTop, slideOutTop, slideToggleTop
@@ -1273,6 +1351,7 @@ __Builtin Presets:__
 - zoomIn, zoomOut, zoomToggle
 - rollIn, rollOut, rollToggle
 - blurIn, blurOut, blurToggle
+- scrollUp, scrollDown, scrollLeft, scrollRight
 
 <a name="scenes"></a>
 ## Scenes (Groups)
@@ -1298,11 +1377,13 @@ Destroy scene:
 scene.destroy();
 ```
 
+<!--
 Re-initialize styles before next update:
 <a name="fat.init"></a>
 ```js
 scene.init();
 ```
+-->
 
 <a name="controls"></a>
 ## Controls
@@ -1380,6 +1461,82 @@ scene.seek(0.5); // half
 scene.seek(1);   // end
 ```
 
+<a name="scroll"></a>
+## Scroll
+
+> Use `document` to scroll the body of the page or pass a custom element or a selector.
+
+Scroll document/element to a specific position (vertically):
+```js
+Fat.animate(document, { scrollTop: 500 });
+```
+
+Same as:
+```js
+Fat.animate(document, { scroll: 500 });
+```
+
+Scroll horizontally:
+```js
+Fat.animate(element, { scrollLeft: 500 });
+```
+
+Scroll in both directions `scroll: [x, y]`:
+```js
+Fat.animate(element, { scroll: [500, 500] });
+```
+
+Use relative values:
+```js
+Fat.animate(document, { scroll: "+=50" });
+```
+
+<!--
+Scroll to an element:
+```js
+Fat.animate(document, { scroll: "#mydiv" });
+```
+
+Scroll to an element and apply an offset:
+```js
+Fat.animate(document, { scroll: "#mydiv", offset: 50 });
+```
+-->
+
+<!--
+__Control animations via scroll__:
+
+> This features requires `SUPPORT_CONTROL=true`
+
+```js
+Fat.animate(element, { top: 500 }, { scroll: "#mydiv" });
+```
+-->
+
+<a name="paint"></a>
+## Paint
+
+Schedule a task to perform during next animation frame:
+
+```js
+Fat.paint(function(time){
+
+    console.log("Now: " + time);
+});
+```
+
+Loop a task with every animation frame:
+
+```js
+Fat.paint(function(time){
+
+    console.log("Now: " + time);
+    return true;
+});
+```
+
+> Just return _true_ to keep the loop alive.
+
 <a name="engine"></a>
 ## Render Engines
 
@@ -1396,27 +1553,6 @@ scene.seek(1);   // end
         <td>Javascript (Default)</td>
         <td>CSS Transition</td>
         <td>Web Animation API</td>
-    </tr>
-    <tr></tr>
-    <tr>
-        <td>Support Control</td>
-        <td>x</td>
-        <td>-</td>
-        <td>-</td>
-    </tr>
-    <tr></tr>
-    <tr>
-        <td>Support SVG</td>
-        <td>x</td>
-        <td>-</td>
-        <td>-</td>
-    </tr>
-    <tr></tr>
-    <tr>
-        <td>Support Scenes</td>
-        <td>x</td>
-        <td>x</td>
-        <td>x</td>
     </tr>
     <tr>
         <td>File Size (gzip)</td>
@@ -1538,6 +1674,11 @@ __Supported Build Flags__
     </tr>
     <tr></tr>
     <tr>
+        <td><a href="#paint">SUPPORT_PAINT</a></td>
+        <td>true, false</td>
+    </tr>
+    <tr></tr>
+    <tr>
         <td><a href="#relative">SUPPORT_RELATIVE</a></td>
         <td>true, false</td>
     </tr>
@@ -1553,7 +1694,7 @@ __Supported Build Flags__
     </tr>
         <tr></tr>
         <tr>
-        <td><a href="#easing">SUPPORT_PRESET</a></td>
+        <td><a href="#presets">SUPPORT_PRESET</a></td>
         <td>true, false</td>
     </tr>
     <tr></tr>

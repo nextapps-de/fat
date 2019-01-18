@@ -55,6 +55,16 @@
 		return color;
 	}
 
+	function getNextColorRGB(){
+
+		return [
+
+			(Math.random() * 256) >> 0,
+			(Math.random() * 256) >> 0,
+			(Math.random() * 256) >> 0
+		];
+	}
+
 	// #############################################################################################################
 
 	animateBall.FAT = function(){
@@ -77,6 +87,12 @@
 			});
 		}
 	};
+
+	// var color = getNextColorRGB();
+	// backgroundColor: "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")",
+	// backgroundColorR: color[0],
+	// backgroundColorG: color[1],
+	// backgroundColorB: color[2]
 
 	colorBall.FAT = function(){
 

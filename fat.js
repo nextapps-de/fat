@@ -1,5 +1,5 @@
 ;/**!
- * @preserve FAT v0.6.1
+ * @preserve FAT v0.6.2
  * Copyright 2019 Nextapps GmbH
  * Author: Thomas Wilkerling
  * Released under the Apache 2.0 Licence
@@ -15,6 +15,7 @@
 /** @define {boolean} */ const SUPPORT_SCROLL = true;
 /** @define {boolean} */ const SUPPORT_RELATIVE = true;
 /** @define {boolean} */ const SUPPORT_CONCURRENCY = true;
+/** @define {boolean} */ const SUPPORT_PAINT = true;
 /** @define {boolean} */ const SUPPORT_EASING = true;
 /** @define {boolean} */ const SUPPORT_PRESET = true;
 /** @define {string} */  const SUPPORT_ENGINE = "";
@@ -34,7 +35,7 @@
         const prefetch = {};
         const easing = {};
 
-        let paint;
+        let unique;
 
         const vendor = (SUPPORT_TRANSFORM || SUPPORT_TRANSITION || SUPPORT_FILTER) && (function(){
 
@@ -260,30 +261,19 @@
         /**
          * @dict
          * @const
-         * @final
          */
 
-        const effects = {
+        const presets = {
 
-            "fadeIn": {
-                "opacity": 1
-            },
-            "fadeOut": {
-                "opacity": 0
-            },
-            "fadeToggle": {
-                "opacity": "!=1"
-            },
-
-            "slideUp": SUPPORT_TRANSFORM ? { "translateY": 0 } : { "top": 0 },
-            "slideDown": SUPPORT_TRANSFORM ? { "translateY": "100%" } : { "top": "100%" },
-            "slideToggle": SUPPORT_TRANSFORM ? { "translateY": "!=100%" } : { "top": "!=100%" },
+            "fadeIn": { "opacity": 1 },
+            "fadeOut": { "opacity": 0 },
+            "fadeToggle": { "opacity": "!=1" },
 
             "slideInLeft": SUPPORT_TRANSFORM ? { "translateX": 0 } : { "left": 0 },
             "slideOutLeft": SUPPORT_TRANSFORM ? { "translateX": "-100%" } : { "left": "-100%" },
             "slideToggleLeft": SUPPORT_TRANSFORM ? { "translateX": "!=-100%" } : { "left": "!=-100%" },
 
-            "slideInRight": SUPPORT_TRANSFORM ? { "translateX": 0 } : { "left": 0 },
+            //"slideInRight": SUPPORT_TRANSFORM ? { "translateX": 0 } : { "left": 0 },
             "slideOutRight": SUPPORT_TRANSFORM ? { "translateX": "100%" } : { "left": "100%" },
             "slideToggleRight": SUPPORT_TRANSFORM ? { "translateX": "!=100%" } : { "left": "!=100%" },
 
@@ -291,34 +281,44 @@
             "slideOutTop": SUPPORT_TRANSFORM ? { "translateY": "-100%" } : { "top": "-100%" },
             "slideToggleTop": SUPPORT_TRANSFORM ? { "translateY": "!=-100%" } : { "top": "!=-100%" },
 
-            "slideInBottom": SUPPORT_TRANSFORM ? { "translateY": 0 } : { "top": 0 },
+            //"slideInBottom": SUPPORT_TRANSFORM ? { "translateY": 0 } : { "top": 0 },
             "slideOutBottom": SUPPORT_TRANSFORM ? { "translateY": "100%" } : { "top": "100%" },
             "slideToggleBottom": SUPPORT_TRANSFORM ? { "translateY": "!=100%" } : { "top": "!=100%" },
 
             "zoomIn": SUPPORT_TRANSFORM ? { "scaleX": 1, "scaleY": 1 } : { "width": "100%", "height": "100%" },
             "zoomOut": SUPPORT_TRANSFORM ? { "scaleX": 0, "scaleY": 0 } : { "width": 0, "height": 0 },
             "zoomToggle": SUPPORT_TRANSFORM ? { "scaleX": "!=1", "scaleY": "!=1" } : { "width": "!=100%", "height": "!=100%" },
-
-            "rollIn": {
-                "rotateZ": "0deg"
-            },
-            "rollOut": {
-                "rotateZ": "720deg"
-            },
-            "rollToggle": {
-                "rotateZ": "!=720deg"
-            },
-
-            "blurIn": {
-                "blur": "0em"
-            },
-            "blurOut": {
-                "blur": "5em"
-            },
-            "blurToggle": {
-                "blur": "!=5em"
-            }
         };
+
+        if(SUPPORT_PRESET){
+
+            presets["slideUp"] = presets["slideOutTop"];
+            presets["slideDown"] = presets["slideOutBottom"];
+            presets["slideIn"] = presets["slideInBottom"] = presets["slideInTop"];
+            presets["slideInRight"] = presets["slideInLeft"];
+        }
+
+        if(SUPPORT_TRANSFORM){
+
+            presets["rollIn"] = { "rotateZ": "0deg" };
+            presets["rollOut"] = { "rotateZ": "720deg" };
+            presets["rollToggle"] = { "rotateZ": "!=720deg" };
+        }
+
+        if(SUPPORT_FILTER){
+
+            presets["blurIn"] = { "blur": "0em" };
+            presets["blurOut"] = { "blur": "5em" };
+            presets["blurToggle"] = { "blur": "!=5em" };
+        }
+
+        if(SUPPORT_SCROLL){
+
+            presets["scrollUp"] = { "scrollTop": 0 };
+            presets["scrollDown"] = { "scrollTop": "100%" };
+            presets["scrollLeft"] =  { "scrollLeft": 0 };
+            presets["scrollRight"] = { "scrollLeft": "100%" };
+        }
 
         /**
          * @param obj
@@ -332,7 +332,7 @@
          * @param ease_str
          * @param callback
          * @param step
-         * @param {number} delay
+         * @param {number|string} delay
          * @param {number=} loop
          * @param {string=} style_id
          * @param {string=} filter
@@ -437,7 +437,7 @@
             JobPrototype.animate = function(time, ratio, direction){
 
                 const style_id = SUPPORT_CONCURRENCY && this.style_id;
-                const bypass = (this.from === this.to) || (style_id && paint[style_id]);
+                const bypass = (this.from === this.to) || (style_id && unique[style_id]);
                 const obj = this.obj;
                 const stamp = Math.max((time - (this.start || (this.start = (time /*+ this.delay*/)))) * (SUPPORT_CONTROL ? ratio : 1), 0);
                 const complete = stamp >= this.duration;
@@ -446,7 +446,7 @@
 
                 if(!bypass){
 
-                    style_id && (paint[style_id] = 1);
+                    style_id && (unique[style_id] = 1);
 
                     if(complete){
 
@@ -632,7 +632,18 @@
 
                     if(this.delay) {
 
-                        if((this.delay -= delay) > 0){
+                        if(SUPPORT_SCROLL && (this.delay === "view")){
+
+                            if(is_visible(this.obj)){
+
+                                this.delay = 0;
+                            }
+                            else{
+
+                                return true;
+                            }
+                        }
+                        else if((this.delay -= delay) > 0){
 
                             return true;
                         }
@@ -729,7 +740,6 @@
         /**
          * @const
          * @dict
-         * @final
          */
 
         const color_keys = SUPPORT_COLOR ? (function(obj){
@@ -761,7 +771,6 @@
         /**
          * @const
          * @dict
-         * @final
          */
 
         const transform_keys = SUPPORT_TRANSFORM ? (function(obj){
@@ -787,7 +796,6 @@
         /**
          * @const
          * @dict
-         * @final
          */
 
         const matrix2d_index = {
@@ -804,7 +812,6 @@
          * Note: value + 1
          * @const
          * @dict
-         * @final
          */
 
         const filter_default_values = {
@@ -1086,7 +1093,11 @@
                 this.stack = [];
                 this.render = render_frames.bind(this);
                 this.exec = 0;
-                //this.resync = false;
+
+                if(SUPPORT_PAINT){
+
+                    this.paint_stack = [];
+                }
 
                 if(SUPPORT_CONTROL){
 
@@ -1113,13 +1124,18 @@
             FatPrototype.animate = animate;
             /** @export */
             FatPrototype.destroy = destroy;
-            /** @export */
             //FatPrototype.init = init;
             /** @export */
             FatPrototype.create = function(){
 
                 return new Fat();
             };
+
+            if(SUPPORT_PAINT){
+
+                /** @export */
+                FatPrototype.paint = paint;
+            }
 
             if(SUPPORT_EASING){
 
@@ -1130,19 +1146,41 @@
             if(SUPPORT_PRESET){
 
                 /** @export */
-                FatPrototype.preset = effects;
+                FatPrototype.preset = presets;
             }
 
             if(SUPPORT_TRANSFORM){
 
                 /** @export */
-                FatPrototype.transform = animate;
+                FatPrototype.transform = function(obj, styles, config, callback){
+
+                    if(is_string(styles)){
+
+                        styles = {
+
+                            "transform": styles
+                        }
+                    }
+
+                    return this.animate(obj, styles, config, callback);
+                };
             }
 
             if(SUPPORT_FILTER){
 
                 /** @export */
-                FatPrototype.filter = animate;
+                FatPrototype.filter = function(obj, styles, config, callback){
+
+                    if(is_string(styles)){
+
+                        styles = {
+
+                            "filter": styles
+                        }
+                    }
+
+                    return this.animate(obj, styles, config, callback);
+                };
             }
 
             if(SUPPORT_CONTROL){
@@ -1306,6 +1344,11 @@
                 this.exec = 0;
                 this.stack = [];
 
+                if(SUPPORT_PAINT){
+
+                    this.paint_stack = [];
+                }
+
                 if(SUPPORT_CONCURRENCY && obj_counter && (reset_style_id === this.id)){
 
                     reset_style_id = 0;
@@ -1319,15 +1362,6 @@
 
             return this;
         }
-
-        /*
-        function init(){
-
-            this.resync = true;
-
-            return this;
-        }
-        */
 
         /**
          * @const
@@ -1387,37 +1421,59 @@
         function render_frames(time){
 
             let len = this.stack.length;
+            let len_paint = SUPPORT_PAINT && this.paint_stack.length;
 
-            if(len){
+            if(len || len_paint){
 
                 this.exec = requestAnimationFrame(this.render);
 
-                if(SUPPORT_CONCURRENCY && obj_counter){
+                let in_progress = false;
 
-                    if(!reset_style_id){
+                if(len){
 
-                        paint = {};
-                        reset_style_id = this.id;
+                    if(SUPPORT_CONCURRENCY && obj_counter){
+
+                        if(!reset_style_id){
+
+                            unique = {};
+                            reset_style_id = this.id;
+                        }
+                        else if(reset_style_id === this.id){
+
+                            unique = {};
+                        }
                     }
-                    else if(reset_style_id === this.id){
 
-                        paint = {};
+                    for(let i = 0; i < len; i++){
+
+                        const current_job = this.stack[i];
+
+                        if(current_job){
+
+                            in_progress = true;
+
+                            if(!current_job.render_job(this, time)){
+
+                                this.stack[i] = null;
+                            }
+                        }
                     }
                 }
 
-                let in_progress = false;
+                if(len_paint){
 
-                for(let i = 0; i < len; i++){
+                    for(let i = 0; i < len_paint; i++){
 
-                    const current_job = this.stack[i];
+                        const current_job = this.paint_stack[i];
 
-                    if(current_job){
+                        if(current_job){
 
-                        in_progress = true;
+                            in_progress = true;
 
-                        if(!current_job.render_job(this, time)){
+                            if(!current_job(time)){
 
-                            this.stack[i] = null;
+                                this.paint_stack[i] = null;
+                            }
                         }
                     }
                 }
@@ -1977,7 +2033,6 @@
 
         function merge_transform(transform, order){
 
-
             let str = "";
 
             for(let i = 0, len = order.length; i < len; i++){
@@ -2192,6 +2247,44 @@
             return parseFloat(values[matrix2d_index[style]]) || "";
         }
 
+        function parse_keyframes(styles, style_keys, style_length, config_duration){
+
+            const sequences = new Array(style_length);
+
+            for(let i = 0; i < style_length; i++){
+
+                const key = style_keys[i];
+
+                const position = parseInt(key, 10);
+                const position_last = i > 0 ? parseInt(style_keys[i - 1], 10) : 0;
+                const interval = position - position_last;
+                const style = styles[key];
+
+                const inner_style_keys = Object.keys(style);
+                const inner_style_length = inner_style_keys.length;
+
+                for(let a = 0; a < inner_style_length; a++){
+
+                    const inner_key = inner_style_keys[a];
+                    let inner_style = style[inner_key];
+
+                    if(is_undefined(inner_style["to"])) {
+
+                        style[inner_key] = inner_style = {
+
+                            "to": inner_style
+                        };
+                    }
+
+                    inner_style["duration"] = (config_duration / 100 * interval + 1) >> 0;
+                }
+
+                sequences[i] = style;
+            }
+
+            return sequences;
+        }
+
         /**
          * @param {Array<(Node|null)>|Node|NodeList|string|null} obj
          * @param {Object<string, number|string|Object>|Array<Object>|string|Array<string>} styles
@@ -2218,12 +2311,12 @@
 
                     if(styles.indexOf(" ") === -1){
 
-                        if(DEBUG && !effects[styles]){
+                        if(DEBUG && !presets[styles]){
 
                             console.error("Effect not found: " + styles);
                         }
 
-                        styles = effects[styles];
+                        styles = presets[styles];
                     }
                     else{
 
@@ -2233,12 +2326,12 @@
 
                         for(let i = 0, len = styles.length; i < len; i++){
 
-                            if(DEBUG && !effects[styles[i]]){
+                            if(DEBUG && !presets[styles[i]]){
 
                                 console.error("Effect not found: " + styles[i]);
                             }
 
-                            const effect = effects[styles[i]];
+                            const effect = presets[styles[i]];
                             const keys = Object.keys(effect);
 
                             for(let a = 0; a < keys.length; a++){
@@ -2285,7 +2378,7 @@
 
                 obj = get_nodes(obj);
 
-                let config_delay = config["delay"] || 0;
+                let config_delay = config["delay"];
                 let config_duration = config["duration"] || 400;
                 let config_ease = (SUPPORT_EASING ? parse_bezier(config["ease"]) : config["ease"]) || "";
 
@@ -2298,38 +2391,7 @@
 
                     if(key[key.length - 1] === "%"){
 
-                        sequences = new Array(style_length);
-
-                        for(let i = 0; i < style_length; i++){
-
-                            key = style_keys[i];
-
-                            const position = parseInt(key, 10);
-                            const position_last = i > 0 ? parseInt(style_keys[i - 1], 10) : 0;
-                            const interval = position - position_last;
-                            const style = styles[key];
-
-                            const inner_style_keys = Object.keys(style);
-                            const inner_style_length = inner_style_keys.length;
-
-                            for(let a = 0; a < inner_style_length; a++){
-
-                                const inner_key = inner_style_keys[a];
-                                let inner_style = style[inner_key];
-
-                                if(is_undefined(inner_style["to"])) {
-
-                                    style[inner_key] = inner_style = {
-
-                                        "to": inner_style
-                                    };
-                                }
-
-                                inner_style["duration"] = (config_duration / 100 * interval + 1) >> 0;
-                            }
-
-                            sequences[i] = style;
-                        }
+                        sequences = parse_keyframes(styles, style_keys, style_length, config_duration);
 
                         styles = sequences[0];
                         style_keys = Object.keys(styles);
@@ -2338,10 +2400,10 @@
                 }
 
                 const config_callback = callback || config["callback"] || (SUPPORT_SEQUENCE && sequences && function(){/* TODO: mark last style */});
-                const config_step = config["step"] || 0;
-                const config_force = config["force"] || 0;
-                const config_strict = SUPPORT_CONCURRENCY && (config["strict"] || 0);
-                const config_init = /*this.resync ||*/ config["init"];
+                const config_step = config["step"];
+                const config_force = config["force"];
+                const config_strict = SUPPORT_CONCURRENCY && config["strict"];
+                const config_init = config["init"];
                 const config_loop = SUPPORT_SEQUENCE && config["loop"];
 
                 let last_transform;
@@ -2367,10 +2429,8 @@
 
                                     let tmp = prop_keys[i];
 
-                                    style_keys.push(tmp);
+                                    style_keys[style_length++] = tmp;
                                     styles[tmp] = props[tmp];
-
-                                    style_length++;
                                 }
 
                                 last_transform = prop_keys[prop_keys.length - 1];
@@ -2416,11 +2476,9 @@
                                         tmp = "hue-rotate";
                                     }
 
-                                    style_keys.push(tmp);
+                                    style_keys[style_length++] = tmp;
                                     styles[tmp] = props[tmp];
-
                                     last_filter = tmp;
-                                    style_length++;
                                 }
 
                                 if(SUPPORT_COLOR){
@@ -2471,20 +2529,20 @@
                                     const color = parse_color(value, key);
                                     let tmp, val;
 
-                                    style_keys.push(tmp = key + "R");
+                                    style_keys[style_length++] = (tmp = key + "R");
                                     styles[tmp] = color[tmp];
 
-                                    style_keys.push(tmp = key + "G");
+                                    style_keys[style_length++] = (tmp = key + "G");
                                     styles[tmp] = color[tmp];
 
-                                    style_keys.push(tmp = key + "B");
+                                    style_keys[style_length++] = (tmp = key + "B");
                                     styles[tmp] = color[tmp];
 
                                     const has_alpha = !is_undefined(val = color[tmp = key + "A"]);
 
                                     if(has_alpha){
 
-                                        style_keys.push(tmp);
+                                        style_keys[style_length++] = tmp;
                                         styles[tmp] = val;
                                         key = tmp;
                                     }
@@ -2493,7 +2551,6 @@
                                         key = key + "B";
                                     }
 
-                                    style_length += has_alpha ? 4 : 3;
                                     color_type *= -1;
                                 }
 
@@ -2529,9 +2586,6 @@
                     let value = styles[key];
                     let from;
                     let unit;
-
-                    const last = (k === style_length - 1);
-                    const job_id = "_fat_" + key + this.id;
 
                     if(typeof value === "object"){
 
@@ -2596,6 +2650,32 @@
                             }
                         }
                     }
+
+                    if(value.constructor === Array){
+
+                        if(SUPPORT_SCROLL){
+
+                            if(key === "scroll"){
+
+                                let tmp;
+
+                                style_keys[style_length++] = (tmp = "scrollLeft");
+                                styles[tmp] = value[0];
+
+                                style_keys[style_length++] = (tmp = "scrollTop");
+                                styles[tmp] = value[1];
+
+                                continue;
+                            }
+                        }
+
+                        from = value[0];
+                        unit = value[2];
+                        value = value[1];
+                    }
+
+                    const last = (k === style_length - 1);
+                    const job_id = "_fat_" + key + this.id;
 
                     for(let i = 0, len = obj.length; i < len; i++){
 
@@ -2730,13 +2810,6 @@
                     }
                 }
 
-                /*
-                if(config_init){
-
-                    this.resync = false;
-                }
-                */
-
                 if(!this.exec){
 
                     this.exec = requestAnimationFrame(this.render)
@@ -2744,6 +2817,16 @@
             }
 
             return this;
+        }
+
+        function paint(fn){
+
+            this.paint_stack[this.paint_stack.length] = fn;
+
+            if(!this.exec){
+
+                this.exec = requestAnimationFrame(this.render)
+            }
         }
 
         /**
@@ -2850,7 +2933,17 @@
 
         function set_style(css, key, value, force){
 
-            css.setProperty(key, value, force ? "important" : void 0);
+            if(force){
+
+                css.setProperty(key, value, "important");
+            }
+            else{
+
+                css.setProperty(key, value);
+            }
+
+            // Note: Edge actually do not apply style changes when passing void 0:
+            // css.setProperty(key, value, force ? "important" : void 0);
         }
 
         /**

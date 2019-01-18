@@ -5,27 +5,34 @@
 	<title>Test: Delay</title>
 	<style>
 		.square{
-			position: absolute;
+			position: relative;
 			display: inline-block;
 			left:0;
 			width: auto;
 			height: auto;
 			vertical-align: text-bottom;
+			color: #fff;
 			background-color: #000;
 			padding: 20px;
-			margin-bottom: 5%;
 		}
 	</style>
 </head>
 <body>
-<div id="square_1" class="square"></div><br>
-<div id="square_2" class="square"></div><br>
-<div id="square_3" class="square"></div><br>
+<div id="square_1" class="square">1</div><br>
+<div id="square_2" class="square">2</div><br>
+<div id="square_3" class="square">3</div><br>
+<br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br>
+<div id="square_4" class="square">4</div><br>
 <script type="text/javascript" src="../fat.js"></script>
 <script>
 	Fat.animate("#square_1", { left: "50%" },{ delay:   0 })
 	   .animate("#square_2", { left: "50%" },{ delay: 400 })
-	   .animate("#square_3", { left: "50%" },{ delay: 800 });
+	   .animate("#square_3", { left: "50%" },{ delay: 800 })
+	   .animate("#square_4", { left: "50%" },{ delay: "scroll" });
 </script>
 </body>
 </html>
