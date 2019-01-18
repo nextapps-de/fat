@@ -229,7 +229,7 @@ __"Animate" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.3</td>
+        <td>0.6.4</td>
         <td>1.9 kb</td>
         <td>0.85 Mb</td>
         <td>0.15 Mb</td>
@@ -428,7 +428,7 @@ __"Transforms" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.3</td>
+        <td>0.6.4</td>
         <td><b>91960</b></td>
         <td><b>46.1</b></td>
     </tr>
@@ -528,7 +528,7 @@ __"Colors" (2000 Flashing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.3</td>
+        <td>0.6.4</td>
         <td><b>113950</b></td>
         <td><b>57</b></td>
     </tr>
@@ -659,6 +659,8 @@ _Browser: Chrome (Desktop), Test Duration: 30 sec (median value)_<br>
 _* Memory Heap: The size of memory the animations requires to execute_<br>
 _** Memory Allocation: The amount of memory which was allocated during animation runtime_
 
+Library Comparison: <a href="https://nextapps-de.github.io/fat/" target="_blank">Benchmark "Bouncing Balls"</a>
+
 <a name="installation"></a>
 ## Installation
 
@@ -700,24 +702,26 @@ var Fat = require("./fat.min.js");
 <a name="api"></a>
 ## API Overview
 
-Global methods / Scene methods:
-- <a href="#fat.animate">Fat.__animate__(selector[] | elements[], styles[]{}, options{}, callback)</a>
-- <a href="#transform">Fat.__transform__(selector[] | elements[], styles[]{}, options{}, callback)</a>
-- <a href="#filter">Fat.__filter__(selector[] | elements[], styles[]{}, options{}, callback)</a>
-- <a href="#fat.transition">Fat.__transition__(selector[] | elements[], styles[]{}, options{}, callback)</a>
-- <a href="#fat.native">Fat.__native__(selector[] | elements[], styles[]{}, options{}, callback)</a>
-- <a href="#fat.update">Fat.__update__(selector[] | elements[], styles[]{}, options{}, callback)</a>
-- <a href="#fat.destroy">Fat.__destroy__()</a>
-<!-- - <a href="#fat.init">Fat.__init__()</a> -->
+> The namespace "Fat" is also the default scene (global scene).
 
-Controller methods:
+Global methods / Scene methods:
+- <a href="#fat.animate">Fat.__animate__(selector | elements, styles | preset, options, callback)</a>
+- <a href="#transform">Fat.__transform__(selector | elements, styles, options, callback)</a>
+- <a href="#filter">Fat.__filter__(selector | elements, styles, options, callback)</a>
+- <a href="#fat.transition">Fat.__transition__(selector | elements, styles, options, callback)</a>
+- <a href="#fat.native">Fat.__native__(selector | elements, styles, options, callback)</a>
+- <a href="#fat.destroy">Fat.__destroy__()</a>
+
+Control methods:
+- <a href="#fat.set">Scene.__set__(selector | elements, styles, force?)</a>
+- <a href="#fat.set">Scene.__set__(selector | elements, style, value, force?)</a>
 - <a href="#scene.pause">Scene.__pause__(boolean: toggle)</a>
 - <a href="#scene.reverse">Scene.__reverse__(boolean: toggle)</a>
 - <a href="#scene.start">Scene.__start__(boolean: toggle)</a>
 - <a href="#scene.finish">Scene.__finish__()</a>
 - <a href="#scene.reset">Scene.__reset__()</a>
 - <a href="#scene.loop">Scene.__loop__(int: count)</a>
-- <a href="#scene.seek">Scene.__shift__(int: ms)</a>
+- <a href="#scene.shift">Scene.__shift__(int: ms)</a>
 - <a href="#scene.seek">Scene.__seek__(float: position)</a>
 - <a href="#scene.speed">Scene.__speed__(float: ratio)</a>
 
@@ -1400,9 +1404,9 @@ scene.init();
 ## Controls
 
 Update current animation styles:
-<a name="fat.update"></a>
+<a name="fat.set"></a>
 ```js
-scene.update("#mydiv", { left: "0%" });
+scene.set("#mydiv", { left: "0%" });
 ```
 
 Pause a scene:
@@ -1414,12 +1418,12 @@ scene.pause();
 alternatively:
 <a name="scene.play"></a>
 ```js
-scene.play(false);
+scene.start(false);
 ```
 
 Play a scene:
 ```js
-scene.play();
+scene.start();
 ```
 
 alternatively:
@@ -1438,22 +1442,16 @@ alternatively set direction:
 scene.reverse(false);
 ```
 
-Stop animation and jump back to the start:
+Reset playback state and jump back to the start:
 <a name="scene.reset"></a>
 ```js
 scene.reset();
 ```
 
-Stop animation and jump to the end:
-<a name="scene.finish"></a>
-```js
-scene.finish();
-```
-
 Finish and also execute callback:
 
 ```js
-scene.finish(true);
+scene.finish();
 ```
 
 Set playback speed:
@@ -1462,14 +1460,22 @@ Set playback speed:
 scene.speed(0.5); // half
 scene.speed(1);   // normal
 scene.speed(2);   // double
+scene.speed(-2);  // double (reversed direction)
 ```
 
 Seek a scene to a specific position:
 <a name="scene.seek"></a>
 ```js
 scene.seek(0);   // start
-scene.seek(0.5); // half
+scene.seek(0.5); // middle
 scene.seek(1);   // end
+```
+
+Shift a scene relative to the current position (by milliseconds):
+<a name="scene.shift"></a>
+```js
+scene.shift(2000); // current + 2000 ms
+scene.shift(-500); // current - 500 ms
 ```
 
 <a name="scroll"></a>
@@ -1533,6 +1539,22 @@ Fat.paint(function(time){
 });
 ```
 
+Schedule a task with a delay and keep the paint id:
+
+```js
+var id = Fat.paint(function(time){
+
+    console.log("Now: " + time);
+    
+}, 2000);
+```
+
+Remove the above scheduled task from the queue:
+
+```js
+Fat.cancel(id);
+```
+
 Loop a task with every animation frame:
 
 ```js
@@ -1543,7 +1565,7 @@ Fat.paint(function(time){
 });
 ```
 
-> Just return _true_ to keep the loop alive.
+> Just return _true_ to keep the loop alive. Return _false_ or return nothing to break the loop.
 
 <a name="engine"></a>
 ## Render Engines

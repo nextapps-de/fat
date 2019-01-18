@@ -1,9 +1,11 @@
-var child_process = require('child_process');
-var fs = require('fs');
+var child_process = require("child_process");
+var fs = require("fs");
+var { version } = require("./package.json");
 
 console.log("Start build .....");
 
 fs.existsSync("log") || fs.mkdirSync("log");
+fs.existsSync("dist") || fs.mkdirSync("dist");
 
 var flag_str = "";
 
@@ -70,10 +72,48 @@ var parameter = (function(opt){
     //formatting: "PRETTY_PRINT"
 });
 
-exec("java -jar node_modules/google-closure-compiler-java/compiler.jar" + parameter + " --define='DEBUG=" + (options['DEBUG'] || 'false') + "' --define='SUPPORT_EASING=" + (options['SUPPORT_EASING'] || 'false') + "' --define='SUPPORT_COLOR=" + (options['SUPPORT_COLOR'] || 'false') + "'" + flag_str + " --js='fat.js' --js_output_file='fat." + (options['RELEASE'] || 'custom') + ".js' && exit 0", function(){
+var custom = (!options['RELEASE'] || (options['RELEASE'] === "custom"));
 
-    console.log("Build Complete: fat." + (options['RELEASE'] || 'custom') + ".js");
+if(custom){
+
+    options['RELEASE'] = 'custom.' + hashCode(parameter + flag_str);
+}
+
+exec("java -jar node_modules/google-closure-compiler-java/compiler.jar" + parameter + flag_str + " --js='fat.js' --js_output_file='fat." + (options['RELEASE'] || 'custom') + ".js' && exit 0", function(){
+
+    var filename = "fat." + (options['RELEASE'] || 'custom') + ".js";
+
+    console.log("Build Complete: " + filename);
+
+    fs.existsSync("dist/" + version) || fs.mkdirSync("dist/" + version);
+    fs.existsSync("dist/latest") || fs.mkdirSync("dist/latest");
+
+    fs.copyFileSync(filename, "dist/" + version + "/" + filename);
+    fs.copyFileSync(filename, "dist/latest/" + filename);
+
+    if(custom){
+
+        fs.unlinkSync(filename);
+    }
 });
+
+function hashCode(str) {
+
+    var hash = 0, i, chr;
+
+    if(str.length === 0){
+
+        return hash;
+    }
+
+    for(i = 0; i < str.length; i++){
+
+        chr = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
+    }
+
+    return hash.toString(16).substring(0, 5);
+}
 
 function exec(prompt, callback){
 

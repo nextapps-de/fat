@@ -5,36 +5,33 @@
 	<title>Test: Parallel</title>
 	<style>
 		.square{
-			position: absolute;
+			position: relative;
 			display: inline-block;
 			top:0;
 			left:0;
 			width: auto;
 			height: auto;
 			vertical-align: text-bottom;
+			color: #fff;
 			background-color: #000;
 			padding: 20px;
-			margin-bottom: 5%;
 		}
 	</style>
 </head>
 <body>
-<div id="square_1" class="square"></div><br>
-<div id="square_2" class="square"></div><br>
-<div id="square_3" class="square"></div><br>
+<div id="square_1" class="square">1</div><br>
+<div id="square_2" class="square">2</div><br>
+<div id="square_3" class="square">3</div><br>
 <script type="text/javascript" src="../fat.js"></script>
 <script>
 
 	Fat.animate("#square_1", {
-
 		left: "200px"
 	},{
-		delay: 0,
 		duration: 2000,
 		callback: function(){
 
 			Fat.animate(this, {
-
 				left: 0
 			},{
 				delay: 2000,
@@ -44,7 +41,6 @@
 	});
 
 	Fat.animate("#square_1", {
-
 		top: "200px"
 	},{
 		delay: 1000,
@@ -52,10 +48,8 @@
 		callback: function(){
 
 			Fat.animate(this, {
-
 				top: 400
 			},{
-				delay: 0,
 				duration: 2000
 			})
 		}
@@ -64,17 +58,12 @@
 	// -------------------------------------
 
 	Fat.transform("#square_2", {
-
 		translateX: "200px"
 	},{
-		delay: 0,
 		duration: 2000,
 		callback: function(){
 
-			Fat.transform(this, {
-
-				translateX: 0
-			},{
+			Fat.transform(this, "translateX: 0px", {
 				delay: 2000,
 				duration: 2000
 			})
@@ -82,30 +71,23 @@
 	});
 
 	Fat.transform("#square_2", {
-
 		translateY: "200px"
 	},{
 		delay: 1000,
 		duration: 2000,
 		callback: function(){
 
-			Fat.transform(this, {
-
-				translateY: 400
-			},{
-				delay: 0,
+			Fat.transform(this, "translateY: 400px", {
 				duration: 2000
 			})
 		}
 	});
 
-	// TODO:
 	// -------------------------------------
 
-	Fat.animate("#square_3", [{
+	Fat.create().animate("#square_3", [{
 		left: {
 			to: "200px",
-			delay: 0,
 			duration: 2000
 		}
 	},{
@@ -116,7 +98,7 @@
 		}
 	}]);
 
-	Fat.animate("#square_3", [{
+	Fat.create().animate("#square_3", [{
 		top: {
 			to: "200px",
 			delay: 1000,
@@ -125,7 +107,6 @@
 	},{
 		top: {
 			to: 400,
-			delay: 0,
 			duration: 2000
 		}
 	}]);

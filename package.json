@@ -1,6 +1,6 @@
 {
   "name": "fast-animation-tool",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "The fast animation tool with zero dependencies.",
   "homepage": "https://github.com/nextapps-de/fat/",
   "author": "Thomas Wilkerling",
@@ -34,7 +34,8 @@
     "build-light": "node compile RELEASE=light DEBUG=false SUPPORT_COLOR=false SUPPORT_CONTROL=false SUPPORT_SEQUENCE=false SUPPORT_ENGINE='js' SUPPORT_TRANSFORM=false SUPPORT_FILTER=false SUPPORT_SCROLL=false SUPPORT_PAINT=false SUPPORT_RELATIVE=false SUPPORT_CONCURRENCY=false SUPPORT_EASING=false SUPPORT_PRESET=false",
     "build-compact": "node compile RELEASE=compact DEBUG=false SUPPORT_COLOR=true SUPPORT_CONTROL=false SUPPORT_SEQUENCE=false SUPPORT_ENGINE='js' SUPPORT_TRANSFORM=true SUPPORT_FILTER=false SUPPORT_SCROLL=false SUPPORT_PAINT=true SUPPORT_RELATIVE=true SUPPORT_CONCURRENCY=false SUPPORT_EASING=true SUPPORT_PRESET=false",
     "build-custom": "node compile RELEASE=custom DEBUG=false SUPPORT_COLOR=false SUPPORT_CONTROL=false SUPPORT_SEQUENCE=false SUPPORT_ENGINE='none' SUPPORT_TRANSFORM=false SUPPORT_FILTER=false SUPPORT_SCROLL=false SUPPORT_PAINT=false SUPPORT_RELATIVE=false SUPPORT_CONCURRENCY=false SUPPORT_EASING=false SUPPORT_PRESET=false",
-    "build-all": "npm run build && npm run build-light && npm run build-compact",
+    "build-demo": "node compile RELEASE=custom DEBUG=false SUPPORT_COLOR=true SUPPORT_CONTROL=false SUPPORT_SEQUENCE=false SUPPORT_ENGINE='js' SUPPORT_TRANSFORM=true SUPPORT_FILTER=false SUPPORT_SCROLL=false SUPPORT_PAINT=false SUPPORT_RELATIVE=false SUPPORT_CONCURRENCY=false SUPPORT_EASING=false SUPPORT_PRESET=false",
+    "build-all": "npm run build && npm run build-light && npm run build-compact && npm run build-demo",
     "test-web": "mocha-phantomjs test/index.html",
     "update": "updtr --to latest",
     "coverage": "nyc report --reporter=lcov --reporter=text-lcov | coveralls"
@@ -51,7 +52,7 @@
     "chai": "^4.1.2",
     "codacy-coverage": "^3.4.0",
     "coveralls": "^3.0.1",
-    "google-closure-compiler": "^20190115.0.0-nightly",
+    "google-closure-compiler": "^20190118.0.0-nightly",
     "mocha": "^5.2.0",
     "mocha-lcov-reporter": "^1.3.0",
     "mocha-phantomjs": "^4.1.0",
