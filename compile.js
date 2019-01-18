@@ -1,9 +1,11 @@
-var child_process = require('child_process');
-var fs = require('fs');
+var child_process = require("child_process");
+var fs = require("fs");
+var { version } = require("./package.json");
 
 console.log("Start build .....");
 
 fs.existsSync("log") || fs.mkdirSync("log");
+fs.existsSync("dist") || fs.mkdirSync("dist");
 
 var flag_str = "";
 
@@ -72,7 +74,12 @@ var parameter = (function(opt){
 
 exec("java -jar node_modules/google-closure-compiler-java/compiler.jar" + parameter + " --define='DEBUG=" + (options['DEBUG'] || 'false') + "' --define='SUPPORT_EASING=" + (options['SUPPORT_EASING'] || 'false') + "' --define='SUPPORT_COLOR=" + (options['SUPPORT_COLOR'] || 'false') + "'" + flag_str + " --js='fat.js' --js_output_file='fat." + (options['RELEASE'] || 'custom') + ".js' && exit 0", function(){
 
-    console.log("Build Complete: fat." + (options['RELEASE'] || 'custom') + ".js");
+    var filename = "fat." + (options['RELEASE'] || 'custom') + ".js";
+
+    console.log("Build Complete: " + filename);
+
+    fs.existsSync("dist/" + version) || fs.mkdirSync("dist/" + version);
+    fs.copyFileSync(filename, "dist/" + version + "/" + filename)
 });
 
 function exec(prompt, callback){

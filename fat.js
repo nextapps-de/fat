@@ -1,5 +1,5 @@
 ;/**!
- * @preserve FAT v0.6.3
+ * @preserve FAT v0.6.4
  * Copyright 2019 Nextapps GmbH
  * Author: Thomas Wilkerling
  * Released under the Apache 2.0 Licence
@@ -334,6 +334,7 @@
          * @param {number|string} delay
          * @param {number=} loop
          * @param {string=} style_id
+         * @param {string=} seq_id
          * @param {string=} filter
          * @param {string=} transform
          * @param {number=} color
@@ -358,6 +359,7 @@
             delay,
             loop,
             style_id,
+            seq_id,
             transform,
             filter,
             color,
@@ -389,6 +391,12 @@
                 :
                     (unit !== "px")
             );
+
+            if(SUPPORT_SEQUENCE){
+
+                this.seq_id = seq_id;
+                this.seq_count = seq_id + "_c";
+            }
 
             if(SUPPORT_CONCURRENCY){
 
@@ -424,8 +432,6 @@
         const JobPrototype = Job.prototype;
 
         if(SUPPORT_ANIMATE){
-
-            // TODO: do not access dom attributes
 
             /**
              * @param {number} now
@@ -563,7 +569,7 @@
 
                         if(SUPPORT_SEQUENCE){
 
-                            const sequences = obj._sequences;
+                            const sequences = obj[this.seq_id];
 
                             if(sequences){
 
@@ -573,14 +579,14 @@
 
                                         reverse ?
 
-                                            --obj._sequence_current
+                                            --obj[this.seq_count]
                                         :
-                                            ++obj._sequence_current
+                                            ++obj[this.seq_count]
                                     );
 
                                     if((current < 0) || (current >= sequences.length)){
 
-                                        obj._sequence_current = current = (
+                                        obj[this.seq_count] = current = (
 
                                             reverse ?
 
@@ -597,7 +603,7 @@
                                 }
                                 else{
 
-                                    obj._sequences = null;
+                                    obj[this.seq_id] = null;
                                 }
                             }
                         }
@@ -614,11 +620,11 @@
                     if(SUPPORT_SEQUENCE && this.callback){
 
                         const current_obj = this.obj;
-                        const sequences = current_obj._sequences;
+                        const sequences = current_obj[this.seq_id];
 
                         if(sequences){
 
-                            fat.animate(current_obj, sequences[current_obj._sequence_current], {
+                            fat.animate(current_obj, sequences[current_obj[this.seq_count]], {
 
                                 "duration": this.duration,
                                 "ease": this.ease_str,
@@ -627,6 +633,11 @@
                                 "force": this.force,
                                 "loop": this.loop
                             });
+
+                            if(DEBUG){
+
+                                console.log("Keyframe", sequences[current_obj[this.seq_count]]);
+                            }
 
                             if(this.time === 0){
 
@@ -1651,13 +1662,14 @@
          * @param {number} delay
          * @param {number=} loop
          * @param {string=} style_id
+         * @param {string=} seq_id
          * @param {string=} transform
          * @param {string=} filter
          * @param {number=} color
          * @param {string=} style_group
          */
 
-        function create_job(obj, style, job_id, from, to, unit, force, duration, ease_str, callback, step, delay, loop, style_id, transform, filter, color, style_group){
+        function create_job(obj, style, job_id, from, to, unit, force, duration, ease_str, callback, step, delay, loop, style_id, seq_id, transform, filter, color, style_group){
 
             let style_from = "" + (
 
@@ -1739,6 +1751,7 @@
                 delay,
                 loop,
                 style_id,
+                seq_id,
                 transform,
                 filter,
                 color,
@@ -1759,7 +1772,8 @@
                 step,
                 delay,
                 loop,
-                style_id
+                style_id,
+                seq_id
             ));
 
             this.stack[this.stack.length] = job;
@@ -2397,7 +2411,7 @@
                             return this.native(obj, styles, config);
                         }
 
-                        if(DEBUG){
+                        if(DEBUG && config_engine){
 
                             console.error("Engine not found: " + config_engine);
                         }
@@ -2436,7 +2450,7 @@
                 const config_force = config["force"];
                 const config_strict = SUPPORT_CONCURRENCY && config["strict"];
                 const config_init = config["init"];
-                const config_loop = SUPPORT_SEQUENCE && config["loop"];
+                const config_loop = SUPPORT_SEQUENCE && (config["loop"] || 1);
 
                 let last_transform;
                 let last_filter;
@@ -2603,6 +2617,8 @@
                     }
                 }
 
+                const seq_id = SUPPORT_SEQUENCE && ("_seq_" + this.id);
+
                 /* Create Jobs */
 
                 for(let k = 0; k < style_length; k++){
@@ -2716,8 +2732,8 @@
 
                         if(last && sequences){
 
-                            current_obj._sequences = sequences;
-                            current_obj._sequence_current = 0;
+                            current_obj[seq_id] = sequences;
+                            current_obj[seq_id + "_c"] = 0;
                         }
 
                         if(config_init){
@@ -2812,6 +2828,7 @@
                                     config_delay,
                                     config_loop,
                                     style_id,
+                                    seq_id,
                                     has_transform,
                                     has_filter,
                                     has_color || has_color_background || has_color_border,
@@ -2835,7 +2852,8 @@
                                     last && config_step,
                                     config_delay,
                                     config_loop,
-                                    style_id
+                                    style_id,
+                                    seq_id
                                 );
                             }
                         }

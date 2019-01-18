@@ -229,7 +229,7 @@ __"Animate" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.3</td>
+        <td>0.6.4</td>
         <td>1.9 kb</td>
         <td>0.85 Mb</td>
         <td>0.15 Mb</td>
@@ -428,7 +428,7 @@ __"Transforms" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.3</td>
+        <td>0.6.4</td>
         <td><b>91960</b></td>
         <td><b>46.1</b></td>
     </tr>
@@ -528,7 +528,7 @@ __"Colors" (2000 Flashing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.3</td>
+        <td>0.6.4</td>
         <td><b>113950</b></td>
         <td><b>57</b></td>
     </tr>
