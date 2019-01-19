@@ -83,7 +83,7 @@ All Features:
     <tr></tr>
     <tr>
         <td>
-            <a href="#controls">Controlling</a>
+            <a href="#controls">Control (Timeline)</a>
         </td>
         <td>x</td>
         <td>-</td>
@@ -182,7 +182,7 @@ All Features:
     <tr></tr>
     <tr>
         <td>
-            <a href="#concurrency">Concurrency (Strict Mode)</a>
+            <a href="#strict">Concurrency (Strict Mode)</a>
         </td>
         <td>x</td>
         <td>-</td>
@@ -229,7 +229,7 @@ __"Animate" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.4</td>
+        <td>0.6.5</td>
         <td>1.9 kb</td>
         <td>0.85 Mb</td>
         <td>0.15 Mb</td>
@@ -428,7 +428,7 @@ __"Transforms" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.4</td>
+        <td>0.6.5</td>
         <td><b>91960</b></td>
         <td><b>46.1</b></td>
     </tr>
@@ -528,7 +528,7 @@ __"Colors" (2000 Flashing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.4</td>
+        <td>0.6.5</td>
         <td><b>113950</b></td>
         <td><b>57</b></td>
     </tr>
@@ -808,7 +808,7 @@ Control methods:
         <td align="left"><b>init</b></td>
         <td align="left"><i>Boolean</i></td>
         <td align="left">false</td>
-        <td align="left">Forces getting computed styles during next animation loop. Just important when styles changes within the animation callback right before starting a new animation on the same style property (animation loop).</td>
+        <td align="left">Forces getting computed styles when starting next animation loop. Just important when styles changes within the animation callback right before starting a new animation on the same style property (animation loop).</td>
     </tr>
     <tr></tr>
     <tr>
@@ -1213,7 +1213,7 @@ Fat.animate({},{ custom: 1 },{ ease: cubicInOut, step: function(progress, curren
 ```
 
 <a name="sequences"></a>
-## Sequences &nbsp;<small style="float:right">_`SUPPORT_SEQUENCE=true`_</small>
+## Sequences
 
 ```js
 Fat.animate("#mydiv", [
@@ -1250,7 +1250,7 @@ Fat.animate("#mydiv", [{
 ```
 
 <a name="keyframes"></a>
-## Keyframes &nbsp;<small style="float:right">_`SUPPORT_SEQUENCE=true`_</small>
+## Keyframes
 
 ```js
 Fat.animate("#mydiv", {
@@ -1399,6 +1399,34 @@ Re-initialize styles before next update:
 scene.init();
 ```
 -->
+
+__Useful Example__
+
+Considering the following example:
+```js
+var scene_1 = Fat.animate(element_1, { left: "100%" });
+var scene_2 = Fat.animate(element_2, { left: "100%" });
+var scene_3 = Fat.animate(element_3, { left: "100%" });
+
+// this will also destroy scene_2 and scene_3:
+
+scene_1.destroy();
+```
+
+All variables points to the same global scene on which is _"Fat"_ basically based on.
+
+This is the correct workaround:
+```js
+var scene_1 = Fat.create().animate(element_1, { left: "100%" });
+var scene_2 = Fat.create().animate(element_2, { left: "100%" });
+var scene_3 = Fat.create().animate(element_3, { left: "100%" });
+
+// this will just destroy scene_1:
+
+scene_1.destroy();
+```
+
+> Do not massively create new scenes and also do not create them by default. A large amount of parallel scenes results in a performance drawback.
 
 <a name="controls"></a>
 ## Controls
@@ -1567,8 +1595,89 @@ Fat.paint(function(time){
 
 > Just return _true_ to keep the loop alive. Return _false_ or return nothing to break the loop.
 
+<a name="init"></a>
+## Init (Options)
+
+Considering the following example:
+```js
+Fat.animate(element, { top: "100%" }, function(){
+    
+    this.style.top = 0; // this style change will be shadowed
+    
+    Fat.animate(this, { top: "100%" });
+});
+```
+
+This is called animation loop, the callback creates a new animation on the __same__ objects style property. Technically the callback executes during the last frame of the first animation. So there is still running an animation on this property and will be inherited by the animation within the callback. During the callback manual changes on the __same__ style property which is going to be animated will be shadowed by the animation loop inheritance.
+
+To solve this situation you have to add the _init_ option:
+```js
+Fat.animate(element, { top: "100%" }, function(){
+    
+    this.style.top = 0;
+    
+    Fat.animate(this, { top: "100%" }, { init: true });
+});
+```
+
+Again, this issue only occurs when using animation loops mixed with manual style changes on the __same__ style property during the callback right before the new animation loop is called.
+
+<a name="strict"></a>
+## Strict (Options)
+
+Considering the following example:
+```js
+Fat.animate("#mydiv", { top: "100%" }, { duration: 2000 }, function(){
+    console.log("long");
+});
+
+// next animation will override the above one:
+
+Fat.animate("#mydiv", { top: "100%" }, { duration: 400 }, function(){
+    console.log("short");
+});
+```
+
+When you perform different animations on the same object style properties to run in parallel there is a concurrency issue. By default a dupe animation inherits the old one, so the old animation is not existing anymore. Accordingly to the example from above the console just logs "short".
+
+To force duped animations you have to add the _strict_ option:
+```js
+// next animation cannot be overridden:
+
+Fat.animate("#mydiv", { top: "100%" }, { duration: 2000, strict: true }, function(){
+    console.log("long");
+});
+
+Fat.animate("#mydiv", { top: "100%" }, { duration: 400 }, function(){
+    console.log("short");
+});
+```
+
+Now the console logs "short" after 400ms and "long" after 2000ms. Although same properties cannot have two different values, so always the most early started animation gets prioritized actually.
+
+<a name="force"></a>
+## Force (Options)
+
+Considering the following example:
+```css
+#mydiv{ top: 0px !important }
+```
+```js
+Fat.animate("#mydiv", { top: "100%" });
+```
+
+The css style declaration from above has the keyword _!important_ and is preventing normal style changes.
+
+To solve this you have to add the _force_ option:
+
+```js
+Fat.animate("#mydiv", { top: "100%" }, { force: true });
+```
+
 <a name="engine"></a>
 ## Render Engines
+
+> These are an experimental feature. All engines are stand-alone so you can make a custom build just with your favorite pick.
 
 <table>
     <tr></tr>
@@ -1708,7 +1817,7 @@ __Supported Build Flags__
     </tr>
     <tr></tr>
     <tr>
-        <td><a href="#concurrency">SUPPORT_CONCURRENCY</a></td>
+        <td><a href="#strict">SUPPORT_CONCURRENCY</a></td>
         <td>true, false</td>
     </tr>
     <tr></tr>

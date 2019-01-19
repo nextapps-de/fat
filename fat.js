@@ -1,5 +1,5 @@
 ;/**!
- * @preserve FAT v0.6.4
+ * @preserve FAT v0.6.5
  * Copyright 2019 Nextapps GmbH
  * Author: Thomas Wilkerling
  * Released under the Apache 2.0 Licence
@@ -435,36 +435,42 @@
 
             /**
              * @param {number} now
-             * @param {number=} last_update
+             * @param {number=} last
              * @param {number=} ratio
              * @param {boolean=} direction
              */
 
-            JobPrototype.animate = function(now, last_update, ratio, direction){
+            JobPrototype.animate = function(now, last, ratio, direction){
 
-                const style_id = SUPPORT_CONCURRENCY && this.style_id;
-                const bypass = (this.from === this.to) || (style_id && unique[style_id]);
+                const from = this.from;
+                const to = this.to;
+                const duration = this.duration;
                 const obj = this.obj;
 
+                const style_id = SUPPORT_CONCURRENCY && this.style_id;
+                const bypass = (from === to) || (style_id && unique[style_id]);
                 const delta = SUPPORT_CONTROL ? (ratio * (direction ? 1 : -1)) : 1;
                 const reverse = delta < 0;
 
                 if(reverse && (this.time === 0)){
 
-                    this.time = this.duration;
+                    this.time = duration;
                 }
 
-                let stamp = this.time += (now - (last_update || now)) * delta;
-                const complete = reverse ? (stamp <= 0) : (stamp >= this.duration);
+                let stamp = this.time += (now - (last || now)) * delta;
+                const complete = reverse ? (stamp <= 0) : (stamp >= duration);
                 let current_value;
 
                 if(!bypass){
 
-                    style_id && (unique[style_id] = 1);
+                    if(style_id){
+
+                        unique[style_id] = 1;
+                    }
 
                     if(complete){
 
-                        current_value = reverse ? this.from : this.to;
+                        current_value = reverse ? from : to;
 
                         if(DEBUG){
 
@@ -473,33 +479,35 @@
                     }
                     else{
 
-                        if(this.ease){
+                        let ease;
 
-                            if(this.ease.length){
+                        if((ease = this.ease)){
 
-                                current_value = (this.to - this.from) * this.ease[((res / this.duration * stamp + 0.5) >> 0)] / prefetch_resolution;
+                            if(ease.length){
+
+                                current_value = (to - from) * ease[((res / duration * stamp + 0.5) >> 0)] / prefetch_resolution;
                             }
                             else{
 
                                 // linear (default)
-                                current_value = (this.to - this.from) * stamp / this.duration;
+                                current_value = (to - from) * stamp / duration;
                             }
                         }
-                        else{
+                        else if((ease = this.ease_str)){
 
-                            if(this.ease_str.length === 1){
+                            if(ease.length === 1){
 
                                 // fn(x)
-                                current_value = this.ease_str(stamp / this.duration);
+                                current_value = ease(stamp / duration);
                             }
                             else{
 
                                 // fn(current, from, to, total)
-                                current_value = this.ease_str(stamp, this.from, this.to, this.duration);
+                                current_value = ease(stamp, from, to, duration);
                             }
                         }
 
-                        current_value = this.from + current_value;
+                        current_value = from + current_value;
 
                         current_value = (
 
@@ -532,11 +540,9 @@
                     }
                     else{
 
-                        current_value += this.unit;
-
                         if(style !== "custom"){
 
-                            this.animate_job(style, current_value);
+                            this.animate_job(style, current_value += this.unit);
                         }
                     }
                 }
@@ -556,7 +562,7 @@
 
                 if(this.step){
 
-                    this.step.call(obj, complete ? (reverse ? 0 : 1) : stamp / this.duration, current_value);
+                    this.step.call(obj, complete ? (reverse ? 0 : 1) : stamp / duration, current_value);
                 }
 
                 if(complete){
@@ -1551,6 +1557,16 @@
          * @returns {boolean}
          */
 
+        function is_array(val){
+
+            return val.constructor === Array;
+        }
+
+        /**
+         * @param {*} val
+         * @returns {boolean}
+         */
+
         function is_undefined(val){
 
             return typeof val === "undefined";
@@ -2263,7 +2279,7 @@
                         values = bezier.split(",");
                     }
                 }
-                else if(config_ease.constructor === Array){
+                else if(is_array(config_ease)){
 
                     bezier = config_ease.join(",");
                     values = config_ease;
@@ -2346,326 +2362,212 @@
 
         function animate(obj, styles, config, callback){
 
-            if(obj && styles){
+            if(DEBUG){
 
-                let sequences;
+                if(!obj){
 
-                if(SUPPORT_SEQUENCE){
-
-                    if(styles.constructor === Array){
-
-                        sequences = styles;
-                        styles = styles[0];
-                    }
+                    console.error("Element not found", obj);
                 }
 
-                if(SUPPORT_PRESET && is_string(styles)){
+                if(!styles){
 
-                    if(styles.indexOf(" ") === -1){
-
-                        if(DEBUG && !presets[styles]){
-
-                            console.error("Effect not found: " + styles);
-                        }
-
-                        styles = presets[styles];
-                    }
-                    else{
-
-                        styles = styles.split(" ");
-
-                        const merged = {};
-
-                        for(let i = 0, len = styles.length; i < len; i++){
-
-                            if(DEBUG && !presets[styles[i]]){
-
-                                console.error("Effect not found: " + styles[i]);
-                            }
-
-                            const effect = presets[styles[i]];
-                            const keys = Object.keys(effect);
-
-                            for(let a = 0; a < keys.length; a++){
-
-                                merged[keys[a]] = effect[keys[a]];
-                            }
-                        }
-
-                        styles = merged;
-                    }
+                    console.error("Styles not found", styles);
                 }
+            }
 
-                if(config){
+            let sequences;
 
-                    if(typeof config === "function"){
+            if(SUPPORT_SEQUENCE){
 
-                        callback = config;
-                        config = {};
+                if(is_array(styles)){
+
+                    sequences = styles;
+                    styles = styles[0];
+                }
+            }
+
+            if(SUPPORT_PRESET && is_string(styles)){
+
+                if(styles.indexOf(" ") === -1){
+
+                    if(DEBUG && !presets[styles]){
+
+                        console.error("Effect not found: " + styles);
                     }
-                    else{
 
-                        const config_engine = config["engine"];
-
-                        if(SUPPORT_TRANSITION && (config_engine === "css")){
-
-                            return this.transition(obj, styles, config);
-                        }
-
-                        if(SUPPORT_NATIVE && (config_engine === "native")){
-
-                            return this.native(obj, styles, config);
-                        }
-
-                        if(DEBUG && config_engine){
-
-                            console.error("Engine not found: " + config_engine);
-                        }
-                    }
+                    styles = presets[styles];
                 }
                 else{
 
+                    styles = styles.split(" ");
+
+                    const merged = {};
+
+                    for(let i = 0, len = styles.length; i < len; i++){
+
+                        if(DEBUG && !presets[styles[i]]){
+
+                            console.error("Effect not found: " + styles[i]);
+                        }
+
+                        const effect = presets[styles[i]];
+                        const keys = Object.keys(effect);
+
+                        for(let a = 0; a < keys.length; a++){
+
+                            merged[keys[a]] = effect[keys[a]];
+                        }
+                    }
+
+                    styles = merged;
+                }
+            }
+
+            if(config){
+
+                if(typeof config === "function"){
+
+                    callback = config;
                     config = {};
                 }
+                else{
 
-                obj = get_nodes(obj);
+                    const config_engine = config["engine"];
 
-                let config_delay = config["delay"];
-                let config_duration = config["duration"] || 400;
-                let config_ease = (SUPPORT_EASING ? parse_bezier(config["ease"]) : config["ease"]) || "";
+                    if(SUPPORT_TRANSITION && (config_engine === "css")){
 
-                let style_keys = Object.keys(styles);
-                let style_length = style_keys.length;
+                        return this.transition(obj, styles, config);
+                    }
 
-                if(SUPPORT_SEQUENCE && style_length){
+                    if(SUPPORT_NATIVE && (config_engine === "native")){
 
-                    let key = style_keys[0];
+                        return this.native(obj, styles, config);
+                    }
 
-                    if(key[key.length - 1] === "%"){
+                    if(DEBUG && config_engine){
 
-                        sequences = parse_keyframes(styles, style_keys, style_length, config_duration);
-
-                        styles = sequences[0];
-                        style_keys = Object.keys(styles);
-                        style_length = style_keys.length;
+                        console.error("Engine not found: " + config_engine);
                     }
                 }
+            }
+            else{
 
-                const config_callback = callback || config["callback"] || (SUPPORT_SEQUENCE && sequences && function(){/* TODO: mark last style */});
-                const config_step = config["step"];
-                const config_force = config["force"];
-                const config_strict = SUPPORT_CONCURRENCY && config["strict"];
-                const config_init = config["init"];
-                const config_loop = SUPPORT_SEQUENCE && (config["loop"] || 1);
+                config = {};
+            }
 
-                let last_transform;
-                let last_filter;
-                let last_color;
-                let last_color_background;
-                let last_color_border;
+            obj = get_nodes(obj);
 
-                if(SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER){
+            let config_delay = config["delay"];
+            let config_duration = config["duration"] || 400;
+            let config_ease = (SUPPORT_EASING ? parse_bezier(config["ease"]) : config["ease"]) || "";
 
-                    for(let k = style_length; k-- > 0;){
+            let style_keys = Object.keys(styles);
+            let style_length = style_keys.length;
 
-                        let key = style_keys[k];
+            if(SUPPORT_SEQUENCE && style_length){
 
-                        if(SUPPORT_TRANSFORM){
+                let key = style_keys[0];
 
-                            if(key === "transform"){
+                if(key[key.length - 1] === "%"){
 
-                                const props = parse_transform(key, styles[key], {});
-                                const prop_keys = Object.keys(/** @type {!Object} */ (props));
+                    sequences = parse_keyframes(styles, style_keys, style_length, config_duration);
 
-                                for(let i = 0; i < prop_keys.length; i++){
-
-                                    let tmp = prop_keys[i];
-
-                                    style_keys[style_length++] = tmp;
-                                    styles[tmp] = props[tmp];
-                                }
-
-                                last_transform = prop_keys[prop_keys.length - 1];
-
-                                if(SUPPORT_COLOR || SUPPORT_FILTER){
-
-                                    continue;
-                                }
-                                else{
-
-                                    break;
-                                }
-                            }
-
-                            if(!last_transform && transform_keys[key]){
-
-                                last_transform = key;
-
-                                if(SUPPORT_COLOR || SUPPORT_FILTER){
-
-                                    continue;
-                                }
-                                else{
-
-                                    break;
-                                }
-                            }
-                        }
-
-                        if(SUPPORT_FILTER){
-
-                            if(key === "filter"){
-
-                                const props = parse_filter(key, styles[key], {});
-                                const prop_keys = Object.keys(/** @type {!Object} */ (props));
-
-                                for(let i = 0; i < prop_keys.length; i++){
-
-                                    let tmp = prop_keys[i];
-
-                                    if(tmp === "hue"){
-
-                                        tmp = "hue-rotate";
-                                    }
-
-                                    style_keys[style_length++] = tmp;
-                                    styles[tmp] = props[tmp];
-                                    last_filter = tmp;
-                                }
-
-                                if(SUPPORT_COLOR){
-
-                                    continue;
-                                }
-                                else{
-
-                                    break;
-                                }
-                            }
-
-                            if(key === "hue"){
-
-                                key = "hue-rotate";
-                            }
-
-                            if(!last_filter && filter_default_values[key]){
-
-                                last_filter = key;
-
-                                if(SUPPORT_COLOR){
-
-                                    continue;
-                                }
-                                else{
-
-                                    break;
-                                }
-                            }
-                        }
-
-                        if(SUPPORT_COLOR){
-
-                            let color_type = color_keys[key];
-
-                            if(color_type){
-
-                                if(color_type < 0){
-
-                                    let value = styles[key];
-
-                                    if(typeof value === "object"){
-
-                                        value = value["to"];
-                                    }
-
-                                    const color = parse_color(value, key);
-                                    let tmp, val;
-
-                                    style_keys[style_length++] = (tmp = key + "R");
-                                    styles[tmp] = color[tmp];
-
-                                    style_keys[style_length++] = (tmp = key + "G");
-                                    styles[tmp] = color[tmp];
-
-                                    style_keys[style_length++] = (tmp = key + "B");
-                                    styles[tmp] = color[tmp];
-
-                                    const has_alpha = !is_undefined(val = color[tmp = key + "A"]);
-
-                                    if(has_alpha){
-
-                                        style_keys[style_length++] = tmp;
-                                        styles[tmp] = val;
-                                        key = tmp;
-                                    }
-                                    else{
-
-                                        key = key + "B";
-                                    }
-
-                                    color_type *= -1;
-                                }
-
-                                if(!last_color && (color_type === 1)){
-
-                                    last_color = key;
-                                }
-                                else if(!last_color_background && (color_type === 2)){
-
-                                    last_color_background = key;
-                                }
-                                else if(!last_color_border && (color_type === 3)){
-
-                                    last_color_border = key;
-                                }
-                            }
-                        }
-                    }
+                    styles = sequences[0];
+                    style_keys = Object.keys(styles);
+                    style_length = style_keys.length;
                 }
+            }
 
-                const seq_id = SUPPORT_SEQUENCE && ("_seq_" + this.id);
+            const config_callback = callback || config["callback"] || (SUPPORT_SEQUENCE && sequences && function(){/* TODO: mark last style */});
+            const config_step = config["step"];
+            const config_force = config["force"];
+            const config_strict = SUPPORT_CONCURRENCY && config["strict"];
+            const config_init = config["init"];
+            const config_loop = SUPPORT_SEQUENCE && (config["loop"] || 1);
 
-                /* Create Jobs */
+            let last_transform;
+            let last_filter;
+            let last_color;
+            let last_color_background;
+            let last_color_border;
 
-                for(let k = 0; k < style_length; k++){
+            if(SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER){
 
-                    let has_transform;
-                    let has_filter;
-                    let has_color;
-                    let has_color_background;
-                    let has_color_border;
-                    let style_group;
+                for(let k = style_length; k-- > 0;){
 
                     let key = style_keys[k];
-                    let value = styles[key];
-                    let from;
-                    let unit;
-
-                    if(typeof value === "object"){
-
-                        config_delay = value["delay"] || config_delay;
-                        config_duration = value["duration"] || config_duration;
-                        config_ease = value["ease"] || config_ease;
-                        from = value["from"];
-                        unit = value["unit"];
-                        value = value["to"];
-                    }
 
                     if(SUPPORT_TRANSFORM){
 
                         if(key === "transform"){
 
-                            continue;
+                            const props = parse_transform(key, styles[key], {});
+                            const prop_keys = Object.keys(/** @type {!Object} */ (props));
+
+                            for(let i = 0, len = prop_keys.length; i < len; i++){
+
+                                const tmp = prop_keys[i];
+
+                                style_keys[style_length++] = tmp;
+                                styles[tmp] = props[tmp];
+                            }
+
+                            last_transform = prop_keys[prop_keys.length - 1];
+
+                            if(SUPPORT_COLOR || SUPPORT_FILTER){
+
+                                continue;
+                            }
+                            else{
+
+                                break;
+                            }
                         }
 
-                        has_transform = transform_keys[key] && last_transform;
+                        if(!last_transform && transform_keys[key]){
+
+                            last_transform = key;
+
+                            if(SUPPORT_COLOR || SUPPORT_FILTER){
+
+                                continue;
+                            }
+                            else{
+
+                                break;
+                            }
+                        }
                     }
 
                     if(SUPPORT_FILTER){
 
                         if(key === "filter"){
 
-                            continue;
+                            const props = parse_filter(key, styles[key], {});
+                            const prop_keys = Object.keys(/** @type {!Object} */ (props));
+
+                            for(let i = 0; i < prop_keys.length; i++){
+
+                                let tmp = prop_keys[i];
+
+                                if(tmp === "hue"){
+
+                                    tmp = "hue-rotate";
+                                }
+
+                                style_keys[style_length++] = tmp;
+                                styles[tmp] = props[tmp];
+                                last_filter = tmp;
+                            }
+
+                            if(SUPPORT_COLOR){
+
+                                continue;
+                            }
+                            else{
+
+                                break;
+                            }
                         }
 
                         if(key === "hue"){
@@ -2673,204 +2575,329 @@
                             key = "hue-rotate";
                         }
 
-                        has_filter = filter_default_values[key] && last_filter;
+                        if(!last_filter && filter_default_values[key]){
+
+                            last_filter = key;
+
+                            if(SUPPORT_COLOR){
+
+                                continue;
+                            }
+                            else{
+
+                                break;
+                            }
+                        }
                     }
 
                     if(SUPPORT_COLOR){
 
-                        const color_type = color_keys[key];
+                        let color_type = color_keys[key];
 
                         if(color_type){
 
                             if(color_type < 0){
 
-                                continue;
+                                let value = styles[key];
+
+                                if(typeof value === "object"){
+
+                                    value = value["to"];
+                                }
+
+                                const color = parse_color(value, key);
+                                let tmp, val;
+
+                                style_keys[style_length++] = (tmp = key + "R");
+                                styles[tmp] = color[tmp];
+
+                                style_keys[style_length++] = (tmp = key + "G");
+                                styles[tmp] = color[tmp];
+
+                                style_keys[style_length++] = (tmp = key + "B");
+                                styles[tmp] = color[tmp];
+
+                                const has_alpha = !is_undefined(val = color[tmp = key + "A"]);
+
+                                if(has_alpha){
+
+                                    style_keys[style_length++] = tmp;
+                                    styles[tmp] = val;
+                                    key = tmp;
+                                }
+                                else{
+
+                                    key = key + "B";
+                                }
+
+                                color_type *= -1;
                             }
 
-                            if(color_type === 1){
+                            if(!last_color && (color_type === 1)){
 
-                                has_color = last_color;
-                                style_group = "color";
+                                last_color = key;
                             }
-                            else if(color_type === 2){
+                            else if(!last_color_background && (color_type === 2)){
 
-                                has_color_background = last_color_background;
-                                style_group = "backgroundColor";
+                                last_color_background = key;
                             }
-                            else if(color_type === 3){
+                            else if(!last_color_border && (color_type === 3)){
 
-                                has_color_border = last_color_border;
-                                style_group = "borderColor";
+                                last_color_border = key;
                             }
                         }
                     }
+                }
+            }
 
-                    if(SUPPORT_SCROLL){
+            const seq_id = SUPPORT_SEQUENCE && ("_seq_" + this.id);
 
-                        if(key === "scroll"){
+            /* Create Jobs */
 
-                            let tmp;
+            for(let k = 0; k < style_length; k++){
 
-                            style_keys[style_length++] = (tmp = "scrollLeft");
-                            styles[tmp] = value[0];
+                let has_transform;
+                let has_filter;
+                let has_color;
+                let has_color_background;
+                let has_color_border;
+                let style_group;
 
-                            style_keys[style_length++] = (tmp = "scrollTop");
-                            styles[tmp] = value[1];
+                let key = style_keys[k];
+                let value = styles[key];
+                let from;
+                let unit;
+
+                if(typeof value === "object"){
+
+                    config_delay = value["delay"] || config_delay;
+                    config_duration = value["duration"] || config_duration;
+                    config_ease = value["ease"] || config_ease;
+                    from = value["from"];
+                    unit = value["unit"];
+                    value = value["to"];
+                }
+
+                if(SUPPORT_TRANSFORM){
+
+                    if(key === "transform"){
+
+                        continue;
+                    }
+
+                    has_transform = transform_keys[key] && last_transform;
+                }
+
+                if(SUPPORT_FILTER){
+
+                    if(key === "filter"){
+
+                        continue;
+                    }
+
+                    if(key === "hue"){
+
+                        key = "hue-rotate";
+                    }
+
+                    has_filter = filter_default_values[key] && last_filter;
+                }
+
+                if(SUPPORT_COLOR){
+
+                    const color_type = color_keys[key];
+
+                    if(color_type){
+
+                        if(color_type < 0){
 
                             continue;
                         }
+
+                        if(color_type === 1){
+
+                            has_color = last_color;
+                            style_group = "color";
+                        }
+                        else if(color_type === 2){
+
+                            has_color_background = last_color_background;
+                            style_group = "backgroundColor";
+                        }
+                        else if(color_type === 3){
+
+                            has_color_border = last_color_border;
+                            style_group = "borderColor";
+                        }
+                    }
+                }
+
+                if(SUPPORT_SCROLL){
+
+                    if(key === "scroll"){
+
+                        let tmp;
+
+                        style_keys[style_length++] = (tmp = "scrollLeft");
+                        styles[tmp] = value[0];
+
+                        style_keys[style_length++] = (tmp = "scrollTop");
+                        styles[tmp] = value[1];
+
+                        continue;
+                    }
+                }
+
+                if(is_array(value)){
+
+                    from = value[0];
+                    unit = value[2];
+                    value = value[1];
+                }
+
+                const last = (k === style_length - 1);
+                const job_id = "_fat_" + key + this.id;
+
+                for(let i = 0, len = obj.length; i < len; i++){
+
+                    const current_obj = obj[i];
+                    const style_id = config_strict && (key + (current_obj["_id"] || (current_obj["_id"] = obj_counter++)));
+
+                    if(last && sequences){
+
+                        current_obj[seq_id] = sequences;
+                        current_obj[seq_id + "_c"] = 0;
                     }
 
-                    if(value.constructor === Array){
+                    if(config_init){
 
-                        from = value[0];
-                        unit = value[2];
-                        value = value[1];
+                        if(k === 0){
+
+                            current_obj._style_comp = null;
+
+                            if(last_transform) {
+
+                                current_obj._transform = null;
+                            }
+                            else if(last_color) {
+
+                                current_obj._color = null;
+                            }
+                            else if(last_color_background) {
+
+                                current_obj._backgroundColor = null;
+                            }
+                            else if(last_color_border) {
+
+                                current_obj._borderColor = null;
+                            }
+                            else if(last_filter) {
+
+                                current_obj._filter = null;
+                            }
+                        }
                     }
 
-                    const last = (k === style_length - 1);
-                    const job_id = "_fat_" + key + this.id;
+                    /**
+                     * @type Job
+                     */
 
-                    for(let i = 0, len = obj.length; i < len; i++){
+                    const cur_job = !config_init && (!SUPPORT_CONCURRENCY || !style_id) && current_obj[job_id];
 
-                        const current_obj = obj[i];
-                        const style_id = config_strict && (key + (current_obj["_id"] || (current_obj["_id"] = obj_counter++)));
+                    if(cur_job){
 
-                        if(last && sequences){
+                        if(SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER){
 
-                            current_obj[seq_id] = sequences;
-                            current_obj[seq_id + "_c"] = 0;
-                        }
+                            cur_job.update_job(
 
-                        if(config_init){
-
-                            if(k === 0){
-
-                                current_obj._style_comp = null;
-
-                                if(last_transform) {
-
-                                    current_obj._transform = null;
-                                }
-                                else if(last_color) {
-
-                                    current_obj._color = null;
-                                }
-                                else if(last_color_background) {
-
-                                    current_obj._backgroundColor = null;
-                                }
-                                else if(last_color_border) {
-
-                                    current_obj._borderColor = null;
-                                }
-                                else if(last_filter) {
-
-                                    current_obj._filter = null;
-                                }
-                            }
-                        }
-
-                        /**
-                         * @type Job
-                         */
-
-                        const cur_job = !config_init && (!SUPPORT_CONCURRENCY || !style_id) && current_obj[job_id];
-
-                        if(cur_job){
-
-                            if(SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER){
-
-                                cur_job.update_job(
-
-                                    from,
-                                    value,
-                                    unit,
-                                    config_force,
-                                    config_duration,
-                                    config_ease,
-                                    last && config_callback,
-                                    last && config_step,
-                                    config_delay,
-                                    has_transform,
-                                    has_filter,
-                                    has_color || has_color_background || has_color_border,
-                                    style_group
-                                );
-                            }
-                            else{
-
-                                cur_job.update_job(
-
-                                    from,
-                                    value,
-                                    unit,
-                                    config_force,
-                                    config_duration,
-                                    config_ease,
-                                    last && config_callback,
-                                    last && config_step,
-                                    config_delay
-                                );
-                            }
+                                from,
+                                value,
+                                unit,
+                                config_force,
+                                config_duration,
+                                config_ease,
+                                last && config_callback,
+                                last && config_step,
+                                config_delay,
+                                has_transform,
+                                has_filter,
+                                has_color || has_color_background || has_color_border,
+                                style_group
+                            );
                         }
                         else{
 
-                            if(SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER){
+                            cur_job.update_job(
 
-                                this.create_job(
+                                from,
+                                value,
+                                unit,
+                                config_force,
+                                config_duration,
+                                config_ease,
+                                last && config_callback,
+                                last && config_step,
+                                config_delay
+                            );
+                        }
+                    }
+                    else{
 
-                                    current_obj,
-                                    key,
-                                    job_id,
-                                    from,
-                                    value,
-                                    unit,
-                                    config_force,
-                                    config_duration,
-                                    config_ease,
-                                    last && config_callback,
-                                    last && config_step,
-                                    config_delay,
-                                    config_loop,
-                                    style_id,
-                                    seq_id,
-                                    has_transform,
-                                    has_filter,
-                                    has_color || has_color_background || has_color_border,
-                                    style_group
-                                );
-                            }
-                            else{
+                        if(SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER){
 
-                                this.create_job(
+                            this.create_job(
 
-                                    current_obj,
-                                    key,
-                                    job_id,
-                                    from,
-                                    value,
-                                    unit,
-                                    config_force,
-                                    config_duration,
-                                    config_ease,
-                                    last && config_callback,
-                                    last && config_step,
-                                    config_delay,
-                                    config_loop,
-                                    style_id,
-                                    seq_id
-                                );
-                            }
+                                current_obj,
+                                key,
+                                job_id,
+                                from,
+                                value,
+                                unit,
+                                config_force,
+                                config_duration,
+                                config_ease,
+                                last && config_callback,
+                                last && config_step,
+                                config_delay,
+                                config_loop,
+                                style_id,
+                                seq_id,
+                                has_transform,
+                                has_filter,
+                                has_color || has_color_background || has_color_border,
+                                style_group
+                            );
+                        }
+                        else{
+
+                            this.create_job(
+
+                                current_obj,
+                                key,
+                                job_id,
+                                from,
+                                value,
+                                unit,
+                                config_force,
+                                config_duration,
+                                config_ease,
+                                last && config_callback,
+                                last && config_step,
+                                config_delay,
+                                config_loop,
+                                style_id,
+                                seq_id
+                            );
                         }
                     }
                 }
-
-                if(!this.exec){
-
-                    this.exec = requestAnimationFrame(this.render)
-                }
             }
+
+            if(!this.exec){
+
+                this.exec = requestAnimationFrame(this.render)
+            }
+
 
             return this;
         }
