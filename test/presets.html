@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
-	<title>Test: Effects</title>
+	<title>Test: Presets (Effects)</title>
 	<style>
 		.square{
 			position: relative;
@@ -41,20 +41,20 @@
 	Fat.animate("#square_2", ["fadeOut", "fadeIn"]);
 	Fat.animate("#square_3", ["fadeToggle", "fadeToggle"]);
 
-	Fat.animate("#square_4", ["slideDown", "slideUp"]);
-	Fat.animate("#square_5", ["slideToggle", "slideToggle"]);
+	Fat.animate("#square_4", ["slideOutBottom", "slideInBottom"]);
+	Fat.animate("#square_5", ["slideToggleBottom", "slideToggleBottom"]);
 
 	Fat.animate("#square_6", ["zoomOut", "zoomIn"]);
 	Fat.animate("#square_7", ["zoomToggle", "zoomToggle"]);
 
-	Fat.animate("#square_8", ["rollOut", "rollIn"]);
-	Fat.animate("#square_9", ["rollToggle", "rollToggle"]);
+	Fat.animate("#square_8", ["rollOutRight", "rollInRight"]);
+	Fat.animate("#square_9", ["rollToggleRight", "rollToggleRight"]);
 
 	Fat.animate("#square_10", ["blurOut", "blurIn"]);
 	Fat.animate("#square_11", ["blurToggle", "blurToggle"]);
 
-	Fat.animate("#square_12", ["fadeOut slideDown zoomOut rollOut", "fadeIn slideUp zoomIn rollIn"]);
-	Fat.animate("#square_13", ["fadeToggle slideToggle zoomToggle rollToggle", "fadeToggle slideToggle zoomToggle rollToggle"]);
+	Fat.animate("#square_12", ["fadeOut slideOutBottom zoomOut rollOutRight", "fadeIn slideInBottom zoomIn rollInRight"]);
+	Fat.animate("#square_13", ["fadeToggle slideToggleBottom zoomToggle rollToggleRight", "fadeToggle slideToggleBottom zoomToggle rollToggleRight"]);
 
 </script>
 </body>

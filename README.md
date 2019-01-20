@@ -229,7 +229,7 @@ __"Animate" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.5</td>
+        <td>0.6.6</td>
         <td>1.9 kb</td>
         <td>0.85 Mb</td>
         <td>0.15 Mb</td>
@@ -428,7 +428,7 @@ __"Transforms" (2000 Bouncing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.5</td>
+        <td>0.6.6</td>
         <td><b>91960</b></td>
         <td><b>46.1</b></td>
     </tr>
@@ -528,7 +528,7 @@ __"Colors" (2000 Flashing Balls)__
     <tr>
         <td>1</td>
         <td>FAT</td>
-        <td>0.6.5</td>
+        <td>0.6.6</td>
         <td><b>113950</b></td>
         <td><b>57</b></td>
     </tr>
@@ -715,6 +715,7 @@ Global methods / Scene methods:
 Control methods:
 - <a href="#fat.set">Scene.__set__(selector | elements, styles, force?)</a>
 - <a href="#fat.set">Scene.__set__(selector | elements, style, value, force?)</a>
+- <a href="#scene.remove">Scene.__remove__(selector | elements, styles)</a>
 - <a href="#scene.pause">Scene.__pause__(boolean: toggle)</a>
 - <a href="#scene.reverse">Scene.__reverse__(boolean: toggle)</a>
 - <a href="#scene.start">Scene.__start__(boolean: toggle)</a>
@@ -737,7 +738,7 @@ Control methods:
         <td align="left">Description</td>
     </tr>
     <tr>
-        <td align="left"><b>play</b></td>
+        <td align="left"><b>start</b></td>
         <td align="left"><i>Boolean</i></td>
         <td align="left">true</td>
         <td align="left">Enable/Disable autoplay when an animation call was performed</td>
@@ -914,7 +915,7 @@ Fat.animate("#mydiv", { top: "100px" }, function(){
 ```
 
 ```js
-Fat.animate("#mydiv", "slideIn", function(){
+Fat.animate("#mydiv", "slideInTop", function(){
     // done
 });
 ```
@@ -1334,13 +1335,13 @@ Fat.animate("#mydiv", "fadeOut");
 Combine multiple presets (ordered):
 
 ```js
-Fat.animate("#mydiv", "fadeOut zoomOut rollOut");
+Fat.animate("#mydiv", "fadeOut zoomOut rollOutRight");
 ```
 
 Also usable with <a href="#sequences">sequences</a>:
 
 ```js
-Fat.animate("#mydiv", ["slideUp", "zoomIn"]);
+Fat.animate("#mydiv", ["slideInTop", "zoomIn"]);
 ```
 
 Define custom preset:
@@ -1358,13 +1359,13 @@ Fat.animate("#mydiv", "fade-out-down");
 
 __Builtin Presets:__
 - fadeIn, fadeOut, fadeToggle
-- slideUp, slideDown, slideIn
 - slideInLeft, slideOutLeft, slideToggleLeft
 - slideInRight, slideOutRight, slideToggleRight
 - slideInTop, slideOutTop, slideToggleTop
 - slideInBottom, slideOutBottom, slideToggleBottom
 - zoomIn, zoomOut, zoomToggle
-- rollIn, rollOut, rollToggle
+- rollOutRight (clockwise), rollInRight, rollToggleRight
+- rollOutLeft (opposite), rollInLeft, rollToggleLeft
 - blurIn, blurOut, blurToggle
 - scrollUp, scrollDown, scrollLeft, scrollRight
 
@@ -1431,10 +1432,33 @@ scene_1.destroy();
 <a name="controls"></a>
 ## Controls
 
-Update current animation styles:
+> _Fat_ internally points to default global scene, so you can use all scene methods on _Fat_ accordingly.
+
+Update single style:
 <a name="fat.set"></a>
 ```js
-scene.set("#mydiv", { left: "0%" });
+scene.set("#mydiv", "left", "0%");
+```
+
+Update multiple styles:
+```js
+scene.set("#mydiv", { top: 0, left: 0 });
+```
+
+Remove all animations from an object:
+<a name="fat.remove"></a>
+```js
+scene.remove("#mydiv");
+```
+
+Remove a specific animation from an object:
+```js
+scene.remove("#mydiv", "left");
+```
+
+Remove a list of specific animations from an object:
+```js
+scene.remove("#mydiv", ["top", "left"]);
 ```
 
 Pause a scene:
@@ -1444,7 +1468,7 @@ scene.pause();
 ```
 
 alternatively:
-<a name="scene.play"></a>
+<a name="scene.start"></a>
 ```js
 scene.start(false);
 ```
@@ -1504,6 +1528,49 @@ Shift a scene relative to the current position (by milliseconds):
 ```js
 scene.shift(2000); // current + 2000 ms
 scene.shift(-500); // current - 500 ms
+```
+
+__Looping Sequences & Reversed Direction__
+
+When looping sequences and also have reversed animation direction (e.g. by setting speed < 0) you have to pass a from-to declaration pair for each style, otherwise the from-value gets lost when looping back from reversed direction.
+```js
+var scene = Fat.animate(element, [{
+    left: { from: "0%", to: "50%" }
+},{
+    left: { from: "50%", to: "0%" }
+}],{
+    loop: -1
+});
+
+scene.reverse();
+```
+
+alternatively use from-to-unit shorthand:
+
+```js
+var scene = Fat.animate(element, [{
+    left: [0, 50, "%"]
+},{
+    left: [50, 0, "%"]
+}],{
+    loop: -1
+});
+
+scene.reverse();
+```
+
+alternatively use relative toggle:
+
+```js
+var scene = Fat.animate(element, [{
+    left: "!=50%"
+},{
+    left: "!=0%"
+}],{
+    loop: -1
+});
+
+scene.reverse();
 ```
 
 <a name="scroll"></a>
@@ -1608,13 +1675,23 @@ Fat.animate(element, { top: "100%" }, function(){
 });
 ```
 
-This is called animation loop, the callback creates a new animation on the __same__ objects style property. Technically the callback executes during the last frame of the first animation. So there is still running an animation on this property and will be inherited by the animation within the callback. During the callback manual changes on the __same__ style property which is going to be animated will be shadowed by the animation loop inheritance.
+This is called animation loop, the callback creates a new animation on the __same__ objects style property. Technically the callback executes during the last frame of the first animation. So there is still running an animation on this property and will be inherited by the next animation loop.
 
-To solve this situation you have to add the _init_ option:
+> During the callback, external changes on the __same__ style property which is going to be animated will be shadowed by the animation loop inheritance.
+
+When the style change did not happened externally (e.g. by a different tool) use _set_ method to get best performance:
 ```js
 Fat.animate(element, { top: "100%" }, function(){
     
-    this.style.top = 0;
+    Fat.set(this, "top", 0).animate(this, { top: "100%" });
+});
+```
+
+Otherwise, to solve this situation you have to add the _init_ option:
+```js
+Fat.animate(element, { top: "100%" }, function(){
+    
+    this.style.top = 0; // external change somewhere happens
     
     Fat.animate(this, { top: "100%" }, { init: true });
 });

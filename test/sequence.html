@@ -34,7 +34,7 @@
 <script type="text/javascript" src="../fat.js"></script>
 <script>
 
-	Fat.create().animate("#square_1", [
+	Fat.create({ start: false }).animate("#square_1", [
 
 		{ translateX: "+=200px" },
 		{ translateY: "+=200px" },
@@ -43,7 +43,8 @@
 	],{
 		duration: 2000,
 		loop: -1
-	}).play();
+
+	}).start();
 
 	// -----------------------------------------
 

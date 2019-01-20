@@ -20,8 +20,8 @@
 			padding: 20px;
 			margin-bottom: 5%;
 		}
-		#square_3{
-
+		#square_4{
+			background-color: #090;
 			transform: translateX(500px) scaleX(2) rotateZ(45deg) skewX(50deg);
 		}
 	</style>
@@ -31,6 +31,7 @@
 <div id="square_1" class="square">1</div><br>
 <div id="square_2" class="square">2</div><br>
 <div id="square_3" class="square">3</div><br>
+<div id="square_4" class="square">4</div><br>
 <script type="text/javascript" src="../fat.js"></script>
 <script>
 
@@ -51,6 +52,10 @@
 		duration: 2000
 	});
 
+	Fat.transform("#square_3", "translateX(+=500px) scaleX(*=2) rotateZ(45deg) skewX(50deg)",{
+
+		duration: 2000
+	});
 </script>
 </body>
 </html>

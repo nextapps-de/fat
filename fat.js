@@ -1,5 +1,5 @@
 ;/**!
- * @preserve FAT v0.6.5
+ * @preserve FAT v0.6.6
  * Copyright 2019 Nextapps GmbH
  * Author: Thomas Wilkerling
  * Released under the Apache 2.0 Licence
@@ -291,17 +291,17 @@
 
         if(SUPPORT_PRESET){
 
-            presets["slideUp"] = presets["slideOutTop"];
-            presets["slideDown"] = presets["slideOutBottom"];
-            presets["slideIn"] = presets["slideInBottom"] = presets["slideInTop"];
+            presets["slideInBottom"] = presets["slideInTop"];
             presets["slideInRight"] = presets["slideInLeft"];
         }
 
         if(SUPPORT_TRANSFORM){
 
-            presets["rollIn"] = { "rotateZ": "0deg" };
-            presets["rollOut"] = { "rotateZ": "720deg" };
-            presets["rollToggle"] = { "rotateZ": "!=720deg" };
+            presets["rollInLeft"] = presets["rollInRight"] = { "rotateZ": "0deg" };
+            presets["rollOutRight"] = { "rotateZ": "720deg" };
+            presets["rollOutLeft"] = { "rotateZ": "-720deg" };
+            presets["rollToggleRight"] = { "rotateZ": "!=720deg" };
+            presets["rollToggleLeft"] = { "rotateZ": "!=-720deg" };
         }
 
         if(SUPPORT_FILTER){
@@ -540,9 +540,11 @@
                     }
                     else{
 
+                        current_value += this.unit;
+
                         if(style !== "custom"){
 
-                            this.animate_job(style, current_value += this.unit);
+                            this.animate_job(style, current_value);
                         }
                     }
                 }
@@ -590,18 +592,20 @@
                                             ++obj[this.seq_count]
                                     );
 
-                                    if((current < 0) || (current >= sequences.length)){
+                                    const length = sequences.length;
+
+                                    if((current < 0) || (current >= length)){
 
                                         obj[this.seq_count] = current = (
 
                                             reverse ?
 
-                                                sequences.length - 1
+                                                length - 1
                                             :
                                                 0
                                         );
 
-                                        if(current < sequences.length){
+                                        if(current < length){
 
                                             return;
                                         }
@@ -661,7 +665,7 @@
                 }
                 else{
 
-                    const delay = now - fat.last_update;
+                    const elapsed = now - fat.last_update;
 
                     if(this.delay) {
 
@@ -676,7 +680,7 @@
                                 return true;
                             }
                         }
-                        else if((this.delay -= delay) > 0){
+                        else if((this.delay -= elapsed) > 0){
 
                             return true;
                         }
@@ -690,7 +694,7 @@
 
                         if(!fat.plays){
 
-                            fat.last_update += delay;
+                            fat.last_update += elapsed;
                             return true;
                         }
 
@@ -729,11 +733,7 @@
                 //if(SUPPORT_TRANSFORM){}
                 //if(SUPPORT_COLOR){}
 
-                if(this.current === value){
-
-                    return false;
-                }
-                else{
+                if(this.current !== value){
 
                     if(is_string(value)){
 
@@ -752,13 +752,15 @@
                     this.current = value;
                     this.force = force;
 
+                    /*
                     if(this.unit){
 
                         value += this.unit;
                     }
-                }
+                    */
 
-                return value;
+                    return true;
+                }
             }
         }
 
@@ -769,7 +771,7 @@
 
         const color_keys = SUPPORT_COLOR ? (function(obj){
 
-            function construct(suffix, index){
+             function construct(suffix, index){
 
                 obj[suffix] = -index;
                 obj[suffix + "R"] = index;
@@ -1128,7 +1130,7 @@
                 if(SUPPORT_CONTROL){
 
                     this.fps = config && config["fps"];
-                    this.plays = !config || (config["play"] !== false);
+                    this.plays = !config || (config["start"] !== false);
                     this.direction = true;
                     this.ratio = 1;
                 }
@@ -1138,149 +1140,6 @@
 
                 console.log("Scene created", this);
             }
-        }
-
-        const FatPrototype = Fat.prototype;
-
-        if(SUPPORT_ANIMATE){
-
-            FatPrototype.create_job = create_job;
-            /** @export */
-            FatPrototype.animate = animate;
-            /** @export */
-            FatPrototype.destroy = destroy;
-            //FatPrototype.init = init;
-            /** @export */
-            FatPrototype.create = function(config){
-
-                return new Fat(config);
-            };
-
-            if(SUPPORT_PAINT){
-
-                /** @export */
-                FatPrototype.paint = paint;
-                /** @export */
-                FatPrototype.cancel = cancel;
-            }
-
-            if(SUPPORT_EASING){
-
-                /** @export */
-                FatPrototype.ease = easing;
-            }
-
-            if(SUPPORT_PRESET){
-
-                /** @export */
-                FatPrototype.preset = presets;
-            }
-
-            if(SUPPORT_TRANSFORM){
-
-                /** @export */
-                FatPrototype.transform = function(obj, styles, config, callback){
-
-                    if(is_string(styles)){
-
-                        styles = {
-
-                            "transform": styles
-                        }
-                    }
-
-                    return this.animate(obj, styles, config, callback);
-                };
-            }
-
-            if(SUPPORT_FILTER){
-
-                /** @export */
-                FatPrototype.filter = function(obj, styles, config, callback){
-
-                    if(is_string(styles)){
-
-                        styles = {
-
-                            "filter": styles
-                        }
-                    }
-
-                    return this.animate(obj, styles, config, callback);
-                };
-            }
-
-            if(SUPPORT_CONTROL){
-
-                /** @export */
-                FatPrototype.set = set;
-
-                /** @export */
-                FatPrototype.seek = seek;
-
-                /** @export */
-                FatPrototype.shift = function(ms){
-
-                    return this.seek(0, ms);
-                };
-
-                /** @export */
-                FatPrototype.pause = function(toggle){
-
-                    this.plays = is_undefined(toggle) ? false : toggle;
-                    return this;
-                };
-
-                /** @export */
-                FatPrototype.start = function(toggle){
-
-                    this.plays = is_undefined(toggle) ? true : toggle;
-                    return this;
-                };
-
-                /** @export */
-                FatPrototype.play = FatPrototype.start;
-
-                /** @export */
-                FatPrototype.speed = function(ratio){
-
-                    this.ratio = ratio;
-                    return this;
-                };
-
-                /** @export */
-                FatPrototype.reset = function(){
-
-                    this.ratio = 1;
-                    this.direction = true;
-                    return this.seek(0);
-                };
-
-                /** @export */
-                FatPrototype.finish = function(){
-
-                    return this.seek(1);
-                };
-
-                /** @export */
-                FatPrototype.reverse = function(toggle){
-
-                    this.direction = is_undefined(toggle) ? !this.direction : !toggle;
-                    return this;
-                };
-            }
-        }
-
-        if(SUPPORT_TRANSITION){
-
-            /** @export */
-            FatPrototype.transition = transition;
-        }
-
-        if(SUPPORT_NATIVE){
-
-            /** @export */
-            FatPrototype.native = native;
         }
 
         /**
@@ -1309,6 +1168,84 @@
             }
 
             return this;
+        }
+
+        /**
+         * @param obj
+         * @param {string=} style
+         */
+
+        function remove(obj, style){
+
+            const stack = this.stack;
+            const stack_length = stack.length;
+
+            obj = get_nodes(obj);
+
+            for(let a = 0, len = obj.length; a < len; a++){
+
+                if(!style || is_string(style)){
+
+                    for(let i = 0; i < stack_length; i++){
+
+                        const job = stack[i];
+
+                        if((job.obj === obj) && (!style || (job.style === style))){
+
+                            obj["_fat_" + job.style + this.id] = null;
+                            stack[i] = null;
+
+                            if(style){
+
+                                break;
+                            }
+                        }
+                    }
+                }
+                else{
+
+                    const styles_length = style.length;
+
+                    for(let i = 0; i < styles_length; i++){
+
+                        this.remove(obj[a], style[i]);
+                    }
+                }
+            }
+
+            return this;
+        }
+
+        /**
+         * @param {CSSStyleDeclaration} css
+         * @param {string} key
+         * @param {string} value
+         * @param {boolean=} force
+         */
+
+        function set_style(css, key, value, force){
+
+            if(force){
+
+                css.setProperty(key, value, "important");
+            }
+            else{
+
+                css.setProperty(key, value);
+            }
+
+            // Note: Edge actually do not apply style changes when passing void 0:
+            // css.setProperty(key, value, force ? "important" : void 0);
+        }
+
+        /**
+         * @param {string} string
+         * @returns {string}
+         */
+
+        function camel_to_snake(string) {
+
+            return string.replace(/([A-Z])/g, "-$1").toLowerCase();
         }
 
         function get_nodes(obj){
@@ -1463,17 +1400,20 @@
 
         function render_frames(time){
 
-            let len = this.stack.length;
-            let len_paint = SUPPORT_PAINT && this.paint_stack.length;
+            const stack = this.stack;
+            const paint_stack = this.paint_stack;
+            const len = stack.length;
+            const len_paint = SUPPORT_PAINT && paint_stack.length;
 
             if(len || len_paint){
 
                 this.exec = requestAnimationFrame(this.render);
-                this.last_update || (this.last_update = time);
+
+                const last_update = this.last_update || (this.last_update = time);
 
                 if(SUPPORT_CONTROL && this.fps){
 
-                    if((time - this.last_update + 1) < (1000 / this.fps)){
+                    if((time - last_update + 1) < (1000 / this.fps)){
 
                         return;
                     }
@@ -1498,7 +1438,7 @@
 
                     for(let i = 0; i < len; i++){
 
-                        const current_job = this.stack[i];
+                        const current_job = stack[i];
 
                         if(current_job){
 
@@ -1506,7 +1446,7 @@
 
                             if(!current_job.render_job(this, time)){
 
-                                this.stack[i] = null;
+                                stack[i] = null;
                             }
                         }
                     }
@@ -1516,17 +1456,17 @@
 
                     for(let i = 0; i < len_paint; i++){
 
-                        const current_paint = this.paint_stack[i];
+                        const current_paint = paint_stack[i];
 
                         if(current_paint){
 
                             in_progress = true;
 
-                            if(!current_paint._delay || ((current_paint._delay -= (time - this.last_update)) <= 0)){
+                            if(!current_paint._delay || ((current_paint._delay -= (time - last_update)) <= 0)){
 
                                 if(!current_paint(time)){
 
-                                    this.paint_stack[i] = null;
+                                    paint_stack[i] = null;
                                 }
                             }
                         }
@@ -1577,7 +1517,6 @@
             /**
              * @param {string|number} from
              * @param {string|number} to
-             * @param {string} unit
              * @param {boolean} force
              * @param {number|string|Function} duration
              * @param {string} ease_str
@@ -1590,7 +1529,7 @@
              * @param {string=} style_group
              */
 
-            JobPrototype.update_job = function(from, to, unit, force, duration, ease_str, callback, step, delay, transform, filter, color, style_group){
+            JobPrototype.update_job = function(from, to, /*unit,*/ force, duration, ease_str, callback, step, delay, transform, filter, color, style_group){
 
                 if(is_undefined(from)){
 
@@ -1740,9 +1679,8 @@
 
                     if(style === "scrollTop"){
 
-                        to *= (obj.scrollHeight - obj.clientHeight) / 100;
+                        to *=  (obj.scrollHeight - obj.clientHeight) / 100;
                         unit = "";
-
                     }
                     else if(style === "scrollLeft"){
 
@@ -1754,7 +1692,7 @@
 
             if(!unit){
 
-                unit = style_from.substring(("" + from).length) || "";
+                unit = style_from.substring(("" + from).length);
             }
 
             const job = SUPPORT_TRANSFORM || SUPPORT_COLOR || SUPPORT_FILTER ? (new Job(
@@ -1900,7 +1838,11 @@
 
                 if(style_order){
 
-                    style_order[style_order.length] = transform_group;
+                    if(!style_prop[transform_group]){
+
+                        style_order[style_order.length] = transform_group;
+                        style_prop[transform_group] = 1;
+                    }
                 }
 
                 return style_prop;
@@ -2312,7 +2254,7 @@
 
             const values = substring_match(style_matrix, "(", ")").split(',');
 
-            return parseFloat(values[matrix2d_index[style]]) || "";
+            return parseFloat(values[matrix2d_index[style]]) || 0;
         }
 
         function parse_keyframes(styles, style_keys, style_length, config_duration){
@@ -2352,6 +2294,12 @@
 
             return sequences;
         }
+
+        // TODO:
+        // dynamic values { style: function() }
+        // tween object properties
+        // convert units (support getting styles in desired unit)
+        // support easing steps { ease: 5 }
 
         /**
          * @param {Array<(Node|null)>|Node|NodeList|string|null} obj
@@ -2668,16 +2616,6 @@
                 let from;
                 let unit;
 
-                if(typeof value === "object"){
-
-                    config_delay = value["delay"] || config_delay;
-                    config_duration = value["duration"] || config_duration;
-                    config_ease = value["ease"] || config_ease;
-                    from = value["from"];
-                    unit = value["unit"];
-                    value = value["to"];
-                }
-
                 if(SUPPORT_TRANSFORM){
 
                     if(key === "transform"){
@@ -2754,6 +2692,15 @@
                     unit = value[2];
                     value = value[1];
                 }
+                else if(typeof value === "object"){
+
+                    config_delay = value["delay"] || config_delay;
+                    config_duration = value["duration"] || config_duration;
+                    config_ease = value["ease"] || config_ease;
+                    from = value["from"];
+                    unit = value["unit"];
+                    value = value["to"];
+                }
 
                 const last = (k === style_length - 1);
                 const job_id = "_fat_" + key + this.id;
@@ -2812,7 +2759,7 @@
 
                                 from,
                                 value,
-                                unit,
+                                //unit,
                                 config_force,
                                 config_duration,
                                 config_ease,
@@ -2831,7 +2778,7 @@
 
                                 from,
                                 value,
-                                unit,
+                                //unit,
                                 config_force,
                                 config_duration,
                                 config_ease,
@@ -2933,200 +2880,325 @@
 
         function cancel(id){
 
-            if(this.paint_stack[id]){
+            this.paint_stack[id] = null;
+        }
 
-                this.paint_stack[id] = null;
+        const FatPrototype = Fat.prototype;
+
+        if(SUPPORT_ANIMATE){
+
+            FatPrototype.create_job = create_job;
+            /** @export */
+            FatPrototype.animate = animate;
+            /** @export */
+            FatPrototype.destroy = destroy;
+            //FatPrototype.init = init;
+            /** @export */
+            FatPrototype.create = function(config){
+
+                return new Fat(config);
+            };
+
+            if(SUPPORT_PAINT){
+
+                /** @export */
+                FatPrototype.paint = paint;
+                /** @export */
+                FatPrototype.cancel = cancel;
             }
+
+            if(SUPPORT_EASING){
+
+                /** @export */
+                FatPrototype.ease = easing;
+            }
+
+            if(SUPPORT_PRESET){
+
+                /** @export */
+                FatPrototype.preset = presets;
+            }
+
+            if(SUPPORT_TRANSFORM){
+
+                /** @export */
+                FatPrototype.transform = function(obj, styles, config, callback){
+
+                    if(is_string(styles)){
+
+                        styles = {
+
+                            "transform": styles
+                        }
+                    }
+
+                    return this.animate(obj, styles, config, callback);
+                };
+            }
+
+            if(SUPPORT_FILTER){
+
+                /** @export */
+                FatPrototype.filter = function(obj, styles, config, callback){
+
+                    if(is_string(styles)){
+
+                        styles = {
+
+                            "filter": styles
+                        }
+                    }
+
+                    return this.animate(obj, styles, config, callback);
+                };
+            }
+
+            if(SUPPORT_CONTROL){
+
+                /** @export */
+                FatPrototype.set = set;
+
+                /** @export */
+                FatPrototype.seek = seek;
+
+                /** @export */
+                FatPrototype.remove = remove;
+
+                /** @export */
+                FatPrototype.shift = function(ms){
+
+                    return this.seek(0, ms);
+                };
+
+                /** @export */
+                FatPrototype.pause = function(toggle){
+
+                    this.plays = is_undefined(toggle) ? false : toggle;
+                    return this;
+                };
+
+                /** @export */
+                FatPrototype.start = function(toggle){
+
+                    this.plays = is_undefined(toggle) ? true : toggle;
+                    return this;
+                };
+
+                /** @export */
+                FatPrototype.speed = function(ratio){
+
+                    this.ratio = ratio;
+                    return this;
+                };
+
+                /** @export */
+                FatPrototype.reset = function(){
+
+                    this.ratio = 1;
+                    this.direction = true;
+                    return this.seek(0);
+                };
+
+                /** @export */
+                FatPrototype.finish = function(){
+
+                    return this.seek(1);
+                };
+
+                /** @export */
+                FatPrototype.reverse = function(toggle){
+
+                    this.direction = is_undefined(toggle) ? !this.direction : !toggle;
+                    return this;
+                };
+            }
+        }
+
+        if(SUPPORT_TRANSITION){
+
+            /** @export */
+            FatPrototype.transition = transition;
+        }
+
+        if(SUPPORT_NATIVE){
+
+            /** @export */
+            FatPrototype.native = native;
         }
 
         /**
          * @param {Array<(Node|null)>|Node|NodeList|string|null} obj
-         * @param {Object} styles
+         * @param {!Object} styles
          * @param {Object} config
          */
 
         function transition(obj, styles, config){
 
-            if(obj && styles){
+            if(DEBUG){
 
-                config || (config = {});
+                if(!obj){
 
-                obj = get_nodes(obj);
+                    console.error("Element not found", obj);
+                }
 
-                const style_keys = Object.keys(styles);
-                const style_length = style_keys.length;
-                const config_duration = (config["duration"] || 400) + "ms";
-                const config_ease = config["ease"] || "linear";
-                const config_callback = config["callback"] || false;
-                // TODO:
-                //const config_step = config["step"] || false;
-                const config_delay = (config["delay"] || 0) + "ms";
-                const config_force = config["force"];
+                if(!styles){
 
-                for(let i = 0; i < style_length; i++){
+                    console.error("Styles not found", styles);
+                }
+            }
 
-                    const current_style = style_keys[i];
+            config || (config = {});
 
-                    if(prefix_transform && (current_style === "transform")){
+            obj = get_nodes(obj);
 
-                        styles[prefix_transform] = styles[current_style];
-                        style_keys[i] = prefix_transform;
+            const style_keys = Object.keys(styles);
+            const style_length = style_keys.length;
+            const config_duration = (config["duration"] || 400) + "ms";
+            const config_ease = config["ease"] || "linear";
+            const config_callback = config["callback"] || false;
+            // TODO:
+            //const config_step = config["step"] || false;
+            const config_delay = (config["delay"] || 0) + "ms";
+            const config_force = config["force"];
+
+            for(let i = 0; i < style_length; i++){
+
+                const current_style = style_keys[i];
+
+                if(prefix_transform && (current_style === "transform")){
+
+                    styles[prefix_transform] = styles[current_style];
+                    style_keys[i] = prefix_transform;
+                }
+                else{
+
+                    const snake_val = camel_to_snake(current_style);
+
+                    styles[snake_val] = styles[current_style];
+                    style_keys[i] = snake_val;
+                }
+            }
+
+            const event = prefix_transition ? prefix_transition + "End" : "transitionend";
+
+            for(let i = 0, len = obj.length; i < len; i++){
+
+                const current_obj = obj[i];
+                const current_listener = current_obj.current_listener;
+
+                const transition_str = " " + config_duration + " " + config_ease + " " + config_delay;
+                const props_str = style_keys.join(transition_str + ",") + transition_str;
+                const current_style = current_obj._style || (current_obj._style = current_obj.style);
+
+                set_style(current_style, prefix_transition_js || "transition", props_str, config_force);
+
+                if(!config_callback || (config_callback !== current_listener)){
+
+                    if(current_listener){
+
+                        current_obj.removeEventListener(event, current_listener, false);
+                        current_obj.current_listener = null;
                     }
-                    else{
 
-                        const snake_val = camel_to_snake(current_style);
+                    if(config_callback){
 
-                        styles[snake_val] = styles[current_style];
-                        style_keys[i] = snake_val;
+                        current_obj.current_listener = config_callback;
+                        current_obj.addEventListener(event, config_callback, false);
                     }
                 }
 
-                const event = prefix_transition ? prefix_transition + "End" : "transitionend";
+                requestAnimationFrame(function(){
 
-                for(let i = 0, len = obj.length; i < len; i++){
+                    for(let k = 0; k < style_length; k++){
 
-                    const current_obj = obj[i];
-                    const current_listener = current_obj.current_listener;
+                        const key = style_keys[k];
 
-                    if(!config_callback || (config_callback !== current_listener)){
-
-                        if(current_listener){
-
-                            current_obj.removeEventListener(event, current_listener, false);
-                            current_obj.current_listener = null;
-                        }
-
-                        if(config_callback){
-
-                            current_obj.current_listener = config_callback;
-                            current_obj.addEventListener(event, config_callback, false);
-                        }
+                        set_style(current_style, key, styles[key], config_force);
                     }
-
-                    requestAnimationFrame(function(){
-
-                        const transition_str = " " + config_duration + " " + config_ease + " " + config_delay;
-                        const props_str = style_keys.join(transition_str + ",") + transition_str;
-                        const current_style = current_obj._style || (current_obj._style = current_obj.style);
-
-                        set_style(current_style, prefix_transition_js || "transition", props_str, config_force);
-
-                        for(let k = 0; k < style_length; k++){
-
-                            const key = style_keys[k];
-
-                            set_style(current_style, key, styles[key], config_force);
-                        }
-                    });
-                }
+                });
             }
 
             return this;
         }
 
         /**
-         * @param {string} string
-         * @returns {string}
-         */
-
-        function camel_to_snake(string) {
-
-            return string.replace(/([A-Z])/g, "-$1").toLowerCase();
-        }
-
-        /**
-         * @param {CSSStyleDeclaration} css
-         * @param {string} key
-         * @param {string} value
-         * @param {boolean=} force
-         */
-
-        function set_style(css, key, value, force){
-
-            if(force){
-
-                css.setProperty(key, value, "important");
-            }
-            else{
-
-                css.setProperty(key, value);
-            }
-
-            // Note: Edge actually do not apply style changes when passing void 0:
-            // css.setProperty(key, value, force ? "important" : void 0);
-        }
-
-        /**
          * @param {Array<(Node|null)>|Node|NodeList|string|null} obj
-         * @param {Object} styles
+         * @param {!Object} styles
          * @param {Object} config
          */
 
         function native(obj, styles, config){
 
-            if(obj && styles){
+            if(DEBUG){
 
-                config || (config = {});
+                if(!obj){
 
-                const style_keys = Object.keys(styles);
+                    console.error("Element not found", obj);
+                }
 
-                obj = get_nodes(obj);
+                if(!styles){
 
-                const config_duration = (config["duration"] || 400);
-                const config_ease = config["ease"] || "linear";
-                const config_callback = config["callback"];
-                // TODO:
-                //const config_step = config["step"];
-                const config_cancel = config["cancel"];
-                const config_delay = (config["delay"] || 0);
-                const style_length = style_keys.length;
+                    console.error("Styles not found", styles);
+                }
+            }
 
-                for(let i = 0, len = obj.length; i < len; i++){
+            config || (config = {});
 
-                    const current_obj = obj[i];
-                    const styles_arr = {};
+            const style_keys = Object.keys(styles);
+
+            obj = get_nodes(obj);
+
+            const config_duration = (config["duration"] || 400);
+            const config_ease = config["ease"] || "linear";
+            const config_callback = config["callback"];
+            // TODO:
+            //const config_step = config["step"];
+            //const config_cancel = config["cancel"];
+            const config_delay = (config["delay"] || 0);
+            const style_length = style_keys.length;
+
+            for(let i = 0, len = obj.length; i < len; i++){
+
+                const current_obj = obj[i];
+                const styles_arr = {};
+
+                for(let k = 0; k < style_length; k++){
+
+                    const key = style_keys[k];
+
+                    styles_arr[key] = [
+
+                        get_style(current_obj, key),
+                        styles[key]
+                    ];
+                }
+
+                current_obj.animate(styles_arr, {
+
+                    delay: config_delay,
+                    duration: config_duration,
+                    ease: config_ease
+
+                }).onfinish = function(){
 
                     for(let k = 0; k < style_length; k++){
 
                         const key = style_keys[k];
 
-                        styles_arr[key] = [
-
-                            get_style(current_obj, key),
-                            styles[key]
-                        ];
+                        set_style(current_obj._style, key, styles[key]);
                     }
-
-                    const anim = current_obj.animate(styles_arr, {
-
-                        delay: config_delay,
-                        duration: config_duration,
-                        ease: config_ease
-                    });
 
                     if(config_callback){
 
-                        anim.onfinish = function(){
-
-                            for(let k = 0; k < style_length; k++){
-
-                                const key = style_keys[k];
-
-                                set_style(current_obj._style, key, styles[key]);
-                            }
-
-                            config_callback.call(current_obj);
-                        };
+                        config_callback.call(current_obj);
                     }
+                };
 
-                    if(config_cancel){
-
-                        anim.oncancel = function(){
-
-                            config_cancel.call(current_obj);
-                        };
-                    }
-                }
+                // if(config_cancel){
+                //     anim.oncancel = function(){
+                //         config_cancel.call(current_obj);
+                //     };
+                // }
             }
 
             return this;

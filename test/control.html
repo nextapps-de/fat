@@ -18,7 +18,7 @@
 	</style>
 </head>
 <body>
-<div id="square_3" class="square">1</div><br>
+<div id="square_3" class="square">3</div><br>
 <div id="square_1" class="square">1</div><br>
 <br><br>
 Speed: <input type="range" min="-10" max="10" step="0.01" value="0" oninput="scene.speed(this.value);">
@@ -38,9 +38,9 @@ Seek: <input id="seek" type="range" min="0" max="1" step="0.001" value="0" oninp
 
 	window.scene = Fat.animate("#square_1", [{
 
-		left: {from: "0%", to: "50%"}
+		left: { from: "0%", to: "50%" }
 	},{
-		left: {from: "50%", to: "0%"}
+		left: { from: "50%", to: "0%" }
 	}],{
 		loop: -1,
 		duration: 20000,
@@ -49,14 +49,13 @@ Seek: <input id="seek" type="range" min="0" max="1" step="0.001" value="0" oninp
 		}
 	});
 
-
 	// -----------------------------------------------------------
 
-	window.scene2 = Fat.create({play: true}).animate("#square_2", [{
+	window.scene2 = Fat.create().animate("#square_2", [{
 
-		left: "50%"
+		left: [0, 50, "%"]
 	},{
-		left: 0
+		left: [50, 0, "%"]
 	}],{
 		loop: -1,
 		duration: 20000,
@@ -70,11 +69,11 @@ Seek: <input id="seek" type="range" min="0" max="1" step="0.001" value="0" oninp
 
 	// -----------------------------------------------------------
 
-	var scene3 = Fat.create({play: false}).animate("#square_3", [{
+	var scene3 = Fat.create({start: false}).animate("#square_3", [{
 
-		left: "50%"
+		left: "!=50%"
 	},{
-		left: 0
+		left: "!=0%"
 	}],{
 		loop: -1,
 		duration: 20000,

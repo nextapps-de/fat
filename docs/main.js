@@ -35,9 +35,9 @@
 			direction ?
 
 				[	Math.random() > 0.5 ? 0 : MAX_W,
-					Math.random() * MAX_H | 0]
+				   (Math.random() * MAX_H) >> 0 ]
 			:
-				[	Math.random() * MAX_W | 0,
+				[  (Math.random() * MAX_W) >> 0,
 					Math.random() > 0.5 ? 0 : MAX_H ]
 		)
 	}
@@ -53,6 +53,11 @@
 		}
 
 		return color;
+	}
+	
+	function getRandomDuration(x){
+		
+		return (Math.random() * (x || 1000) + (x || 1000)) >> 0;
 	}
 
 	function getNextColorRGB(){
@@ -75,15 +80,18 @@
 
 			Fat.animate(this, {
 
-				left: coords[0],
-				top: coords[1]
-			},{
-				duration: (Math.random() * 1000 + 1000) >> 0,
-				callback: animateBall.FAT,
-				step: function(){
-
-					fps_val++;
+				left: {
+					to: coords[0],
+					unit: "px"
+				},
+				top: {
+					to: coords[1],
+					unit: "px"
 				}
+			},{
+				duration: getRandomDuration(),
+				callback: animateBall.FAT,
+				step: function(){ fps_val++ }
 			});
 		}
 	};
@@ -102,12 +110,9 @@
 
 				backgroundColor: getNextColor()
 			},{
-				"duration": (Math.random() * 200 + 200) >> 0,
-				"callback": colorBall.FAT,
-				"step": function(){
-
-					fps_val++;
-				}
+				duration: getRandomDuration(200),
+				callback: colorBall.FAT,
+				step: function(){ fps_val++ }
 			});
 		}
 	};
@@ -120,15 +125,18 @@
 
 			Fat.transform(this, {
 
-				translateX: coords[0],
-				translateY: coords[1]
-			},{
-				"duration": (Math.random() * 1000 + 1000) >> 0,
-				"callback": transformBall.FAT,
-				"step": function(){
-
-					fps_val++;
+				translateX: {
+					to: coords[0],
+					unit: "px"
+				},
+				translateY: {
+					to: coords[1],
+					unit: "px"
 				}
+			},{
+				duration: getRandomDuration(),
+				callback: transformBall.FAT,
+				step: function(){ fps_val++ }
 			});
 		}
 	};
@@ -146,12 +154,9 @@
 				left: coords[0] + "px",
 				top: coords[1] + "px"
 			},{
-				"duration": (Math.random() * 1000 + 1000) >> 0,
-				"callback": animateBall.FAT_CSS3,
-				"step": function(){
-
-					fps_val++;
-				}
+				duration: getRandomDuration(),
+				callback: animateBall.FAT_CSS3,
+				step: function(){ fps_val++ }
 			});
 		}
 	};
@@ -164,12 +169,9 @@
 
 				backgroundColor: getNextColor()
 			},{
-				"duration": (Math.random() * 200 + 200) >> 0,
-				"callback": colorBall.FAT_CSS3,
-				"step": function(){
-
-					fps_val++;
-				}
+				duration: getRandomDuration(200),
+				callback: colorBall.FAT_CSS3,
+				step: function(){ fps_val++ }
 			});
 		}
 	};
@@ -184,12 +186,9 @@
 
 				transform: "translate(" + coords[0] + "px," + coords[1] + "px)"
 			},{
-				"duration": (Math.random() * 1000 + 1000) >> 0,
-				"callback": transformBall.FAT_CSS3,
-				"step": function(){
-
-					fps_val++;
-				}
+				duration: getRandomDuration(),
+				callback: transformBall.FAT_CSS3,
+				step: function(){ fps_val++ }
 			});
 		}
 	};
@@ -207,12 +206,9 @@
 				left: coords[0] + "px",
 				top: coords[1] + "px"
 			},{
-				"duration": (Math.random() * 1000 + 1000) >> 0,
-				"callback": animateBall.FAT_NATIVE,
-				"step": function(){
-
-					fps_val++;
-				}
+				duration: getRandomDuration(),
+				callback: animateBall.FAT_NATIVE,
+				step: function(){ fps_val++ }
 			});
 		}
 	};
@@ -227,12 +223,9 @@
 
 				transform: "translate(" + coords[0] + "px," + coords[1] + "px)"
 			},{
-				"duration": (Math.random() * 1000 + 1000) >> 0,
-				"callback": transformBall.FAT_NATIVE,
-				"step": function(){
-
-					fps_val++;
-				}
+				duration: getRandomDuration(),
+				callback: transformBall.FAT_NATIVE,
+				step: function(){ fps_val++ }
 			});
 		}
 	};
@@ -245,12 +238,9 @@
 
 				"backgroundColor": getNextColor()
 			},{
-				"duration": (Math.random() * 200 + 200) >> 0,
-				"callback": colorBall.FAT_NATIVE,
-				"step": function(){
-
-					fps_val++;
-				}
+				duration: getRandomDuration(200),
+				callback: colorBall.FAT_NATIVE,
+				step: function(){ fps_val++ }
 			});
 		}
 	};
@@ -295,7 +285,7 @@
 				left: coords[0],
 				top:  coords[1]
 			},{
-				duration: (Math.random() * 1000 + 1000) | 0,
+				duration: getRandomDuration(),
 				progress: function(){ fps_val++; },
 				easing: "linear",
 				complete: function(){
@@ -338,7 +328,7 @@
 				translateX: coords[0],
 				translateY: coords[1]
 			},{
-				duration: (Math.random() * 1000 + 1000) | 0,
+				duration: getRandomDuration(),
 				easing: "linear",
 				step: function(now, tween){
 
@@ -363,7 +353,7 @@
 
 				backgroundColor: getNextColor()
 			},{
-				duration: (Math.random() * 200 + 200) | 0,
+				duration: getRandomDuration(200),
 				progress: function(){ fps_val++; },
 				easing: "linear",
 				complete: function(){
@@ -388,7 +378,7 @@
 				left: [coords[0], 'linear'],
 				top:  [coords[1], 'linear']
 			},{
-				duration: (Math.random() * 1000 + 1000) | 0,
+				duration: getRandomDuration(),
 				progress: function(){ fps_val++; },
 				complete: function(){ animateBall.VELOCITY.call(_this) },
 				easing: 'linear'
@@ -408,7 +398,7 @@
 				translateX: [coords[0], 'linear'],
 				translateY: [coords[1], 'linear']
 			},{
-				duration: (Math.random() * 1000 + 1000) | 0,
+				duration: getRandomDuration(),
 				progress: function(){ fps_val++; },
 				complete: function(){ transformBall.VELOCITY.call(_this) },
 				easing: 'linear'
@@ -426,7 +416,7 @@
 
 				backgroundColor: [getNextColor(), 'linear']
 			},{
-				duration: (Math.random() * 200 + 200) | 0,
+				duration: getRandomDuration(200),
 				progress: function(){ fps_val++; },
 				complete: function(){ colorBall.VELOCITY.call(_this) },
 				easing: 'linear'
@@ -443,7 +433,7 @@
 			var coords = getNextCoords(this.direction = !this.direction);
 			var _this = this;
 
-			TweenLite.to(this, (Math.random() * 1000 + 1000) / 1000, {
+			TweenLite.to(this, getRandomDuration() / 1000, {
 
 				left: coords[0],
 				top: coords[1],
@@ -461,7 +451,7 @@
 			var coords = getNextCoords(this.direction = !this.direction);
 			var _this = this;
 
-			TweenLite.to(this, (Math.random() * 1000 + 1000) / 1000, {
+			TweenLite.to(this, getRandomDuration() / 1000, {
 
 				x: coords[0],
 				y: coords[1],
@@ -478,7 +468,7 @@
 
 			var _this = this;
 
-			TweenLite.to(this, (Math.random() * 200 + 200) / 1000, {
+			TweenLite.to(this, getRandomDuration(200) / 1000, {
 
 				backgroundColor: getNextColor(),
 				onComplete: function(){ colorBall.GSAP.call(_this); },
@@ -502,7 +492,7 @@
 				left: coords[0],
 				top:  coords[1]
 			},{
-				duration: (Math.random() * 1000 + 1000) | 0,
+				duration: getRandomDuration(),
 				easing: "linear",
 				complete: function(){
 
@@ -522,7 +512,7 @@
 
 				backgroundColor: getNextColor()
 			},{
-				duration: (Math.random() * 200 + 200) | 0,
+				duration: getRandomDuration(200),
 				easing: "linear",
 				complete: function(){
 
@@ -543,7 +533,7 @@
 
 				translate: coords[0] + "px," + coords[1] + "px"
 			},{
-				duration: (Math.random() * 1000 + 1000) | 0,
+				duration: getRandomDuration(),
 				easing: "linear",
 				complete: function(){
 
@@ -567,7 +557,7 @@
 				targets: this,
 				left: coords[0],
 				top:  coords[1],
-				duration: (Math.random() * 1000 + 1000) | 0,
+				duration: getRandomDuration(),
 				easing: "linear",
 				complete: function(){ animateBall.ANIMEJS.call(_this); },
 				update: function(){ fps_val++; }
@@ -607,7 +597,7 @@
 				targets: this,
 				translateX: coords[0] + "px",
 				translateY:  coords[1] + "px",
-				duration: (Math.random() * 1000 + 1000) | 0,
+				duration: getRandomDuration(),
 				easing: "linear",
 				complete: function(){ transformBall.ANIMEJS.call(_this); },
 				update: function(){ fps_val++; }
@@ -625,7 +615,7 @@
 
 				targets: this,
 				backgroundColor: getNextColor(),
-				duration: (Math.random() * 200 + 200) | 0,
+				duration: getRandomDuration(200),
 				easing: "linear",
 				complete: function(){ colorBall.ANIMEJS.call(_this); },
 				update: function(){ fps_val++; }
@@ -688,7 +678,7 @@
 			bajs.a(this, {
 
 				"curve": "linear",
-				"duration": ((Math.random() * 1000 + 1000) | 0) + "ms",
+				"duration": getRandomDuration() + "ms",
 				"0%": {
 					left: this._x,
 					top: this._y
@@ -726,7 +716,7 @@
 			bajs.a(this, {
 
 				"curve": "linear",
-				"duration": ((Math.random() * 1000 + 1000) | 0) + "ms",
+				"duration": getRandomDuration() + "ms",
 				"0%": {
 					transform: "translateX(" + this._x + "px) translateY(" + this._y + "px)"
 				},
@@ -751,7 +741,7 @@
 			bajs.a(this, {
 
 				"curve": "linear",
-				"duration": ((Math.random() * 200 + 200) | 0) + "ms",
+				"duration": getRandomDuration(200) + "ms",
 				"0%": {
 					"background-color": this._color
 				},
@@ -791,7 +781,7 @@
 			this._x = coords[0];
 			this._y = coords[1];
 
-			var duration = ((Math.random() * 1000 + 1000) | 0);
+			var duration = getRandomDuration();
 
 			TinyAnimate.animateCSS(this, "left", "px", from_x, this._x, duration, "linear");
 			TinyAnimate.animateCSS(this, "top", "px", from_y, this._y, duration, ease_linear_fps, function(){
@@ -836,7 +826,7 @@
 
 				left: coords[0] + "px",
 				top:  coords[1] + "px",
-				duration: ((Math.random() * 1000 + 1000) | 0),
+				duration: getRandomDuration(),
 				easing: function(t){
 
 					fps_val++;
@@ -860,7 +850,7 @@
 			morpheus(this, {
 
 				transform: "translate(" + (coords[0]) + "px," + (coords[1]) + "px)",
-				duration: ((Math.random() * 1000 + 1000) | 0),
+				duration: getRandomDuration(),
 				easing: function(t){
 
 					fps_val++;
@@ -883,7 +873,7 @@
 			morpheus(this, {
 
 				backgroundColor: getNextColor(),
-				duration: ((Math.random() * 200 + 200) | 0),
+				duration: getRandomDuration(200),
 				easing: function(t){
 
 					fps_val++;
@@ -1016,7 +1006,7 @@
 					left: coords[0],
 					top: coords[1]
 				},
-				duration: (Math.random() * 1000 + 1000) | 0,
+				duration: getRandomDuration(),
 				easing: function(n){ fps_val++; return n; },
 				onEnd: function(){ animateBall.DOJO.call(_this); }
 
@@ -1036,7 +1026,7 @@
 				properties: {
 					backgroundColor: getNextColor()
 				},
-				duration: (Math.random() * 200 + 200) | 0,
+				duration: getRandomDuration(200),
 				easing: function(n){ fps_val++; return n; },
 				onEnd: function(){ colorBall.DOJO.call(_this); }
 
@@ -1062,7 +1052,7 @@
 						coords[1]
 					]
 				},
-				duration: ((Math.random() * 1000 + 1000) | 0) / 1000,
+				duration: getRandomDuration() / 1000,
 				easing: function(e,t,n,r){fps_val++; return n*e/r+t}
 			});
 
@@ -1083,7 +1073,7 @@
 				to: {
 					backgroundColor: getNextColor()
 				},
-				duration: ((Math.random() * 200 + 200) | 0) / 1000,
+				duration: getRandomDuration(200) / 1000,
 				easing: function(e,t,n,r){fps_val++; return n*e/r+t}
 			});
 
@@ -1103,7 +1093,7 @@
 
 			var myFx = new Fx.Morph(_this, {
 
-				duration: (Math.random() * 1000 + 1000) | 0,
+				duration: getRandomDuration(),
 				transition: function(t){fps_val++; return t},
 				onComplete: function(){ animateBall.MOOTOOLS.call(_this); }
 			});
@@ -1123,7 +1113,7 @@
 
 			var myFx = new Fx.Morph(_this, {
 
-				duration: (Math.random() * 200 + 200) | 0,
+				duration: getRandomDuration(200),
 				transition: function(t){fps_val++; return t},
 				onComplete: function(){ colorBall.MOOTOOLS.call(_this); }
 			});
@@ -1154,7 +1144,7 @@
 				'left': coords[0],
 				'top': coords[1]
 
-			}, (Math.random() * 1000 + 1000) | 0, createjs.Ease.linear).call(function(){ animateBall.TWEENJS.call(_this); });
+			}, getRandomDuration(), createjs.Ease.linear).call(function(){ animateBall.TWEENJS.call(_this); });
 		}
 	};
 
@@ -1170,7 +1160,7 @@
 
 				transform: "translate(" + (coords[0]) + "px," + (coords[1]) + "px)"
 
-			}, (Math.random() * 1000 + 1000) | 0, createjs.Ease.linear).call(function(){ transformBall.TWEENJS.call(_this); });
+			}, getRandomDuration(), createjs.Ease.linear).call(function(){ transformBall.TWEENJS.call(_this); });
 		}
 	};
 
@@ -1184,7 +1174,7 @@
 
 				backgroundColor: getNextColor()
 
-			}, (Math.random() * 200 + 200) | 0, createjs.Ease.linear).call(function(){ colorBall.TWEENJS.call(_this); });
+			}, getRandomDuration(200), createjs.Ease.linear).call(function(){ colorBall.TWEENJS.call(_this); });
 		}
 	};
 
@@ -1200,7 +1190,7 @@
 			just.animate({
 
 				targets: _this,
-				duration: (Math.random() * 1000 + 1000) | 0,
+				duration: getRandomDuration(),
 				web: {
 					'left': coords[0],
 					'top': coords[1]
@@ -1229,7 +1219,7 @@
 			just.animate({
 
 				targets: _this,
-				duration: (Math.random() * 1000 + 1000) | 0,
+				duration: getRandomDuration(),
 				web: {
 					transform: 'translate(' + coords[0] + 'px,' + coords[1] + 'px)'
 				},
@@ -1256,7 +1246,7 @@
 			just.animate({
 
 				targets: _this,
-				duration: (Math.random() * 200 + 200) | 0,
+				duration: getRandomDuration(200),
 				web: {
 					backgroundColor: getNextColor()
 				},
@@ -1296,7 +1286,7 @@
 				"left": [this._x, this._x = coords[0] + "px"],
 				"top": [this._y, this._y = coords[1] + "px"]
 			},{
-				duration: (Math.random() * 1000 + 1000) | 0,
+				duration: getRandomDuration(),
 				easing: "linear"
 			});
 
@@ -1332,7 +1322,7 @@
 
 				transform: ['translate(' + (this._x) + 'px,' + (this._y) + 'px)', 'translate(' + (this._x = coords[0]) + 'px,' + (this._y = coords[1]) + 'px)']
 			},{
-				duration: (Math.random() * 1000 + 1000) | 0,
+				duration: getRandomDuration(),
 				easing: "linear"
 			});
 
@@ -1363,7 +1353,7 @@
 
 				"backgroundColor": [this._c, this._c = getNextColor()]
 			},{
-				duration: (Math.random() * 200 + 200) | 0,
+				duration: getRandomDuration(200),
 				easing: "linear"
 			});
 
@@ -1597,8 +1587,8 @@
 
 			if(test === "color"){
 
-				ball.style.left = (Math.random() * MAX_W) + "px";
-				ball.style.top = (Math.random() * MAX_H) + "px";
+				ball.style.left = ((Math.random() * MAX_W + 0.5) >> 0) + "px";
+				ball.style.top = ((Math.random() * MAX_H + 0.5) >> 0) + "px";
 			}
 			else{
 

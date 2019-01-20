@@ -1,11 +1,11 @@
 var child_process = require("child_process");
 var fs = require("fs");
-var { version } = require("./package.json");
+//var { version } = require("./package.json");
 
 console.log("Start build .....");
 
 fs.existsSync("log") || fs.mkdirSync("log");
-fs.existsSync("dist") || fs.mkdirSync("dist");
+//fs.existsSync("dist") || fs.mkdirSync("dist");
 
 var flag_str = "";
 
@@ -72,6 +72,13 @@ var parameter = (function(opt){
     //formatting: "PRETTY_PRINT"
 });
 
+var release = options['RELEASE'];
+
+if(release === "demo"){
+
+    options['RELEASE'] = "custom";
+}
+
 var custom = (!options['RELEASE'] || (options['RELEASE'] === "custom"));
 
 if(custom){
@@ -85,14 +92,13 @@ exec("java -jar node_modules/google-closure-compiler-java/compiler.jar" + parame
 
     console.log("Build Complete: " + filename);
 
-    fs.existsSync("dist/" + version) || fs.mkdirSync("dist/" + version);
-    fs.existsSync("dist/latest") || fs.mkdirSync("dist/latest");
+    if(release === "demo"){
 
-    fs.copyFileSync(filename, "dist/" + version + "/" + filename);
-    fs.copyFileSync(filename, "dist/latest/" + filename);
+        //fs.existsSync("dist/") || fs.mkdirSync("dist/");
+        //fs.existsSync("dist/latest") || fs.mkdirSync("dist/latest");
 
-    if(custom){
-
+        fs.copyFileSync(filename, "docs/" + filename);
+        //fs.copyFileSync(filename, "dist/latest/" + filename);
         fs.unlinkSync(filename);
     }
 });
@@ -109,8 +115,10 @@ function hashCode(str) {
     for(i = 0; i < str.length; i++){
 
         chr = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + chr;
+        hash = (hash << 5) - hash + chr;
     }
+
+    hash = Math.abs(hash) >> 0;
 
     return hash.toString(16).substring(0, 5);
 }

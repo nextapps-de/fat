@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8">
-	<title>Test: Parallel</title>
+	<title>Test: Concurrency</title>
 	<style>
 		.square{
 			position: relative;
@@ -57,27 +57,31 @@
 
 	// -------------------------------------
 
-	Fat.transform("#square_2", {
+	Fat.animate("#square_2", {
 		translateX: "200px"
 	},{
 		duration: 2000,
 		callback: function(){
 
-			Fat.transform(this, "translateX: 0px", {
+			Fat.animate(this, {
+				translateX: 0
+			},{
 				delay: 2000,
 				duration: 2000
 			})
 		}
 	});
 
-	Fat.transform("#square_2", {
+	Fat.animate("#square_2", {
 		translateY: "200px"
 	},{
 		delay: 1000,
 		duration: 2000,
 		callback: function(){
 
-			Fat.transform(this, "translateY: 400px", {
+			Fat.animate(this, {
+				translateY: 400
+			},{
 				duration: 2000
 			})
 		}
