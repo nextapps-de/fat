@@ -24,6 +24,7 @@
 <div id="square_4" class="square">4</div><br>
 <div id="square_5" class="square">5</div><br>
 <div id="square_6" class="square">6</div><br>
+<div id="square_7" class="square">7</div><br>
 <script type="text/javascript" src="../fat.js"></script>
 <script>
 
@@ -87,7 +88,7 @@
 
 	Fat.animate({
 
-		css: document.getElementById("square_5").style
+		style: document.getElementById("square_5").style
 	},{
 		custom: 50
 	},{
@@ -95,7 +96,7 @@
 		ease: "cubicInOut",
 		step: function(progress, value){
 			// "this" refers to the custom object/function
-			this.css.left = value + "%";
+			this.style.left = value + "%";
 		}
 	});
 
@@ -104,9 +105,9 @@
 	var handler = {
 
 		unit: "%",
-		css: document.getElementById("square_6").style,
-		set: function(style, value){
-			this.css[style] = value + this.unit;
+		style: document.getElementById("square_6").style,
+		set: function(property, value){
+			this.style[property] = value + this.unit;
 		}
 	};
 
@@ -120,6 +121,26 @@
 		}
 	});
 
+	// Custom Logic
+
+	var custom = {
+
+		value: 0,
+		property: "left",
+		obj: document.getElementById("square_7")
+	};
+
+	function draw(){
+
+		this.obj.style[this.property] = this.value;
+	}
+
+	Fat.animate(custom, { value: "50%" },{
+
+		duration: 2000,
+		ease: "cubicInOut",
+		step: draw
+	});
 </script>
 </body>
 </html>

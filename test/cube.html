@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8">
+	<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, minimum-scale=1, maximum-scale=1.0, user-scalable=no">
+	<title>Test: Cube</title>
+	<style>
+		body{
+			overflow: hidden;
+		}
+		.wrap {
+			position: relative;
+			top: 75px;
+			left: 75px;
+			width: 200px;
+			height: 200px;
+			perspective: 1000px;
+			perspective-origin: center center;
+		}
+		.cube {
+			position: relative;
+			width: 200px;
+			height: 200px;
+			transform-style: preserve-3d;
+		}
+		.face {
+			position: absolute;
+			width: 200px;
+			height: 200px;
+			background-image: url(../docs/fat_logo_white.svg);
+			background-position: center center;
+			background-size: 120px 120px;
+			background-repeat: no-repeat;
+			background-color: hsla(0, 100%, 50%, 0.65);
+			box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.35);
+			border: 1px solid rgba(0, 0, 0, 0.35);
+			box-sizing: border-box;
+		}
+		.back {
+			transform: translateZ(-100px) rotateY(180deg);
+		}
+		.right {
+			transform: rotateY(-270deg) translateX(100px);
+			transform-origin: right top;
+		}
+		.left {
+			transform: rotateY(270deg) translateX(-100px);
+			transform-origin: left center;
+		}
+		.top {
+			transform: rotateX(-90deg) translateY(-100px);
+			transform-origin: center top;
+		}
+		.bottom {
+			transform: rotateX(90deg) translateY(100px);
+			transform-origin: center bottom;
+		}
+		.front {
+			transform: translateZ(100px);
+		}
+		table td:first-of-type{
+			text-align: right;
+		}
+		input + input{
+			width: 35px;
+		}
+	</style>
+</head>
+<body>
+<div class="wrap">
+	<div class="cube">
+		<div class="face front"></div>
+		<div class="face back"></div>
+		<div class="face top"></div>
+		<div class="face bottom"></div>
+		<div class="face left"></div>
+		<div class="face right"></div>
+	</div>
+</div>
+<table style="width: 400px; padding-top: 175px">
+	<tr>
+		<td>
+			Rotate X:
+		</td>
+		<td>
+			<input id="rot_x" type="range" min="-360" max="360" step="1" value="30" oninput="loop(); update(this);">
+			<input type="text" value="30" readonly>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Rotate Y:
+		</td>
+		<td>
+			<input id="rot_y" type="range" min="-360" max="360" step="1" value="30" oninput="loop(); update(this);">
+			<input type="text" value="30" readonly>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Rotate Z:
+		</td>
+		<td>
+			<input id="rot_z" type="range" min="-360" max="360" step="1" value="30" oninput="loop(); update(this);">
+			<input type="text" value="30" readonly>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Color:
+		</td>
+		<td>
+			<input id="color" type="range" min="-180" max="180" step="1" value="0" oninput="set(); update(this);">
+			<input type="text" value="0" readonly>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Opacity:
+		</td>
+		<td>
+			<input id="opacity" type="range" min="0" max="1" step="0.01" value="0.65" oninput="set(); update(this);">
+			<input type="text" value="0.65" readonly>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			Speed:
+		</td>
+		<td>
+			<input id="speed" type="range" min="0" max="10" step="0.01" value="1" oninput="scene.speed(this.value); update(this);">
+			<input type="text" value="1" readonly>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			FPS:
+		</td>
+		<td>
+			<input type="range" min="1" max="60" step="1" value="60" oninput="scene.fps = this.value; update(this);">
+			<input type="text" value="60" readonly>
+		</td>
+	</tr>
+</table>
+<br><br>
+<script type="text/javascript" src="../fat.js"></script>
+<script>
+
+	(function(){
+
+		var rot_x = query("#rot_x"),
+			rot_y = query("#rot_y"),
+			rot_z = query("#rot_z"),
+			color = query("#color"),
+			opacity = query("#opacity"),
+			cube = query(".cube"),
+			faces = query(".face", true);
+
+		var scene = window.scene = Fat.create();
+
+		window.loop = function animate(){
+
+			scene.animate(cube, {
+
+				rotateX: {
+					to: "+=" + rot_x.value,
+					unit: "deg"
+				},
+				rotateY: {
+					to: "+=" + rot_y.value,
+					unit: "deg"
+				},
+				rotateZ: {
+					to: "+=" + rot_z.value,
+					unit: "deg"
+				}
+			},{
+				duration: 2000,
+				callback: animate
+			});
+		};
+
+		window.set = function(){
+
+			scene.set(faces, {
+
+				backgroundColor: "hsla(" + color.value + ", 100%, 50%, " + opacity.value + ")"
+			});
+		};
+
+		window.update = function(obj){
+
+			obj.nextElementSibling.value = obj.value;
+		};
+
+		function query(query, all){
+
+			return document["querySelector" + (all ? "All" : "")](query);
+		}
+
+		window.loop();
+
+	})();
+
+</script>
+</body>
+</html>
