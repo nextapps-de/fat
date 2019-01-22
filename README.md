@@ -8,7 +8,7 @@
 
 When it comes to raw animation speed <a href="#compare">FAT outperforms every single web animation library out there</a> and also provides flexible animation capabilities like scenes, sequences, transforms, coloring, controlling and easing. 
 
-<a href="#installation">Installation Guide</a> &ensp;&bull;&ensp; <a href="#api">API Reference</a> &ensp;&bull;&ensp; <a href="#builds">Custom Builds</a> &ensp;&bull;&ensp; <a href="#compare">Benchmark Ranking</a>
+<a href="#installation">Installation Guide</a> &ensp;&bull;&ensp; <a href="#api">API Reference</a> &ensp;&bull;&ensp; <a href="test/">Examples</a> &ensp;&bull;&ensp; <a href="#builds">Custom Builds</a> &ensp;&bull;&ensp; <a href="#compare">Benchmark Ranking</a>
 
 Get Latest (Stable Release):
 
@@ -50,7 +50,7 @@ All Features:
     <tr></tr>
     <tr>
         <td>Feature</td>
-        <td>fat.js / fat.min.js</td>
+        <td>fat.min.js</td>
         <td>fat.compact.js</td>
         <td>fat.light.js</td>
     </tr>
@@ -158,7 +158,7 @@ All Features:
             <a href="#relative">Relative Values</a>
         </td>
         <td>x</td>
-        <td>x</td>
+        <td>-</td>
         <td>-</td>
     </tr>
     <tr></tr>
@@ -176,7 +176,7 @@ All Features:
             <a href="#paint">Paint</a>
         </td>
         <td>x</td>
-        <td>x</td>
+        <td>-</td>
         <td>-</td>
     </tr>
     <tr></tr>
@@ -199,11 +199,13 @@ All Features:
     </tr>
     <tr>
         <td>File Size (gzip)</td>
-        <td>6.7 kb</td>
+        <td>7.0 kb</td>
         <td>4.5 kb</td>
         <td>1.9 kb</td>
     </tr>
 </table>
+
+> The flags _<a href="#debug">DEBUG</a>_ and _<a href="#profile">PROFILER</a>_ are also available in _fat.js_ for non-production use.
 
 > It is also very simple to make a <a href="#builds">Custom Build</a>
 
@@ -365,7 +367,7 @@ __"Animate" (2000 Bouncing Balls)__
         <td>30.0 kb</td>
         <td>25.14 Mb</td>
         <td>25.16 Mb</td>
-        <td><b>14413</b></td>
+        <td><b>7206</b></td>
         <td><b>1.3</b></td>
     </tr>
     <tr></tr>
@@ -509,7 +511,7 @@ __"Transforms" (2000 Bouncing Balls)__
         <td>11</td>
         <td>jQuery</td>
         <td>3.3.1</td>
-        <td><b>618</b></td>
+        <td><b>309</b></td>
         <td><b>0.01</b></td>
     </tr>
 </table>
@@ -617,7 +619,7 @@ __"Colors" (2000 Flashing Balls)__
         <td>12</td>
         <td>jQuery</td>
         <td>3.3.1</td>
-        <td><b>14005</b></td>
+        <td><b>7002</b></td>
         <td><b>4</b></td>
     </tr>
     <tr></tr>
@@ -1116,7 +1118,7 @@ Fat.animate("#mydiv", { left: "100px" },{ ease: function(t, b, c, d){
 ## Custom Property / Renderer
 > Fat.__animate__(custom_object[]{}, custom_property[]{}, options{})
 
-> __Note:__ You can't use more than one custom property per animation. Do not mix the custom property with existing ones within same animation.
+> __Note:__ You can't use more than one custom property per animation on a HTML element. Instead when animating custom object properties there are no limits.
 
 Just add a property with the name "custom":
 ```js
@@ -1145,14 +1147,14 @@ Fat.animate("#mydiv", {
 Pass in custom object/function as first parameter instead of an element:
 ```js
 Fat.animate({ 
-    style: document.getElementById("mydiv").style 
+    obj: document.getElementById("mydiv") 
 },{ 
     custom: 50
  },{
     ease: "cubicInOut",
     step: function(progress, current){
         // "this" refers to the custom object
-        this.style.left = current + "%";
+        this.obj.style.left = current + "%";
     }
 });
 ```
@@ -1166,9 +1168,9 @@ This way it is possible to pass custom data, logic and renderer through each ani
 ```js
 var handler = {
     unit: "%",
-    css: document.getElementById("mydiv").style,
-    set: function(style, value){ 
-        this.css[style] = value + this.unit;
+    obj: document.getElementById("mydiv"),
+    set: function(property, value){ 
+        this.obj.style[property] = value + this.unit;
     }
 };
 
@@ -1192,10 +1194,12 @@ function cubicInOut(x) {
     return ((x *= 2) <= 1 ? x*x*x : (x -= 2) *x*x + 2) / 2;
 }
 
-Fat.animate({ ease: cubicInOut },{ custom: true },{ step: function(progress){
-    var current = this.ease(progress); // "this" refers to the custom object
-    // console.log(current);
-}});
+Fat.animate({ ease: cubicInOut },{ custom: true },{
+    step: function(progress){
+        var current = this.ease(progress);
+        // console.log(current);
+    }
+});
 ```
 
 alternatively:
@@ -1208,9 +1212,31 @@ Fat.animate({},{ custom: true },{ step: function(progress){
 
 or:
 ```js
-Fat.animate({},{ custom: 1 },{ ease: cubicInOut, step: function(progress, current){
-    // console.log(current);
-}});
+Fat.animate({},{ custom: 1 },{
+    ease: cubicInOut, 
+    step: function(progress, current){
+        // console.log(current);
+    }
+});
+```
+
+__Tween custom object properties:__
+```js
+function draw(){
+    this.obj.style[this.property] = this.value;
+}
+
+var custom = {
+    value: 0,
+    property: "left",
+    obj: document.getElementById("#mydiv")
+};
+
+Fat.animate(custom, { value: "50%" },{
+    duration: 2000,
+    ease: "cubicInOut",
+    step: draw
+});
 ```
 
 <a name="sequences"></a>
@@ -1719,7 +1745,7 @@ When you perform different animations on the same object style properties to run
 
 To force duped animations you have to add the _strict_ option:
 ```js
-// next animation cannot be overridden:
+// this animation cannot be overridden:
 
 Fat.animate("#mydiv", { top: "100%" }, { duration: 2000, strict: true }, function(){
     console.log("long");
@@ -1754,7 +1780,7 @@ Fat.animate("#mydiv", { top: "100%" }, { force: true });
 <a name="engine"></a>
 ## Render Engines
 
-> These are an experimental feature. All engines are stand-alone so you can make a custom build just with your favorite pick.
+> These is an experimental feature. All engines are stand-alone, you can make a custom build just with your favorite pick.
 
 <table>
     <tr></tr>
@@ -1808,6 +1834,78 @@ Fat.native("#mydiv", {
 });
 ```
 
+<a name="debug"></a>
+## Debug
+
+> Do not use DEBUG in production builds.
+
+If you get issues, you can temporary set the _DEBUG_ flag to _true_ on top of _fat.js_:
+
+```js
+DEBUG = true;
+```
+
+This enables console logging of several processes. Just open the browsers console to make this information visible.
+
+<a name="profile"></a>
+## Profiler Stats
+
+> Do not use PROFILER in production builds.
+
+To collect some performance statistics of your scenes you need to temporary set the _PROFILER_ flag to _true_ on top of _fat.js_:
+
+```js
+PROFILER = true;
+```
+
+This enables profiling of several processes.
+
+An array of all profiles is available on:
+
+```js
+window.stats;
+```
+
+You can also just open the browsers console and enter this line to get stats.
+
+> The index of the array corresponds to the _scene.id_.
+
+Get stats from a specific scene:
+
+```js
+scene.stats;
+```
+
+The returning stats payload is divided into several categories. Each of these category provides its own statistic values.
+
+__Profiler Stats Properties__
+<table>
+    <tr></tr>
+    <tr>
+        <td>Property</td>
+        <td>Description</td>
+    </tr>
+    <tr>
+        <td>time</td>
+        <td>The sum of time (ms) the process takes (lower is better)</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>count</td>
+        <td>How often the process was called</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>ops</td>
+        <td>Average operations per seconds (higher is better)</td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td>nano</td>
+        <td>Average cost (ns) per operation/call (lower is better)</td>
+    </tr>
+</table>
+
 <a name="builds"></a>
 ## Custom Builds
 
@@ -1842,8 +1940,10 @@ npm run build-custom SUPPORT_EASE_IN_CUBIC=true SUPPORT_CONTROL=true
 
 Alternatively (Custom Build):
 ```bash
-node compile SUPPORT_CONTROL=true
+node compile support_control=true
 ```
+
+> The custom build will be saved to fat.custom.xxxxx.js (the "xxxxx" is a hash based on the used build flags).
 
 __Supported Build Flags__
 
@@ -1927,9 +2027,15 @@ __Supported Build Flags__
         <td><a href="#native">SUPPORT_NATIVE</a></td>
         <td>true, false (overrides SUPPORT_ENGINE)</td>
     </tr>
+    <tr>
+        <td><br><b>Language-Out Flags</b></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>LANGUAGE_OUT<br><br><br><br><br><br><br><br></td>
+        <td>ECMASCRIPT3<br>ECMASCRIPT5<br>ECMASCRIPT5_STRICT<br>ECMASCRIPT6<br>ECMASCRIPT6_STRICT<br>ECMASCRIPT_2015<br>ECMASCRIPT_2017<br>STABLE</td>
+    </tr>
 </table>
-
-The custom build will be saved to fat.custom.js
 
 ---
 

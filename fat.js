@@ -1,5 +1,5 @@
-;/**!
- * @preserve FAT v0.6.6
+/**!
+ * @preserve FAT v0.6.7
  * Copyright 2019 Nextapps GmbH
  * Author: Thomas Wilkerling
  * Released under the Apache 2.0 Licence
@@ -7,6 +7,7 @@
  */
 
 /** @define {boolean} */ const DEBUG = false;
+/** @define {boolean} */ const PROFILER = false;
 /** @define {boolean} */ const SUPPORT_COLOR = true;
 /** @define {boolean} */ const SUPPORT_CONTROL = true;
 /** @define {boolean} */ const SUPPORT_SEQUENCE = true;
@@ -18,10 +19,10 @@
 /** @define {boolean} */ const SUPPORT_PAINT = true;
 /** @define {boolean} */ const SUPPORT_EASING = true;
 /** @define {boolean} */ const SUPPORT_PRESET = true;
-/** @define {string} */  const SUPPORT_ENGINE = "";
-/** @define {boolean} */ const SUPPORT_ANIMATE = SUPPORT_ENGINE ? SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "js" : true;
-/** @define {boolean} */ const SUPPORT_TRANSITION = SUPPORT_ENGINE ? SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "css" : true;
-/** @define {boolean} */ const SUPPORT_NATIVE = SUPPORT_ENGINE ? SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "native" || SUPPORT_ENGINE === "waapi" : true;
+/** @define {string} */  const SUPPORT_ENGINE = "all";
+/** @define {boolean} */ const SUPPORT_ANIMATE = SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "js";
+/** @define {boolean} */ const SUPPORT_TRANSITION = SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "css";
+/** @define {boolean} */ const SUPPORT_NATIVE = SUPPORT_ENGINE === "all" || SUPPORT_ENGINE === "native" || SUPPORT_ENGINE === "waapi";
 
 // noinspection ThisExpressionReferencesGlobalObjectJS
 (function(){
@@ -31,10 +32,12 @@
         "use strict";
 
         const res = Math.max(screen.width, screen.height);
-        const prefetch_resolution = 10000;
+        const prefetch_resolution = res * (window.devicePixelRatio || 1); //10000
         const prefetch = {};
         const easing = {};
+        const profiles = [];
 
+        let profile;
         let unique;
 
         const vendor = (SUPPORT_TRANSFORM || SUPPORT_TRANSITION || SUPPORT_FILTER) && (function(){
@@ -69,7 +72,7 @@
 
         const parse_float = parseFloat;
 
-        let reset_style_id;
+        let reset_style_id = -1;
         let id_counter = 0;
         let obj_counter = 0;
 
@@ -80,31 +83,31 @@
 
         const builtin_easing = {
 
-            "easeIn": [.55, .085, .68, .53], // quadIn
-            "easeOut": [.25, .46, .45, .94], // quadOut
-            "easeInOut": [.455, .03, .515, .955], // quadInOut
-            "cubicIn": [.55, .055, .675, .19],
-            "cubicOut": [.215, .61, .355, 1],
-            "cubicInOut": [.645, .045, .355, 1],
-            "quartIn": [.895, .03, .685, .22],
-            "quartOut": [.165, .84, .44, 1],
-            "quartInOut": [.77, 0, .175, 1],
-            "quintIn": [.755, .05, .855, .06],
-            "quintOut": [.23, 1, .32, 1],
-            "quintInOut": [.86, 0, .07, 1],
-            "expoIn": [.95, .05, .795, .035],
-            "expoOut": [.19, 1, .22, 1],
+            "easeIn": [0.55, 0.085, 0.68, 0.53], // quadIn
+            "easeOut": [0.25, 0.46, 0.45, 0.94], // quadOut
+            "easeInOut": [0.455, 0.03, 0.515, 0.955], // quadInOut
+            "cubicIn": [0.55, 0.055, 0.675, 0.19],
+            "cubicOut": [0.215, 0.61, 0.355, 1],
+            "cubicInOut": [0.645, 0.045, 0.355, 1],
+            "quartIn": [0.895, 0.03, 0.685, 0.22],
+            "quartOut": [0.165, 0.84, 0.44, 1],
+            "quartInOut": [0.77, 0, 0.175, 1],
+            "quintIn": [0.755, 0.05, 0.855, 0.06],
+            "quintOut": [0.23, 1, 0.32, 1],
+            "quintInOut": [0.86, 0, 0.07, 1],
+            "expoIn": [0.95, 0.05, 0.795, 0.035],
+            "expoOut": [0.19, 1, 0.22, 1],
             "expoInOut": [1, 0, 0, 1],
-            "circIn": [.6, .04, .98, .335],
-            "circOut": [.075, .82, .165, 1],
-            "circInOut": [.785, .135, .15, .86],
-            "sineIn": [.47, 0, .745, .715],
-            "sineOut": [.39, .575, .565, 1],
-            "sineInOut": [.445, .05, .55, .95],
-            "backIn": [.6, -.28, .735, .045],
-            "backOut": [.175, .885, .32, 1.275],
-            "backInOut": [.68, -.55, .265, 1.55],
-            "snap": [.1, 1, .1, 1]
+            "circIn": [0.6, 0.04, 0.98, 0.335],
+            "circOut": [0.075, 0.82, 0.165, 1],
+            "circInOut": [0.785, 0.135, 0.15, 0.86],
+            "sineIn": [0.47, 0, 0.745, 0.715],
+            "sineOut": [0.39, 0.575, 0.565, 1],
+            "sineInOut": [0.445, 0.05, 0.55, 0.95],
+            "backIn": [0.6, -0.28, 0.735, 0.045],
+            "backOut": [0.175, 0.885, 0.32, 1.275],
+            "backInOut": [0.68, -0.55, 0.265, 1.55],
+            "snap": [0.1, 1, 0.1, 1]
         };
 
         // BezierEasing
@@ -122,16 +125,20 @@
              */
 
             function BezierClass(mX1, mY1, mX2, mY2){
-
-               this.mX1 = mX1;
-               this.mY1 = mY1;
-               this.mX2 = mX2;
-               this.mY2 = mY2;
+                /** @private */
+                this.mX1 = mX1;
+                /** @private */
+                this.mY1 = mY1;
+                /** @private */
+                this.mX2 = mX2;
+                /** @private */
+                this.mY2 = mY2;
             }
 
             /**
              * @param aA1
              * @param aA2
+             * @private
              * @returns {number}
              */
 
@@ -143,6 +150,7 @@
             /**
              * @param aA1
              * @param aA2
+             * @private
              * @returns {number}
              */
 
@@ -153,6 +161,7 @@
 
             /**
              * @param aA1
+             * @private
              * @returns {number}
              */
 
@@ -165,6 +174,7 @@
              * @param aT
              * @param aA1
              * @param aA2
+             * @private
              * @returns {number}
              */
 
@@ -179,6 +189,7 @@
              * @param aT
              * @param aA1
              * @param aA2
+             * @private
              * @returns {number}
              */
 
@@ -191,6 +202,7 @@
 
             /**
              * @param aX
+             * @private
              * @returns {*}
              */
 
@@ -228,6 +240,7 @@
 
             /**
              * @param x
+             * @private
              * @returns {*}
              */
 
@@ -365,24 +378,43 @@
             color,
             style_group
         ){
+            /** @private */
             this.obj = obj;
+            /** @private */
             this.css = obj._style;
+            /** @private */
             this.style = style;
+            /** @private */
             this.style_js = camel_to_snake(style);
+            /** @private */
             this.from = from;
+            /** @private */
             this.to = to;
+            /** @private */
             this.current = from;
+            /** @private */
             this.unit = unit;
+            /** @private */
             this.force = force;
+            /** @private */
             this.duration = duration;
+            /** @private */
             this.ease_str = ease_str;
+            /** @private */
             this.ease = init_easing(ease_str);
+            /** @private */
             this.time = 0;
+            /** @private */
             this.callback = callback;
+            /** @private */
             this.step = step;
+            /** @private */
             this.job_id = job_id;
+            /** @private */
             this.delay = delay;
+            /** @private */
             this.loop = loop;
+            /** @private */
             this.float = (
 
                 SUPPORT_COLOR && color ?
@@ -394,12 +426,15 @@
 
             if(SUPPORT_SEQUENCE){
 
+                /** @private */
                 this.seq_id = seq_id;
+                /** @private */
                 this.seq_count = seq_id + "_c";
             }
 
             if(SUPPORT_CONCURRENCY){
 
+                /** @private */
                 this.style_id = style_id;
             }
 
@@ -407,7 +442,9 @@
 
                 if(color){
 
+                    /** @private */
                     this.color = color;
+                    /** @private */
                     this.style_group = style_group;
                 }
             }
@@ -416,6 +453,7 @@
 
                 if(transform){
 
+                    /** @private */
                     this.transform = transform;
                 }
             }
@@ -424,6 +462,7 @@
 
                 if(filter){
 
+                    /** @private */
                     this.filter = filter;
                 }
             }
@@ -438,9 +477,15 @@
              * @param {number=} last
              * @param {number=} ratio
              * @param {boolean=} direction
+             * @private
              */
 
             JobPrototype.animate = function(now, last, ratio, direction){
+
+                if(PROFILER){
+
+                    profile_start("job.handle");
+                }
 
                 const from = this.from;
                 const to = this.to;
@@ -520,6 +565,12 @@
                     }
                 }
 
+                if(PROFILER){
+
+                    profile_end("job.handle");
+                    profile_start("job.draw");
+                }
+
                 const style = this.style;
 
                 if(!bypass && (this.current !== current_value)){
@@ -544,7 +595,14 @@
 
                         if(style !== "custom"){
 
-                            this.animate_job(style, current_value);
+                            if(is_object(obj)){
+
+                                obj[style] = current_value;
+                            }
+                            else{
+
+                                this.animate_job(style, current_value);
+                            }
                         }
                     }
                 }
@@ -562,9 +620,24 @@
                     current_value = this.color_job(this.style_group);
                 }
 
+                if(PROFILER){
+
+                    profile_end("job.draw");
+                }
+
                 if(this.step){
 
+                    if(PROFILER){
+
+                        profile_start("job.step");
+                    }
+
                     this.step.call(obj, complete ? (reverse ? 0 : 1) : stamp / duration, current_value);
+
+                    if(PROFILER){
+
+                        profile_end("job.step");
+                    }
                 }
 
                 if(complete){
@@ -618,10 +691,22 @@
                             }
                         }
 
+                        if(PROFILER){
+
+                            profile_start("job.callback");
+                        }
+
                         this.callback.call(obj);
+
+                        if(PROFILER){
+
+                            profile_end("job.callback");
+                        }
                     }
                 }
             };
+
+            /** @private */
 
             JobPrototype.render_job = function(fat, now){
 
@@ -692,7 +777,7 @@
 
                     if(SUPPORT_CONTROL){
 
-                        if(!fat.plays){
+                        if(!fat.playing){
 
                             fat.last_update += elapsed;
                             return true;
@@ -712,9 +797,11 @@
 
         if(SUPPORT_ANIMATE){
 
+            /** @private */
+
             JobPrototype.animate_job = function(style, value){
 
-                if(SUPPORT_SCROLL && (style === "scrollTop" || style === "scrollLeft")){
+                if(SUPPORT_SCROLL && scroll_keys[style]){
 
                     this.obj[style] = value;
                 }
@@ -727,11 +814,14 @@
 
         if(SUPPORT_CONTROL){
 
+            /** @private */
+
             JobPrototype.update = function(value, force){
 
                 // TODO:
                 //if(SUPPORT_TRANSFORM){}
                 //if(SUPPORT_COLOR){}
+                //if(SUPPORT_FILTER){}
 
                 if(this.current !== value){
 
@@ -778,6 +868,10 @@
                 obj[suffix + "G"] = index;
                 obj[suffix + "B"] = index;
                 obj[suffix + "A"] = index;
+
+                obj[suffix + "H"] = index;
+                obj[suffix + "S"] = index;
+                obj[suffix + "L"] = index;
             }
 
             construct("color", 1);
@@ -873,6 +967,19 @@
             transparent: [ null, null, null, 0 ],
         */
 
+        /**
+         * @const
+         * @dict
+         */
+
+        const scroll_keys = SUPPORT_SCROLL ? {
+
+            "scrollTop": 1,
+            "scrollLeft": 2,
+            "scroll": 3
+
+        } : null;
+
         let hex_to_int_table;
         let int_to_hex_table;
 
@@ -897,6 +1004,8 @@
 
         if(SUPPORT_TRANSFORM){
 
+            /** @private */
+
             JobPrototype.transform_job = function(){
 
                 const transform = this.obj._transform;
@@ -910,6 +1019,8 @@
 
         if(SUPPORT_FILTER){
 
+            /** @private */
+
             JobPrototype.filter_job = function(){
 
                 const filter = this.obj._filter;
@@ -922,6 +1033,8 @@
         }
 
         if(SUPPORT_COLOR){
+
+            /** @private */
 
             JobPrototype.color_job = function(style_group){
 
@@ -963,7 +1076,7 @@
             }
             else{
 
-                tmp = substring_match(hex_or_rgba, "(", ")").split(',');
+                tmp = substring_match(hex_or_rgba, "(", ")").split(",");
 
                 r = parseInt(tmp[0], 10);
                 g = parseInt(tmp[1], 10);
@@ -1062,6 +1175,7 @@
          * @return {Object<string, number>}
          */
 
+        /*
         function rgb_to_hsl(r, g, b){
 
             r /= 255;
@@ -1105,6 +1219,7 @@
                 l: l
             };
         }
+        */
 
         /**
          * @param {Object<string, number|boolean>=} config
@@ -1114,24 +1229,39 @@
 
         function Fat(config){
 
+            if(PROFILER){
+
+                this["stats"] = profile = profiles[id_counter] || (profiles[id_counter] = {});
+            }
+
             if(SUPPORT_ANIMATE){
 
-                this.id = ++id_counter; // start from 1
+                /** @export */
+                this.id = id_counter++;
+                /** @private */
                 this.stack = [];
+                /** @private */
                 this.render = render_frames.bind(this);
+                /** @private */
                 this.last_update = 0;
+                /** @private */
                 this.exec = 0;
 
                 if(SUPPORT_PAINT){
 
+                    /** @private */
                     this.paint_stack = [];
                 }
 
                 if(SUPPORT_CONTROL){
 
+                    /** @export */
                     this.fps = config && config["fps"];
-                    this.plays = !config || (config["start"] !== false);
+                    /** @export */
+                    this.playing = !config || (config["start"] !== false);
+                    /** @export */
                     this.direction = true;
+                    /** @export */
                     this.ratio = 1;
                 }
             }
@@ -1148,6 +1278,11 @@
          */
 
         function seek(progress, shift){
+
+            if(PROFILER){
+
+                profile_start("control.seek");
+            }
 
             const stack = this.stack;
             const no_shift = is_undefined(shift);
@@ -1167,15 +1302,25 @@
                 );
             }
 
+            if(PROFILER){
+
+                profile_end("control.seek");
+            }
+
             return this;
         }
 
         /**
+         * TODO: Removing specific properties actually breaks the callback chain
          * @param obj
-         * @param {string=} style
          */
 
-        function remove(obj, style){
+        function remove(obj/*, style*/){
+
+            if(PROFILER){
+
+                profile_start("scene.remove");
+            }
 
             const stack = this.stack;
             const stack_length = stack.length;
@@ -1184,33 +1329,38 @@
 
             for(let a = 0, len = obj.length; a < len; a++){
 
-                if(!style || is_string(style)){
+                //if(!style || is_string(style)){
 
                     for(let i = 0; i < stack_length; i++){
 
                         const job = stack[i];
 
-                        if((job.obj === obj) && (!style || (job.style === style))){
+                        if((job.obj === obj) /*&& (!style || (job.style === style))*/){
 
                             obj["_fat_" + job.style + this.id] = null;
                             stack[i] = null;
 
-                            if(style){
-
-                                break;
-                            }
+                            // if(style){
+                            //
+                            //     break;
+                            // }
                         }
                     }
-                }
-                else{
+                // }
+                // else{
+                //
+                //     const styles_length = style.length;
+                //
+                //     for(let i = 0; i < styles_length; i++){
+                //
+                //         this.remove(obj[a], style[i]);
+                //     }
+                // }
+            }
 
-                    const styles_length = style.length;
+            if(PROFILER){
 
-                    for(let i = 0; i < styles_length; i++){
-
-                        this.remove(obj[a], style[i]);
-                    }
-                }
+                profile_end("scene.remove");
             }
 
             return this;
@@ -1225,6 +1375,11 @@
 
         function set_style(css, key, value, force){
 
+            if(PROFILER){
+
+                profile_start("style.set");
+            }
+
             if(force){
 
                 css.setProperty(key, value, "important");
@@ -1232,6 +1387,11 @@
             else{
 
                 css.setProperty(key, value);
+            }
+
+            if(PROFILER){
+
+                profile_end("style.set");
             }
 
             // Note: Edge actually do not apply style changes when passing void 0:
@@ -1275,6 +1435,11 @@
 
             if(is_string(style)){
 
+                if(PROFILER){
+
+                    profile_start("scene.set");
+                }
+
                 for(let i = 0, len = obj.length; i < len; i++){
 
                     const cur_obj = obj[i];
@@ -1295,8 +1460,13 @@
 
                         const css = cur_obj._style || (cur_obj._style = cur_obj.style);
 
-                        set_style(css, style, value, force);
+                        set_style(css, camel_to_snake(style), value, force);
                     }
+                }
+
+                if(PROFILER){
+
+                    profile_end("scene.set");
                 }
             }
             else{
@@ -1331,7 +1501,7 @@
 
                 if(SUPPORT_CONCURRENCY && obj_counter && (reset_style_id === this.id)){
 
-                    reset_style_id = 0;
+                    reset_style_id = -1;
                 }
 
                 if(DEBUG){
@@ -1383,22 +1553,43 @@
                 return [];
             }
 
+            if(PROFILER){
+
+                profile_start("ease.prefetch");
+            }
+
+            /**
+             * @constructor
+             */
+
+            const Arr_class = Int16Array || Array;
+
             /**
              * @type {Array<number>|Int16Array<number>}
              * @const
              */
 
-            const arr = new (Int16Array || Array)(res);
+            const arr = new Arr_class(res);
 
             for(let i = 0; i < res; i++){
 
                 arr[i] = (fn_ease(i / res) * prefetch_resolution + 0.5) >> 0;
             }
 
+            if(PROFILER){
+
+                profile_end("ease.prefetch");
+            }
+
             return arr;
         }
 
         function render_frames(time){
+
+            if(PROFILER){
+
+                profile = profiles[this.id];
+            }
 
             const stack = this.stack;
             const paint_stack = this.paint_stack;
@@ -1425,7 +1616,7 @@
 
                     if(SUPPORT_CONCURRENCY && obj_counter){
 
-                        if(!reset_style_id){
+                        if(reset_style_id < 0){
 
                             unique = {};
                             reset_style_id = this.id;
@@ -1434,6 +1625,11 @@
 
                             unique = {};
                         }
+                    }
+
+                    if(PROFILER){
+
+                        profile_start("scene.draw");
                     }
 
                     for(let i = 0; i < len; i++){
@@ -1450,9 +1646,19 @@
                             }
                         }
                     }
+
+                    if(PROFILER){
+
+                        profile_end("scene.draw");
+                    }
                 }
 
                 if(len_paint){
+
+                    if(PROFILER){
+
+                        profile_start("scene.paint");
+                    }
 
                     for(let i = 0; i < len_paint; i++){
 
@@ -1470,6 +1676,11 @@
                                 }
                             }
                         }
+                    }
+
+                    if(PROFILER){
+
+                        profile_end("scene.paint");
                     }
                 }
 
@@ -1507,6 +1718,16 @@
          * @returns {boolean}
          */
 
+        function is_object(val){
+
+            return val.constructor === Object;
+        }
+
+        /**
+         * @param {*} val
+         * @returns {boolean}
+         */
+
         function is_undefined(val){
 
             return typeof val === "undefined";
@@ -1527,9 +1748,15 @@
              * @param {string=} filter
              * @param {string=} color
              * @param {string=} style_group
+             * @private
              */
 
             JobPrototype.update_job = function(from, to, /*unit,*/ force, duration, ease_str, callback, step, delay, transform, filter, color, style_group){
+
+                if(PROFILER){
+
+                    profile_start("job.update");
+                }
 
                 if(is_undefined(from)){
 
@@ -1601,6 +1828,11 @@
                     }
                 }
 
+                if(PROFILER){
+
+                    profile_end("job.update");
+                }
+
                 if(DEBUG){
 
                     console.log("Job updated", this);
@@ -1631,6 +1863,11 @@
          */
 
         function create_job(obj, style, job_id, from, to, unit, force, duration, ease_str, callback, step, delay, loop, style_id, seq_id, transform, filter, color, style_group){
+
+            if(PROFILER){
+
+                profile_start("job.create");
+            }
 
             let style_from = "" + (
 
@@ -1677,12 +1914,14 @@
 
                 if(SUPPORT_SCROLL && (unit === "%")){
 
-                    if(style === "scrollTop"){
+                    const scroll_index = scroll_keys[style];
+
+                    if(scroll_index === 1){
 
                         to *=  (obj.scrollHeight - obj.clientHeight) / 100;
                         unit = "";
                     }
-                    else if(style === "scrollLeft"){
+                    else if(scroll_index === 2){
 
                         to *= (obj.scrollWidth - obj.clientWidth) / 100;
                         unit = "";
@@ -1743,6 +1982,11 @@
                 obj[job_id] = job;
             }
 
+            if(PROFILER){
+
+                profile_end("job.create");
+            }
+
             if(DEBUG){
 
                 console.log("Job created", job);
@@ -1762,23 +2006,23 @@
 
             if(operator === "+"){
 
-                to = from + to;
+                return from + to;
             }
             else if(operator === "-"){
 
-                to = from - to;
+                return from - to;
             }
             else if(operator === "*"){
 
-                to = from * to;
+                return from * to;
             }
             else if(operator === "/"){
 
-                to = from / to;
+                return from / to;
             }
             else if(operator === "!"){
 
-                to = from === to ? 0 : to;
+                return from === to ? 0 : to;
             }
 
             return to;
@@ -1793,31 +2037,36 @@
 
         function get_style(obj, style, from){
 
-            if(SUPPORT_SCROLL && (style === "scrollTop" || style === "scrollLeft")){
-
-                return is_undefined(from) ? obj[style] : from;
-            }
-            else if(style === "custom"){
+            if(style === "custom"){
 
                 return from || 0;
             }
+            else if(is_object(obj) || (SUPPORT_SCROLL && scroll_keys[style])){
 
-            const css = obj._style || (obj._style = obj.style);
-            const style_value = is_undefined(from) ? css[style] : from;
-
-            if(!style_value){
-
-                return (
-
-                    obj._style_comp || (
-
-                        obj._style_comp = getComputedStyle(obj)
-                    )
-
-                )[style];
+                return is_undefined(from) ? obj[style] : from;
             }
 
-            return style_value;
+            if(PROFILER){
+
+                profile_start("style.get");
+            }
+
+            const css = obj._style || (obj._style = obj.style);
+            const value = (is_undefined(from) ? css[style] : from) || (
+
+                obj._style_comp || (
+
+                    obj._style_comp = getComputedStyle(obj)
+                )
+
+            )[style];
+
+            if(PROFILER){
+
+                profile_end("style.get");
+            }
+
+            return value;
         }
 
         /**
@@ -1852,7 +2101,7 @@
                 style_value = style + "(" + get_transform_matrix(style_value, style) + ")";
             }
 
-            const parts = style_value.replace(/, /g, ",").split(' ');
+            const parts = style_value.replace(/, /g, ",").split(" ");
             const has_prop = {};
 
             let style_order_len = 0;
@@ -1864,7 +2113,7 @@
 
                 if(prop){
 
-                    const values = substring_match(part, "(", ")").split(',');
+                    const values = substring_match(part, "(", ")").split(",");
                     const len = values.length;
 
                     if(len > 2){
@@ -1932,7 +2181,7 @@
                 return style_prop;
             }
 
-            const parts = style_value.split(' ');
+            const parts = style_value.split(" ");
             const has_prop = {};
 
             let style_order_len = 0;
@@ -2137,18 +2386,20 @@
                 }
             }
 
-            if((a === 1) || is_undefined(a)){
+            return (
 
-                return "#" + int_to_hex_table[r]
-                           + int_to_hex_table[g]
-                           + int_to_hex_table[b];
-            }
-            else{
+                ((a === 1) || is_undefined(a)) ?
 
-                return "rgba(" + r + "," + g + "," + b + "," + a + ")";
-            }
+                    "#" + int_to_hex_table[r]
+                        + int_to_hex_table[g]
+                        + int_to_hex_table[b]
+                :
+                    "rgba(" + r + "," + g + "," + b + "," + a + ")"
+            );
+
         }
-        
+
+        /*
         function merge_arrays_at(first, second, pos){
 
             const second_length = second.length;
@@ -2172,6 +2423,7 @@
 
             return result;
         }
+        */
 
         function is_visible(obj) {
 
@@ -2252,7 +2504,7 @@
             // rotateY = b;
             // rotateZ = c;
 
-            const values = substring_match(style_matrix, "(", ")").split(',');
+            const values = substring_match(style_matrix, "(", ")").split(",");
 
             return parseFloat(values[matrix2d_index[style]]) || 0;
         }
@@ -2297,7 +2549,6 @@
 
         // TODO:
         // dynamic values { style: function() }
-        // tween object properties
         // convert units (support getting styles in desired unit)
         // support easing steps { ease: 5 }
 
@@ -2309,6 +2560,11 @@
          */
 
         function animate(obj, styles, config, callback){
+
+            if(PROFILER){
+
+                profile_start("scene.init");
+            }
 
             if(DEBUG){
 
@@ -2600,6 +2856,12 @@
 
             const seq_id = SUPPORT_SEQUENCE && ("_seq_" + this.id);
 
+            if(PROFILER){
+
+                profile_end("scene.init");
+                profile_start("scene.handle");
+            }
+
             /* Create Jobs */
 
             for(let k = 0; k < style_length; k++){
@@ -2845,6 +3107,10 @@
                 this.exec = requestAnimationFrame(this.render)
             }
 
+            if(PROFILER){
+
+                profile_end("scene.handle");
+            }
 
             return this;
         }
@@ -2973,14 +3239,14 @@
                 /** @export */
                 FatPrototype.pause = function(toggle){
 
-                    this.plays = is_undefined(toggle) ? false : toggle;
+                    this.playing = is_undefined(toggle) ? false : toggle;
                     return this;
                 };
 
                 /** @export */
                 FatPrototype.start = function(toggle){
 
-                    this.plays = is_undefined(toggle) ? true : toggle;
+                    this.playing = is_undefined(toggle) ? true : toggle;
                     return this;
                 };
 
@@ -3193,15 +3459,37 @@
                         config_callback.call(current_obj);
                     }
                 };
-
-                // if(config_cancel){
-                //     anim.oncancel = function(){
-                //         config_cancel.call(current_obj);
-                //     };
-                // }
             }
 
             return this;
+        }
+
+        if(PROFILER){
+
+            /** @export */
+            window.stats = profiles;
+        }
+
+        function profile_start(key){
+
+            (profile[key] || (profile[key] = {
+
+                /** @export */ time: 0,
+                /** @export */ count: 0,
+                /** @export */ ops: 0,
+                /** @export */ nano: 0
+
+            })).ops = (performance || Date).now();
+        }
+
+        function profile_end(key){
+
+            const current = profile[key];
+
+            current.time += (performance || Date).now() - current.ops;
+            current.count++;
+            current.ops = 1000 / current.time * current.count;
+            current.nano = current.time / current.count * 1000;
         }
 
         return new Fat();
