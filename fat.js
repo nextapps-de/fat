@@ -1,5 +1,5 @@
 /**!
- * @preserve FAT v0.6.7
+ * @preserve FAT v0.6.8
  * Copyright 2019 Nextapps GmbH
  * Author: Thomas Wilkerling
  * Released under the Apache 2.0 Licence
@@ -40,35 +40,47 @@
         let profile;
         let unique;
 
-        const vendor = (SUPPORT_TRANSFORM || SUPPORT_TRANSITION || SUPPORT_FILTER) && (function(){
+        let vendor;
+        let prefix_transform, prefix_transform_js,
+            prefix_transition, prefix_transition_js,
+            prefix_filter, prefix_filter_js;
 
-            const styles = getComputedStyle(document.body);
+        if(SUPPORT_TRANSFORM || SUPPORT_TRANSITION || SUPPORT_FILTER) {
 
-            if(is_undefined(styles["transform"])){
+            document.addEventListener("DOMContentLoaded", function(){
 
-                const vendors = ["webkit", "moz", "ms", "o"];
+                vendor = (function(){
 
-                for(let i = 0, tmp; i < vendors.length; i++) {
+                    const styles = getComputedStyle(document.body);
 
-                    if(!is_undefined(styles[(tmp = vendors[i]) + "Transform"])){
+                    if(is_undefined(styles["transform"])){
 
-                        return tmp;
+                        const vendors = ["webkit", "moz", "ms", "o"];
+
+                        for(let i = 0, tmp; i < vendors.length; i++) {
+
+                            if(!is_undefined(styles[(tmp = vendors[i]) + "Transform"])){
+
+                                return tmp;
+                            }
+                        }
                     }
-                }
-            }
-            else{
+                    else{
 
-                return "";
-            }
+                        return "";
+                    }
 
-        })();
+                })();
 
-        const prefix_transform = vendor && (vendor + "Transform");
-        const prefix_transform_js = vendor && ("-" + camel_to_snake(prefix_transform));
-        const prefix_transition = vendor && (vendor + "Transition");
-        const prefix_transition_js = vendor && ("-" + camel_to_snake(prefix_transition));
-        const prefix_filter = vendor && (vendor + "Filter");
-        const prefix_filter_js = vendor && ("-" + camel_to_snake(prefix_filter));
+                prefix_transform = vendor && (vendor + "Transform");
+                prefix_transform_js = vendor && ("-" + camel_to_snake(prefix_transform));
+                prefix_transition = vendor && (vendor + "Transition");
+                prefix_transition_js = vendor && ("-" + camel_to_snake(prefix_transition));
+                prefix_filter = vendor && (vendor + "Filter");
+                prefix_filter_js = vendor && ("-" + camel_to_snake(prefix_filter));
+
+            }, false);
+        }
 
         const parse_float = parseFloat;
 
@@ -595,7 +607,7 @@
 
                         if(style !== "custom"){
 
-                            if(is_object(obj)){
+                            if(!obj.nodeType){
 
                                 obj[style] = current_value;
                             }
@@ -1231,7 +1243,10 @@
 
             if(PROFILER){
 
-                this["stats"] = profile = profiles[id_counter] || (profiles[id_counter] = {});
+                profile = profiles[id_counter] || (profiles[id_counter] = {});
+
+                /** @export */
+                this.stats = profile;
             }
 
             if(SUPPORT_ANIMATE){
@@ -1414,9 +1429,9 @@
 
                 obj = document.querySelectorAll(/** @type {string} */ (obj));
             }
-            else{
+            else if(!is_array(obj)){
 
-                obj.length || (obj = [obj]);
+                obj = [obj];
             }
 
             return obj;
@@ -2041,7 +2056,7 @@
 
                 return from || 0;
             }
-            else if(is_object(obj) || (SUPPORT_SCROLL && scroll_keys[style])){
+            else if(!obj.nodeType || (SUPPORT_SCROLL && scroll_keys[style])){
 
                 return is_undefined(from) ? obj[style] : from;
             }
@@ -3494,7 +3509,7 @@
 
         return new Fat();
 
-    })(), this);
+    }()), this);
 
     /** --------------------------------------------------------------------------------------
      * UMD Wrapper for Browser and Node.js
@@ -3535,4 +3550,4 @@
         }
     }
 
-}).call(this);
+}.call(this));
