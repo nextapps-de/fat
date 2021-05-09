@@ -804,7 +804,7 @@ Control methods:
         <td align="left"><b>loop</b></td>
         <td align="left"><i>Number</i></td>
         <td align="left">0</td>
-        <td align="left">Loop count of <a href="#sequences">sequences</a> or <a href="#keyframes">keyframes</a>. Set to <i>-1</i> for inifinite loops.</td>
+        <td align="left">Loop count of <a href="#sequences">sequences</a> or <a href="#keyframes">keyframes</a>. Set to <i>-1</i> for infinite loops.</td>
     </tr>
     <tr></tr>
     <tr>
